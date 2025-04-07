@@ -52,6 +52,14 @@ mv k9s /usr/local/bin
 rm README.md LICENSE 
 ```
 
+### Shell access
+
+To access shell in a pod add kubectl to your $PATH envrionment variable
+
+```bash
+sudo ln -s microk8s.kubectl kubectl
+```
+
 ## Export environment variable KUBECONFIG for k9s and helm
 
 ```bash
