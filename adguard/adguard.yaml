@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: adguard
+  labels:
+    name: adguard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: adguard-pvc
+  namespace: adguard
+spec:
+  accessModes: 
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adguard-deployment
+  namespace: adguard
+spec:
+  selector:
+    matchLabels:
+      app: adguard
+  template:
+    metadata:
+      labels:
+        app: adguard
+    spec:
+      containers:
+        - name: adguard
+          image: adguard/adguardhome:latest
+          ports:
+            - containerPort: 53
+              name: dns-udp
+              protocol: UDP
+            - containerPort: 53
+              name: dns-tcp
+              protocol: TCP
+            - containerPort: 80
+              name: http
+              protocol: TCP
+            - containerPort: 443
+              name: https-udp
+              protocol: UDP
+            - containerPort: 443
+              name: https-tcp
+              protocol: TCP
+            - containerPort: 3000
+              name: admin
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /opt/adguardhome/conf
+              name: adguard-storage
+              subPath: config
+            - mountPath: /opt/adguardhome/work
+              name: adguard-storage
+              subPath: work
+      volumes:
+        - name: adguard-storage
+          persistentVolumeClaim:
+            claimName: adguard-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adguard-service
+  namespace: adguard
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 192.168.178.201
+spec:
+  type: LoadBalancer 
+  ports:
+    - name: http-internal
+      port: 3000
+      protocol: TCP
+    - name: dns
+      port: 53
+      protocol: UDP
+    - name: http
+      port: 80
+      protocol: TCP
+  selector: 
+    app: adguard
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: adguard-ingress
+  namespace: adguard
+spec:
+  rules:
+    - host: adguard.$DOMAIN
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: adguard-service
+              port:
+                number: 80
