@@ -84,6 +84,9 @@ spec:
     - name: http
       port: 80
       protocol: TCP
+    - name: https
+      port: 443
+      protocol: TCP
   selector: 
     app: adguard
 ---
@@ -92,7 +95,15 @@ kind: Ingress
 metadata:
   name: adguard-ingress
   namespace: adguard
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.178.0/24
+    cert-manager.io/cluster-issuer: lets-encrypt
 spec:
+  tls:
+    - hosts:
+      - adguard.$DOMAIN
+      secretName: adguard-ingress-tls
   rules:
     - host: adguard.$DOMAIN
       http:
