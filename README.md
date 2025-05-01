@@ -58,7 +58,8 @@ rm README.md LICENSE
 To access shell in a pod add kubectl to your $PATH envrionment variable
 
 ```bash
-sudo ln -s microk8s.kubectl kubectl
+cd /snap/bin
+sudo ln -s /snap/bin/microk8s.kubectl kubectl
 ```
 
 ## Export environment variable KUBECONFIG for k9s and helm
