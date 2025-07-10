@@ -15,7 +15,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 500Mi
+      storage: 750Mi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -31,6 +31,7 @@ spec:
       labels:
         app: adguard
     spec:
+      hostNetwork: true
       containers:
         - name: adguard
           image: adguard/adguardhome:latest
@@ -41,18 +42,18 @@ spec:
             - containerPort: 53
               name: dns-tcp
               protocol: TCP
-            - containerPort: 80
+            - containerPort: 8080
               name: http
               protocol: TCP
-            - containerPort: 443
+            - containerPort: 8443
               name: https-udp
               protocol: UDP
-            - containerPort: 443
+            - containerPort: 8443
               name: https-tcp
               protocol: TCP
-            - containerPort: 3000
-              name: admin
-              protocol: TCP
+            - containerPort: 67
+              name: dhcp-udp
+              protocol: UDP
           volumeMounts:
             - mountPath: /opt/adguardhome/conf
               name: adguard-storage
@@ -70,23 +71,21 @@ kind: Service
 metadata:
   name: adguard-service
   namespace: adguard
-  annotations:
-    metallb.universe.tf/loadBalancerIPs: 192.168.178.201
 spec:
   type: LoadBalancer 
   ports:
-    - name: http-internal
-      port: 3000
-      protocol: TCP
     - name: dns
       port: 53
       protocol: UDP
     - name: http
-      port: 80
+      port: 8080
       protocol: TCP
     - name: https
-      port: 443
+      port: 8443
       protocol: TCP
+    - name: dhcp
+      port: 67
+      protocol: UDP
   selector: 
     app: adguard
 ---
@@ -97,7 +96,7 @@ metadata:
   namespace: adguard
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.178.0/24
+    nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.13.0/24,10.8.0.0/24
     cert-manager.io/cluster-issuer: lets-encrypt
 spec:
   tls:
@@ -114,4 +113,4 @@ spec:
             service:
               name: adguard-service
               port:
-                number: 80
+                number: 8080
