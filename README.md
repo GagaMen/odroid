@@ -19,7 +19,6 @@ To install a specific veraion see [https://microk8s.io/docs/setting-snap-channel
 ```bash
 microk8s enable dns
 microk8s enable ingress
-microk8s enable metallb
 ```
 
 ## Configure z shell (zsh)
