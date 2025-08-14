@@ -51,7 +51,7 @@ echo "PrivateKey = $(cat server.key)" >> /etc/wireguard/wg0.conf
 
 ## Open the VPN port in your router
 
-Go to your router configuration page and enable port 51820 for your Odroid.
+Go to your router configuration page and enable port 47111 for your Odroid.
 
 ## Start wireguard service
 
