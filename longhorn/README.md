@@ -36,9 +36,18 @@ ingress:
 
 ## Installation using helm
 
+1. Add repository
+
+```bash
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+```
+
+2. Install through helm
+
 > Use --set flag to override ingress host with predefined environment variable
 
-```´bah
+```bash
 helm install longhorn longhorn/longhorn \
   --namespace longhorn \
   --create-namespace \
