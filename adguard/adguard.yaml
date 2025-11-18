@@ -8,14 +8,26 @@ metadata:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: adguard-pvc
+  name: adguard-pvc-conf
   namespace: adguard
 spec:
   accessModes: 
     - ReadWriteOnce
   resources:
     requests:
-      storage: 750Mi
+      storage: 25Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: adguard-pvc-work
+  namespace: adguard
+spec:
+  accessModes: 
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -34,7 +46,7 @@ spec:
       hostNetwork: true
       containers:
         - name: adguard
-          image: adguard/adguardhome:latest
+          image: adguard/adguardhome:v0.107.67
           ports:
             - containerPort: 53
               name: dns-udp
@@ -56,15 +68,16 @@ spec:
               protocol: UDP
           volumeMounts:
             - mountPath: /opt/adguardhome/conf
-              name: adguard-storage
-              subPath: config
+              name: adguard-storage-conf
             - mountPath: /opt/adguardhome/work
-              name: adguard-storage
-              subPath: work
+              name: adguard-storage-work
       volumes:
-        - name: adguard-storage
+        - name: adguard-storage-conf
           persistentVolumeClaim:
-            claimName: adguard-pvc
+            claimName: adguard-pvc-conf
+        - name: adguard-storage-work
+          persistentVolumeClaim:
+            claimName: adguard-pvc-work
 ---
 apiVersion: v1
 kind: Service

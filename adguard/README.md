@@ -126,6 +126,6 @@ kubectl exec --stdin --tty --namespace=adguard adguard-deployment-598c79d975-cgg
 3. Change config files in config folder:
 
 ```bash
-cd config/
+cd /opt/adguardhome/conf
 vi AdGuardHome.yaml
 ```
