@@ -15,5 +15,9 @@ updates:
   - package-ecosystem: "helm"
     directories:
       - /longhorn
+    groups:
+      longhorn:
+        patterns:
+          - "*"
     schedule:
       interval: "weekly"
