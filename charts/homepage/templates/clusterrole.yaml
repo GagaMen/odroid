@@ -1,0 +1,13 @@
+{{- if .Values.clusterrole.enable }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "homepage.fullname" . }}
+  namespace: {{ include "homepage.namespace" . }}
+  labels:
+    {{- include "homepage.labels" . | nindent 4 }}
+{{- with .Values.clusterrole.rules }}
+rules:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- end }}

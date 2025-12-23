@@ -1,0 +1,256 @@
+# This hook deletes specific namespaces before the normal Helm uninstall starts
+# When a namespace is deleted, all resources in it (Pods, PVCs, etc.) are automatically removed
+# This ensures PVCs are properly unmounted and deleted before Longhorn is removed
+
+---
+# ServiceAccount for the cleanup job
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}-namespace-cleanup
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "-15"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+
+---
+# ClusterRole defines the required permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Release.Name }}-namespace-cleanup
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "-15"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "delete"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims", "pods"]
+  verbs: ["get", "list"]
+
+---
+# ClusterRoleBinding links ServiceAccount with ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Name }}-namespace-cleanup
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "-15"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Release.Name }}-namespace-cleanup
+subjects:
+- kind: ServiceAccount
+  name: {{ .Release.Name }}-namespace-cleanup
+  namespace: {{ .Release.Namespace }}
+
+---
+# The actual cleanup job
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-namespace-cleanup
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      name: {{ .Release.Name }}-namespace-cleanup
+    spec:
+      serviceAccountName: {{ .Release.Name }}-namespace-cleanup
+      restartPolicy: Never
+      containers:
+      - name: cleanup
+        image: alpine/kubectl:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          
+          echo "=========================================="
+          echo "Pre-Delete Namespace Cleanup Hook Started"
+          echo "=========================================="
+          echo ""
+          
+          # Define namespaces to delete which contains persistent volume claims
+          NAMESPACES_TO_DELETE="adguard"
+          
+          echo "Namespaces to delete: $NAMESPACES_TO_DELETE"
+          echo ""
+          
+          for NAMESPACE in $NAMESPACES_TO_DELETE; do
+            echo "----------------------------------------"
+            echo "Processing namespace: $NAMESPACE"
+            echo "----------------------------------------"
+            
+            # Check if namespace exists
+            if ! kubectl get namespace "$NAMESPACE" > /dev/null 2>&1; then
+              echo "  Namespace '$NAMESPACE' does not exist, skipping..."
+              echo ""
+              continue
+            fi
+            
+            echo "  Namespace exists, showing resources..."
+            echo ""
+            
+            # Show Pods
+            echo "  Pods:"
+            kubectl get pods --namespace "$NAMESPACE" --output wide 2>/dev/null || echo "    No pods found"
+            echo ""
+            
+            # Show PVCs with StorageClass info
+            echo "  PVCs:"
+            kubectl get pvc --namespace "$NAMESPACE" \
+              --output custom-columns=NAME:.metadata.name,STATUS:.status.phase,STORAGECLASS:.spec.storageClassName,VOLUME:.spec.volumeName \
+              2>/dev/null || echo "    No PVCs found"
+            echo ""
+            
+            # Delete namespace
+            echo "  Deleting namespace '$NAMESPACE'..."
+            kubectl delete namespace "$NAMESPACE" \
+              --wait=false \
+              --ignore-not-found=true
+            
+            echo "  Namespace '$NAMESPACE' deletion initiated"
+            echo ""
+          done
+          
+          echo "=========================================="
+          echo "Waiting for namespaces to be deleted..."
+          echo "=========================================="
+          echo ""
+          
+          # Wait for all namespaces to be fully deleted
+          MAX_WAIT=300
+          ELAPSED=0
+          INTERVAL=10
+          
+          while [ $ELAPSED -lt $MAX_WAIT ]; do
+            REMAINING=""
+            
+            for NAMESPACE in $NAMESPACES_TO_DELETE; do
+              if kubectl get namespace "$NAMESPACE" > /dev/null 2>&1; then
+                REMAINING="$REMAINING $NAMESPACE"
+              fi
+            done
+            
+            if [ -z "$REMAINING" ]; then
+              echo "✓ All namespaces successfully deleted"
+              break
+            fi
+            
+            echo "Still deleting:$REMAINING (waited ${ELAPSED}s / ${MAX_WAIT}s)"
+            
+            # Show what's preventing deletion
+            for NAMESPACE in $REMAINING; do
+              FINALIZERS=$(kubectl get namespace "$NAMESPACE" \
+                --output jsonpath='{.spec.finalizers}' 2>/dev/null || echo "[]")
+              if [ "$FINALIZERS" != "[]" ] && [ -n "$FINALIZERS" ]; then
+                echo "  $NAMESPACE has finalizers: $FINALIZERS"
+              fi
+              
+              # Check for stuck resources
+              TERMINATING_PVCS=$(kubectl get pvc --namespace "$NAMESPACE" \
+                --field-selector metadata.deletionTimestamp!=null \
+                --output jsonpath='{.items[*].metadata.name}' 2>/dev/null || true)
+              if [ -n "$TERMINATING_PVCS" ]; then
+                echo "  $NAMESPACE has terminating PVCs: $TERMINATING_PVCS"
+              fi
+              
+              # After 60 seconds, try to help by removing the kubernetes finalizer
+              if [ $ELAPSED -ge 60 ]; then
+                echo "  Attempting to remove finalizers from $NAMESPACE..."
+                # Use kubectl patch instead of jq (which alpine doesn't have)
+                kubectl patch namespace "$NAMESPACE" \
+                  --type json \
+                  --patch='[{"op": "remove", "path": "/spec/finalizers"}]' \
+                  2>/dev/null && echo "    Finalizers removed" || echo "    Could not remove finalizers"
+              fi
+            done
+            
+            echo "  Sleeping for $INTERVAL seconds..."
+            sleep $INTERVAL || { echo "Sleep failed!"; exit 1; }
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+          
+          echo ""
+          
+          # Final check for stuck namespaces
+          STUCK=""
+          for NAMESPACE in $NAMESPACES_TO_DELETE; do
+            if kubectl get namespace "$NAMESPACE" > /dev/null 2>&1; then
+              STUCK="$STUCK $NAMESPACE"
+            fi
+          done
+          
+          if [ -n "$STUCK" ]; then
+            echo "=========================================="
+            echo "WARNING: Some namespaces are stuck"
+            echo "=========================================="
+            echo "Stuck namespaces:$STUCK"
+            echo ""
+            
+            for NAMESPACE in $STUCK; do
+              echo "Namespace: $NAMESPACE"
+              echo "Status:"
+              kubectl get namespace "$NAMESPACE" --output yaml | grep -A 10 "^status:" || true
+              echo ""
+              
+              echo "Attempting to remove finalizers..."
+              kubectl patch namespace "$NAMESPACE" \
+                --type json \
+                --patch='[{"op": "remove", "path": "/spec/finalizers"}]' \
+                2>/dev/null && echo "  Finalizers removed" || echo "  Failed to remove finalizers"
+              echo ""
+            done
+            
+            echo "Waiting 10 seconds for finalizer removal..."
+            sleep 10
+            
+            # Final final check
+            STILL_STUCK=""
+            for NAMESPACE in $STUCK; do
+              if kubectl get namespace "$NAMESPACE" > /dev/null 2>&1; then
+                STILL_STUCK="$STILL_STUCK $NAMESPACE"
+              fi
+            done
+            
+            if [ -n "$STILL_STUCK" ]; then
+              echo ""
+              echo "ERROR: The following namespaces could not be deleted:$STILL_STUCK"
+              echo "Manual intervention may be required."
+              echo "You can try:"
+              echo "  kubectl delete namespace <namespace> --force --grace-period=0"
+              exit 1
+            fi
+          fi
+          
+          echo ""
+          echo "=========================================="
+          echo "✓ Pre-Delete Cleanup completed successfully"
+          echo "=========================================="
+          echo ""
+          echo "Summary:"
+          echo "- All service namespaces deleted"
+          echo "- All Pods terminated"
+          echo "- All PVCs deleted"
+          echo "- PVs with reclaimPolicy:Retain preserved"
+          echo "- PVs with reclaimPolicy:Delete removed"
+          echo "- Longhorn can now be safely uninstalled"
+          echo ""
+          
+          exit 0

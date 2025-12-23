@@ -1,0 +1,11 @@
+{{- if .Values.configMap.enable }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ntfy.fullname" . }}
+  namespace: {{ include "ntfy.namespace" . }}
+  labels:
+    {{- include "ntfy.labels" . | nindent 4 }}
+data:
+  {{- toYaml .Values.configMap.data | nindent 2 }}
+{{- end }}

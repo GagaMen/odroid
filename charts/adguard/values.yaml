@@ -1,0 +1,133 @@
+# Default values for adguard.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: adguard/adguardhome
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# Use host network for DNS service (required for DHCP and direct DNS access)
+hostNetwork: true
+
+# Persistent Volume Claims for configuration and work data
+persistence:
+  conf:
+    enabled: true
+    size: 25Mi
+    accessMode: ReadWriteOnce
+    # storageClass: ""
+  work:
+    enabled: true
+    size: 500Mi
+    accessMode: ReadWriteOnce
+    # storageClass: ""
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: LoadBalancer
+  ports:
+    # Plain DNS (required)
+    dns-tcp:
+      enabled: true
+      port: 53
+      targetPort: 53
+      protocol: TCP
+    dns-udp:
+      enabled: true
+      port: 53
+      targetPort: 53
+      protocol: UDP
+    # DHCP Server (enable if using AdGuard as DHCP server)
+    dhcp-listen:
+      enabled: false
+      port: 67
+      targetPort: 67
+      protocol: UDP
+    dhcp-tcp:
+      enabled: false
+      port: 68
+      targetPort: 68
+      protocol: TCP
+    dhcp-udp:
+      enabled: false
+      port: 68
+      targetPort: 68
+      protocol: UDP
+    # Admin Panel & HTTP/HTTPS (enable for direct access)
+    http:
+      enabled: true
+      port: 80
+      targetPort: 80
+      protocol: TCP
+    admin:
+      enabled: false
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
+    # DNS-over-TLS (enable for encrypted DNS)
+    dns-over-tls:
+      enabled: false
+      port: 853
+      targetPort: 853
+      protocol: TCP
+    # DNS-over-QUIC (enable for encrypted DNS)
+    dns-over-quic:
+      enabled: false
+      port: 853
+      targetPort: 853
+      protocol: UDP
+    # DNSCrypt (enable for encrypted DNS)
+    dnscrypt-tcp:
+      enabled: false
+      port: 5443
+      targetPort: 5443
+      protocol: TCP
+    dnscrypt-udp:
+      enabled: false
+      port: 5443
+      targetPort: 5443
+      protocol: UDP
+    # Debugging profiles (enable only for troubleshooting)
+    debug:
+      enabled: false
+      port: 6060
+      targetPort: 6060
+      protocol: TCP
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+  hosts:
+    - host: adguard.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: adguard-ingress-tls
+  #    hosts:
+  #      - adguard.example.com
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

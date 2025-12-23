@@ -111,11 +111,11 @@ wg syncconf wg0 <(wg-quick strip wg0)
 ```bash
 echo "[Interface]" > "client1.conf"
 echo "Address = 10.8.0.2/32" >> "client1.conf"
-echo "DNS = 192.168.178.201" >> "client1.conf" # Adguard IP
+echo "DNS = 192.168.178.1" >> "client1.conf" # DNS Server IP
 echo "PrivateKey = $(cat "client1.key")" >> "client1.conf"
 echo "" >> "client1.conf"
 echo "[Peer]" >> "client1.conf"
-echo "AllowedIPs = 0.0.0.0/" >> "client1.conf"
+echo "AllowedIPs = 0.0.0.0/32" >> "client1.conf"
 echo "Endpoint = [your public IP or domain]:47111" >> "client1.conf"
 echo "PersistentKeepalive = 25" >> "client1.conf"
 echo "PublicKey = $(cat server.pub)" >> "client1.conf"

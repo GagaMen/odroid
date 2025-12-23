@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "adguard.fullname" . }}
+  namespace: {{ include "adguard.namespace" . }}
+  labels:
+    {{- include "adguard.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "adguard.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "adguard.labels" . | nindent 8 }}
+    spec:
+      {{- if .Values.hostNetwork }}
+      hostNetwork: true
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            {{- range $name, $config := .Values.service.ports }}
+            {{- if $config.enabled }}
+            - name: {{ $name }}
+              containerPort: {{ $config.port }}
+              protocol: {{ $config.protocol }}
+            {{- end }}
+            {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- if .Values.persistence.conf.enabled }}
+            - mountPath: /opt/adguardhome/conf
+              name: adguard-storage-conf
+            {{- end }}
+            {{- if .Values.persistence.work.enabled }}
+            - mountPath: /opt/adguardhome/work
+              name: adguard-storage-work
+            {{- end }}
+      volumes:
+        {{- if .Values.persistence.conf.enabled }}
+        - name: adguard-storage-conf
+          persistentVolumeClaim:
+            claimName: {{ include "adguard.fullname" . }}-conf
+        {{- end }}
+        {{- if .Values.persistence.work.enabled }}
+        - name: adguard-storage-work
+          persistentVolumeClaim:
+            claimName: {{ include "adguard.fullname" . }}-work
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

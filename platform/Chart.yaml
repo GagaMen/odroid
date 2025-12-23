@@ -1,0 +1,24 @@
+apiVersion: v2
+name: odroid-platform
+version: 1.0.0
+dependencies:
+  - name: cert-manager-dns-lexicon-webhook
+    version: 1.0.0
+    repository: file://../charts/cert-manager-dns-lexicon-webhook
+    condition: cert-manager-dns-lexicon-webhook.enabled
+  - name: longhorn
+    version: 1.10.1
+    repository: file://../charts/longhorn
+    condition: longhorn.enabled
+  - name: homepage
+    version: 1.8.0
+    repository: file://../charts/homepage
+    condition: homepage.enabled
+  - name: adguard
+    version: 0.107.69
+    repository: file://../charts/adguard
+    condition: adguard.enabled
+  - name: ntfy
+    version: 2.15.0
+    repository: file://../charts/ntfy
+    condition: ntfy.enabled

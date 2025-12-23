@@ -1,0 +1,13 @@
+{{- if .Values.configMap.enable }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "homepage.fullname" . }}
+  namespace: {{ include "homepage.namespace" . }}
+  labels:
+    {{- include "homepage.labels" . | nindent 4 }}
+data:
+  {{- $defaults := include "homepage.configMapDefaults" . | fromYaml }}
+  {{- $merged := mustMergeOverwrite (deepCopy $defaults) .Values.configMap.data }}
+  {{- toYaml $merged | nindent 2 }}
+{{- end }}

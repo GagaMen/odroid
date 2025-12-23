@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "adguard.fullname" . }}
+  namespace: {{ include "adguard.namespace" . }}
+  labels:
+    {{- include "adguard.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    {{- range $name, $config := .Values.service.ports }}
+    {{- if $config.enabled }}
+    - name: {{ $name }}
+      port: {{ $config.port }}
+      protocol: {{ $config.protocol }}
+      targetPort: {{ $name }}
+    {{- end }}
+    {{- end }}
+  selector:
+    {{- include "adguard.selectorLabels" . | nindent 4 }}

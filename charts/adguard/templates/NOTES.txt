@@ -1,0 +1,32 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+{{- if .Values.ingress.enabled }}
+
+AdGuard Home is available at:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- end }}
+
+================================================================================
+IMPORTANT: Initial Setup
+================================================================================
+
+On first start, AdGuard Home requires initial setup on port 3000.
+Use kubectl port-forward to access the setup wizard:
+
+  $ kubectl port-forward -n {{ include "adguard.namespace" . }} deployment/{{ include "adguard.fullname" . }} 3000:3000
+
+Then open: http://localhost:3000
+
+After completing the setup, port 3000 will be disabled and you can use
+the regular web interface on port 80 (or via Ingress).
+
+Note: AdGuard Home stores its configuration in persistent volumes.

@@ -19,6 +19,8 @@ To install a specific veraion see [https://microk8s.io/docs/setting-snap-channel
 ```bash
 microk8s enable dns
 microk8s enable ingress
+microk8s enable cert-manager
+microk8s enable metrics-server
 ```
 
 ## Configure z shell (zsh)
@@ -54,11 +56,26 @@ rm README.md LICENSE
 
 ### Shell access
 
-To access shell in a pod add kubectl to your $PATH envrionment variable
+To access shell in a pod add kubectl to your /usr/local/bin folder
 
 ```bash
-cd /snap/bin
-sudo ln -s /snap/bin/microk8s.kubectl kubectl
+cd /usr/local/bin
+sudo vi kubectl
+```
+
+Add these lines:
+
+> A symbolic link don't work
+
+```bash
+#!/bin/bash
+exec /snap/bin/microk8s.kubectl "$@"
+```
+
+Set execution rights:
+
+```bash
+sudo chmod +x kubectl
 ```
 
 ## Export environment variable KUBECONFIG for k9s and helm
