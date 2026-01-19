@@ -7,17 +7,22 @@ version: 2
 updates:
   - package-ecosystem: "docker"
     directories:
-      - /adguard
-      - /homepage
-      - /ntfy
+      - /charts/adguard
+      - /charts/cert-manager-dns-lexicon-webhook
+      - /charts/homepage
+      - /charts/ntfy
     schedule:
       interval: "weekly"
+      day: "friday"
+      time: "20:00"
+    assignees:
+      - GagaMen
   - package-ecosystem: "helm"
     directories:
-      - /longhorn
-    groups:
-      longhorn:
-        patterns:
-          - "*"
+      - /charts/longhorn
     schedule:
       interval: "weekly"
+      day: "friday"
+      time: "20:00"
+    assignees:
+      - GagaMen

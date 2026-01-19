@@ -22,6 +22,7 @@ certManager:
 image:
   repository: taxilian/cert-manager-dns-lexicon-webhook
   tag: latest
+  digest: sha256:5292faf83ac6ab8d12b2c222a5226648aa0b6c829ff4254c8b26902014b0e6d6
   pullPolicy: IfNotPresent
 
 nameOverride: ""

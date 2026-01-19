@@ -3,4 +3,4 @@ name: cert-manager-dns-lexicon-webhook
 description: dns-lexicon cert-manager webhook ACME DNS-01 solver (https://github.com/gradecam/cert-manager-dns-lexicon-webhook)
 type: application
 version: 1.0.0
-appVersion: "1.0.0"
+appVersion: "latest"

@@ -2,5 +2,5 @@ apiVersion: v2
 name: ntfy
 description: Simple HTTP-based pub-sub notification service.
 type: application
-version: 2.15.0
+version: 1.0.0
 appVersion: "v2.15.0"

@@ -23,7 +23,7 @@ spec:
       serviceAccountName: {{ include "cert-manager-dns-lexicon-webhook.fullname" . }}
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}@{{ .Values.image.digest }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
             - --tls-cert-file=/tls/tls.crt
