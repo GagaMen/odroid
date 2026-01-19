@@ -1,0 +1,53 @@
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: backup-daily
+  namespace: longhorn
+spec:
+  # form Monday through Saturday
+  cron: "0 2 * * 1-6"
+  task: "backup"
+  retain: 7
+  concurrency: 2
+  groups:
+    - gfs-backup
+  labels:
+    backup-type: daily
+  parameters:
+    full-backup-interval: "0"
+---
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: backup-weekly
+  namespace: longhorn
+spec:
+  # every Sunday
+  cron: "0 2 * * 0"
+  task: "backup"
+  retain: 4
+  concurrency: 2
+  groups:
+    - gfs-backup
+  labels:
+    backup-type: weekly
+  parameters:
+    full-backup-interval: "0"
+---
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: backup-monthly-full
+  namespace: longhorn
+spec:
+  cron: "0 3 1 * *"
+  task: "backup"
+  retain: 3
+  concurrency: 1
+  groups:
+    - gfs-backup
+  labels:
+    backup-type: monthly
+    backup-class: full
+  parameters:
+    full-backup-interval: "1"

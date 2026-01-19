@@ -23,11 +23,13 @@ persistence:
     enabled: true
     size: 25Mi
     accessMode: ReadWriteOnce
+    labels: {}
     # storageClass: ""
   work:
     enabled: true
     size: 500Mi
     accessMode: ReadWriteOnce
+    labels: {}
     # storageClass: ""
 
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
