@@ -3,6 +3,9 @@ kind: RecurringJob
 metadata:
   name: backup-daily
   namespace: longhorn
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
 spec:
   # form Monday through Saturday
   cron: "0 2 * * 1-6"
@@ -21,6 +24,9 @@ kind: RecurringJob
 metadata:
   name: backup-weekly
   namespace: longhorn
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
 spec:
   # every Sunday
   cron: "0 2 * * 0"
@@ -39,6 +45,9 @@ kind: RecurringJob
 metadata:
   name: backup-monthly-full
   namespace: longhorn
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
 spec:
   cron: "0 3 1 * *"
   task: "backup"
