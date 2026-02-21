@@ -1,0 +1,10 @@
+apiVersion: v2
+name: grafana
+description: Grafana – observability and data visualization platform.
+type: application
+version: 1.0.0
+dependencies:
+  - name: grafana
+    version: 10.5.15
+    repository: https://grafana.github.io/helm-charts
+    alias: config

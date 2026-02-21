@@ -1,0 +1,27 @@
+# Default values for the prometheus chart wrapper.
+# Real credentials and host overrides go into platform/values.yaml (gitignored).
+
+config:
+  # -- Prometheus server retention period
+  server:
+    retention: 15d
+    persistentVolume:
+      enabled: true
+      size: 10Gi
+      storageClass: longhorn
+
+  # -- Disable Alertmanager (we use Grafana Alerting instead)
+  alertmanager:
+    enabled: false
+
+  # -- node-exporter: collect host-level metrics
+  prometheus-node-exporter:
+    enabled: true
+
+  # -- kube-state-metrics: collect Kubernetes object metrics
+  kube-state-metrics:
+    enabled: true
+
+  # -- pushgateway not needed for a home server
+  prometheus-pushgateway:
+    enabled: false

@@ -1,0 +1,47 @@
+# Default values for the loki chart wrapper.
+# Real credentials and host overrides go into platform/values.yaml (gitignored).
+
+config:
+  # Deploy Loki in single-binary mode – suited for a single-node home server.
+  deploymentMode: SingleBinary
+
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: filesystem
+    schemaConfig:
+      configs:
+        - from: "2024-01-01"
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
+
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: longhorn
+
+  # Disable components not needed in single-binary mode
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  backend:
+    replicas: 0
+
+  # Disable built-in Grafana and Prometheus (managed separately)
+  grafana:
+    enabled: false
+  prometheus:
+    enabled: false
+
+  # Disable minio (we use filesystem storage)
+  minio:
+    enabled: false

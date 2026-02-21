@@ -1,6 +1,6 @@
 # Odroid Home Server
 
-A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkernel.com/shop/odroid-m2-with-16gbyte-ram/) with 16GB RAM. This repository contains Helm charts and configurations for a complete self-hosted infrastructure including DNS ad-blocking, a customizable dashboard, push notifications, and distributed storage.
+A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkernel.com/shop/odroid-m2-with-16gbyte-ram/) with 16GB RAM. This repository contains Helm charts and configurations for a complete self-hosted infrastructure including DNS ad-blocking, a customizable dashboard, push notifications, distributed storage, and a full monitoring stack.
 
 ## 🚀 Features
 
@@ -10,6 +10,10 @@ A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkern
 - **[Longhorn](charts/longhorn/)** - Cloud-native distributed storage
 - **[cert-manager DNS Lexicon Webhook](charts/cert-manager-dns-lexicon-webhook/)** - DNS-01 ACME challenge solver
 - **[WireGuard VPN](wireguard/)** - Secure remote access to your home network
+- **[Prometheus](charts/prometheus/)** - Metrics collection and storage (incl. node-exporter & kube-state-metrics)
+- **[Grafana](charts/grafana/)** - Dashboards, visualization, and alerting (with ntfy integration)
+- **[Loki](charts/loki/)** - Log aggregation
+- **[Grafana Alloy](charts/alloy/)** - Log shipping from Kubernetes pods to Loki
 
 ## 📋 Prerequisites
 
@@ -111,6 +115,10 @@ Create a `platform/values.yaml` file with your configuration. See the individual
 - [ntfy Configuration](charts/ntfy/README.md)
 - [Longhorn Configuration](charts/longhorn/README.md)
 - [cert-manager DNS Lexicon Webhook Configuration](charts/cert-manager-dns-lexicon-webhook/README.md)
+- [Prometheus Configuration](charts/prometheus/README.md)
+- [Grafana Configuration](charts/grafana/README.md)
+- [Loki Configuration](charts/loki/README.md)
+- [Grafana Alloy Configuration](charts/alloy/README.md)
 
 ### 3. Install the Platform
 
@@ -129,10 +137,14 @@ helm upgrade odroid-platform ./platform -f platform/values.yaml
 ```
 ├── charts/                                 # Individual Helm charts
 │   ├── adguard/                            # AdGuard Home DNS ad-blocker
+│   ├── alloy/                              # Grafana Alloy log shipper
 │   ├── cert-manager-dns-lexicon-webhook/   # DNS-01 ACME solver
+│   ├── grafana/                            # Grafana dashboards & alerting
 │   ├── homepage/                           # Application dashboard
+│   ├── loki/                               # Log aggregation
 │   ├── longhorn/                           # Distributed storage
-│   └── ntfy/                               # Push notification service
+│   ├── ntfy/                               # Push notification service
+│   └── prometheus/                         # Metrics collection & storage
 ├── platform/                               # Umbrella chart combining all services
 │   ├── Chart.yaml                          # Dependencies definition
 │   ├── templates/                          # Platform-wide resources

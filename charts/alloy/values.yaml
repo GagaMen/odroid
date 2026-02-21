@@ -1,0 +1,63 @@
+# Default values for the alloy chart wrapper.
+# Override in platform/values.yaml (gitignored) if needed.
+
+config:
+  # -- Run as a DaemonSet so every node ships its logs
+  controller:
+    type: daemonset
+
+  alloy:
+    configMap:
+      # -- Alloy pipeline: discover Kubernetes pod logs and ship to Loki
+      content: |
+        // Discover all Kubernetes pods on this node
+        discovery.kubernetes "pods" {
+          role = "pod"
+
+          selectors {
+            role  = "pod"
+            field = "spec.nodeName=" + env("HOSTNAME")
+          }
+        }
+
+        // Relabel pod metadata into Loki labels
+        discovery.relabel "pods" {
+          targets = discovery.kubernetes.pods.targets
+
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            target_label  = "container"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+            target_label  = "app"
+          }
+        }
+
+        // Collect logs from discovered pods
+        loki.source.kubernetes "pods" {
+          targets    = discovery.relabel.pods.output
+          forward_to = [loki.write.default.receiver]
+        }
+
+        // Write logs to Loki
+        loki.write "default" {
+          endpoint {
+            url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+          }
+        }
+
+  # -- RBAC: Alloy needs read access to pods for log discovery
+  rbac:
+    create: true
+
+  serviceAccount:
+    create: true
