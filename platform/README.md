@@ -35,6 +35,10 @@ platform/
 | homepage | 1.0.0 | `homepage.enabled` |
 | adguard | 1.1.0 | `adguard.enabled` |
 | ntfy | 1.0.0 | `ntfy.enabled` |
+| prometheus | 1.0.0 | `prometheus.enabled` |
+| grafana | 1.0.0 | `grafana.enabled` |
+| loki | 1.0.0 | `loki.enabled` |
+| alloy | 1.0.0 | `alloy.enabled` |
 
 ## Installation
 
@@ -104,6 +108,7 @@ The platform chart creates dedicated namespaces for each service in `templates/n
 | `homepage` | Dashboard |
 | `adguard` | DNS ad-blocker |
 | `ntfy` | Push notifications |
+| `monitoring` | Prometheus, Grafana, Loki, Alloy |
 
 > **Important:** Each sub-chart requires `namespaceOverride` to be set in your `values.yaml` to deploy into these namespaces. Without it, charts deploy to the `default` namespace (except Longhorn, which defaults to `longhorn-system`).
 
@@ -120,7 +125,60 @@ ntfy:
   enabled: true
   namespaceOverride: ntfy
 
-longhorn:
+# ... more config
+```
+
+### Monitoring
+
+All four monitoring components share the `monitoring` namespace:
+
+```yaml
+prometheus:
+  enabled: true
+  namespaceOverride: monitoring
+  config:
+    server:
+      retention: 15d
+      persistentVolume:
+        size: 10Gi
+        storageClass: longhorn-retain
+
+grafana:
+  enabled: true
+  namespaceOverride: monitoring
+  config:
+    adminUser: admin
+    adminPassword: "your-secure-password"
+    ingress:
+      enabled: true
+      annotations:
+        cert-manager.io/cluster-issuer: lets-encrypt
+      hosts:
+        - grafana.example.com
+      tls:
+        - secretName: grafana-tls
+          hosts:
+            - grafana.example.com
+    grafana.ini:
+      server:
+        root_url: https://grafana.example.com
+
+loki:
+  enabled: true
+  namespaceOverride: monitoring
+  config:
+    singleBinary:
+      persistence:
+        size: 10Gi
+        storageClass: longhorn-retain
+
+alloy:
+  enabled: true
+  namespaceOverride: monitoring
+```
+
+> **Tip:** After deploying, configure ntfy as a Grafana Alerting contact point:
+> Alerting → Contact points → Add → Webhook → `http://ntfy.ntfy.svc.cluster.local/<topic>`
   enabled: true
   config:
     namespaceOverride: longhorn
@@ -291,9 +349,53 @@ ntfy:
       - secretName: ntfy-tls
         hosts:
           - ntfy.example.com
-```
 
-## Tips
+# =============================================================================
+# Monitoring Stack
+# =============================================================================
+prometheus:
+  enabled: true
+  namespaceOverride: monitoring
+  config:
+    server:
+      retention: 15d
+      persistentVolume:
+        size: 10Gi
+        storageClass: longhorn-retain
+
+grafana:
+  enabled: true
+  namespaceOverride: monitoring
+  config:
+    adminUser: admin
+    adminPassword: "your-secure-password"
+    ingress:
+      enabled: true
+      annotations:
+        cert-manager.io/cluster-issuer: lets-encrypt
+      hosts:
+        - grafana.example.com
+      tls:
+        - secretName: grafana-tls
+          hosts:
+            - grafana.example.com
+    grafana.ini:
+      server:
+        root_url: https://grafana.example.com
+
+loki:
+  enabled: true
+  namespaceOverride: monitoring
+  config:
+    singleBinary:
+      persistence:
+        size: 10Gi
+        storageClass: longhorn-retain
+
+alloy:
+  enabled: true
+  namespaceOverride: monitoring
+```
 
 ### Start with Staging
 

@@ -1,0 +1,48 @@
+# Default values for the grafana chart wrapper.
+# Override admin credentials and ingress host in platform/values.yaml (gitignored).
+
+grafana:
+  # -- Admin credentials (override in platform/values.yaml!)
+  adminUser: admin
+  adminPassword: changeme
+
+  persistence:
+    enabled: true
+    size: 2Gi
+    storageClassName: longhorn
+
+  ingress:
+    enabled: true
+    ingressClassName: ""
+    annotations: {}
+    hosts:
+      - grafana.example.com
+    tls: []
+
+  # -- Pre-configure Prometheus and Loki as datasources
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          uid: prometheus
+          url: http://prometheus-server.monitoring.svc.cluster.local
+          access: proxy
+          isDefault: true
+          jsonData:
+            timeInterval: 30s
+        - name: Loki
+          type: loki
+          uid: loki
+          url: http://loki.monitoring.svc.cluster.local:3100
+          access: proxy
+
+  # -- Grafana.ini overrides
+  grafana.ini:
+    server:
+      root_url: https://grafana.example.com
+    alerting:
+      enabled: false  # legacy alerting off; use unified alerting
+    unified_alerting:
+      enabled: true

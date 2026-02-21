@@ -1,0 +1,81 @@
+# Default values for the loki chart wrapper.
+# Real credentials and host overrides go into platform/values.yaml (gitignored).
+
+loki:
+  # Deploy Loki in single-binary mode – suited for a single-node home server.
+  deploymentMode: SingleBinary
+
+  loki:
+    auth_enabled: false
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: filesystem
+    schemaConfig:
+      configs:
+        - from: "2024-01-01"
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
+    pattern_ingester:
+      enabled: true
+    limits_config:
+      allow_structured_metadata: true
+      volume_enabled: true
+    ruler:
+      enable_api: true
+
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: longhorn
+
+  # Disable minio (we use filesystem storage)
+  minio:
+    enabled: false
+
+  # Disable components not needed in single-binary mode
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  backend:
+    replicas: 0
+  ingester:
+    replicas: 0
+  querier:
+    replicas: 0
+  queryFrontend:
+    replicas: 0
+  queryScheduler:
+    replicas: 0
+  distributor:
+    replicas: 0
+  compactor:
+    replicas: 0
+  indexGateway:
+    replicas: 0
+  bloomCompactor:
+    replicas: 0
+  bloomGateway:
+    replicas: 0
+
+  # Disable built-in promtail (we use alloy for log collection)
+  promtail:
+    enabled: false
+
+  # Disable external Memcached caches – not needed for a single-node home server.
+  # Loki falls back to its built-in in-memory cache.
+  chunksCache:
+    enabled: false
+  resultsCache:
+    enabled: false
+
+  # Disable the nginx gateway – Loki is accessed directly within the cluster
+  gateway:
+    enabled: false
