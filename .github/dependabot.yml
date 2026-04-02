@@ -19,7 +19,11 @@ updates:
       - GagaMen
   - package-ecosystem: "helm"
     directories:
+      - /charts/alloy
+      - /charts/grana
+      - /charts/loki
       - /charts/longhorn
+      - /charts/prometheus
     schedule:
       interval: "weekly"
       day: "friday"
