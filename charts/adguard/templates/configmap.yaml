@@ -1,0 +1,15 @@
+{{- if .Values.prometheusExporter.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "adguard-prometheus-exporter.fullname" . }}
+  namespace: {{ include "adguard.namespace" . }}
+  labels:
+    {{- include "adguard-prometheus-exporter.labels" . | nindent 4 }}
+data:
+  ADGUARD_SERVERS: {{ join "," .Values.prometheusExporter.servers }}
+  ADGUARD_USERNAMES: {{ join "," .Values.prometheusExporter.usernames }}
+  INTERVAL: {{ .Values.prometheusExporter.interval }}
+  DEBUG: {{ quote .Values.prometheusExporter.debug }}
+  BIND_ADDR: {{ .Values.prometheusExporter.bindAddress }}
+{{- end }}

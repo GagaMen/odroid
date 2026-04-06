@@ -22,6 +22,9 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 {{- end }}
 {{- end }}
+{{- define "adguard-prometheus-exporter.fullname" -}}
+{{ include "adguard.fullname" . }}-prometheus-exporter
+{{- end }}
 
 {{/*
 Create chart name and version as used by the chart label.
@@ -42,11 +45,24 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
+{{- define "adguard-prometheus-exporter.labels" -}}
+helm.sh/chart: {{ include "adguard.chart" . }}
+{{ include "adguard-prometheus-exporter.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
 {{/*
 Selector labels
 */}}
 {{- define "adguard.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "adguard.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+{{- define "adguard-prometheus-exporter.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "adguard.name" . }}-prometheus-exporter
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 

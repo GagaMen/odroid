@@ -20,7 +20,7 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             {{- range $name, $config := .Values.service.ports }}
@@ -66,3 +66,52 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+---
+{{- if .Values.prometheusExporter.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "adguard-prometheus-exporter.fullname" . }}
+  namespace: {{ include "adguard.namespace" . }}
+  labels:
+    {{- include "adguard-prometheus-exporter.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "adguard-prometheus-exporter.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "adguard-prometheus-exporter.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: adguard-prometheus-exporter
+          image: "{{ .Values.prometheusExporter.image.repository }}:{{ .Values.prometheusExporter.image.tag }}"
+          imagePullPolicy: {{ .Values.prometheusExporter.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.prometheusExporter.service.port }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "adguard-prometheus-exporter.fullname" . }}
+            - secretRef:
+                name: {{ include "adguard-prometheus-exporter.fullname" . }}
+          {{- with .Values.prometheusExporter.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.prometheusExporter.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.prometheusExporter.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.prometheusExporter.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end -}}

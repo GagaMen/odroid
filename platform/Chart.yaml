@@ -15,7 +15,7 @@ dependencies:
     repository: file://../charts/homepage
     condition: homepage.enabled
   - name: adguard
-    version: 1.1.0
+    version: 2.0.0
     repository: file://../charts/adguard
     condition: adguard.enabled
   - name: ntfy

@@ -133,3 +133,34 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+prometheusExporter:
+  enabled: false
+  image:
+    repository: ghcr.io/henrywhitaker3/adguard-exporter
+    # This sets the pull policy for images.
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: v1.2.1
+  service:
+    type: ClusterIP
+    port: 9618
+  servers:
+    - http://adguard.adguard.svc.cluster.local
+  usernames:
+    - admin
+  passwords:
+    - example
+  interval: 30s
+  debug: false
+  bindAddress: :9618
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
