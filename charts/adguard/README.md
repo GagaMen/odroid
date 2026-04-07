@@ -10,6 +10,7 @@
 - Parental controls and safe browsing
 - Custom filtering rules
 - Query log and statistics
+- Optional Prometheus metrics exporter for monitoring
 
 ## Installation
 
@@ -51,7 +52,7 @@ helm install adguard ./charts/adguard -f values.yaml
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `image.repository` | Container image repository | `adguard/adguardhome` |
-| `image.tag` | Container image tag | `v0.107.69` |
+| `image.tag` | Container image tag | `v0.107.73` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 
 ### Network
@@ -156,7 +157,74 @@ adguard:
       - secretName: adguard-tls
         hosts:
           - adguard.example.com
+  
+  prometheusExporter:
+    enabled: true
+    servers:
+      - http://adguard.adguard.svc.cluster.local
+    usernames:
+      - admin
+    passwords:
+      - your-adguard-password
 ```
+
+## Prometheus Exporter
+
+The chart includes an optional [AdGuard Exporter](https://github.com/henrywhitaker3/adguard-exporter) that exposes AdGuard Home metrics for Prometheus scraping.
+
+### Configuration
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `prometheusExporter.enabled` | Enable the Prometheus exporter | `false` |
+| `prometheusExporter.image.repository` | Exporter image repository | `ghcr.io/henrywhitaker3/adguard-exporter` |
+| `prometheusExporter.image.tag` | Exporter image tag | `v1.2.1` |
+| `prometheusExporter.image.pullPolicy` | Image pull policy | `IfNotPresent` |
+| `prometheusExporter.service.type` | Service type | `ClusterIP` |
+| `prometheusExporter.service.port` | Metrics port | `9618` |
+| `prometheusExporter.servers` | List of AdGuard server URLs | `["http://adguard.adguard.svc.cluster.local"]` |
+| `prometheusExporter.usernames` | List of AdGuard admin usernames | `["admin"]` |
+| `prometheusExporter.passwords` | List of AdGuard admin passwords | `["example"]` |
+| `prometheusExporter.interval` | Scrape interval | `30s` |
+| `prometheusExporter.debug` | Enable debug logging | `false` |
+| `prometheusExporter.bindAddress` | Address to bind the metrics server | `:9618` |
+| `prometheusExporter.resources` | CPU/Memory resource requests/limits | `{}` |
+| `prometheusExporter.nodeSelector` | Node selector for scheduling | `{}` |
+| `prometheusExporter.tolerations` | Tolerations for scheduling | `[]` |
+| `prometheusExporter.affinity` | Affinity rules for scheduling | `{}` |
+
+### Enabling the Exporter
+
+```yaml
+adguard:
+  prometheusExporter:
+    enabled: true
+    servers:
+      - http://adguard.adguard.svc.cluster.local
+    usernames:
+      - admin
+    passwords:
+      - your-adguard-password
+```
+
+> **Note:** The exporter is deployed as a separate Deployment with its own Service (ClusterIP on port 9618). Credentials are stored in a Kubernetes Secret.
+
+### Prometheus Scrape Configuration
+
+To scrape the exporter metrics, add a scrape job to the [Prometheus Chart](../prometheus/):
+
+```yaml
+prometheus:
+  prometheus:
+    extraScrapeConfigs: |
+      - job_name: 'adguard'
+        static_configs:
+          - targets:
+              - <release-name>-adguard-prometheus-exporter.<namespace>.svc.cluster.local:9618
+        scrape_interval: 30s
+```
+
+See the [Prometheus Chart documentation](../prometheus/README.md) for more details on `extraScrapeConfigs`.
 
 ## Tips
 
