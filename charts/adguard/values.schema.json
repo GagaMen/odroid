@@ -1,0 +1,358 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "AdGuard Home Helm Chart Values",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Enable this chart (used by umbrella chart)"
+    },
+    "namespaceOverride": {
+      "type": "string",
+      "description": "Override the deployment namespace"
+    },
+    "image": {
+      "type": "object",
+      "description": "Container image configuration",
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Container image repository"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "description": "Image pull policy",
+          "enum": ["Always", "IfNotPresent", "Never"]
+        },
+        "tag": {
+          "type": "string",
+          "description": "Overrides the image tag whose default is the chart appVersion"
+        }
+      }
+    },
+    "nameOverride": {
+      "type": "string",
+      "description": "Override the chart name"
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Override the full release name"
+    },
+    "hostNetwork": {
+      "type": "boolean",
+      "description": "Use host network for DNS service (required for DHCP and direct DNS access)"
+    },
+    "persistence": {
+      "type": "object",
+      "description": "Persistent Volume Claims for configuration and work data",
+      "additionalProperties": false,
+      "properties": {
+        "conf": {
+          "$ref": "#/$defs/persistenceVolume",
+          "description": "PVC for AdGuard configuration data"
+        },
+        "work": {
+          "$ref": "#/$defs/persistenceVolume",
+          "description": "PVC for AdGuard work/runtime data"
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "description": "Service configuration",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Service type",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer", "ExternalName"]
+        },
+        "ports": {
+          "type": "object",
+          "description": "Service port definitions",
+          "additionalProperties": false,
+          "patternProperties": {
+            "^(dns-tcp|dns-udp|dhcp-listen|dhcp-tcp|dhcp-udp|http|admin|dns-over-tls|dns-over-quic|dnscrypt-tcp|dnscrypt-udp|debug)$": {
+              "$ref": "#/$defs/servicePort"
+            }
+          }
+        }
+      }
+    },
+    "ingress": {
+      "$ref": "#/$defs/ingress"
+    },
+    "resources": {
+      "$ref": "#/$defs/resources"
+    },
+    "nodeSelector": {
+      "type": "object",
+      "description": "Node selector for pod assignment",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "tolerations": {
+      "type": "array",
+      "description": "Tolerations for pod assignment",
+      "items": {
+        "type": "object"
+      }
+    },
+    "affinity": {
+      "type": "object",
+      "description": "Affinity rules for pod assignment"
+    },
+    "prometheusExporter": {
+      "type": "object",
+      "description": "Prometheus exporter sidecar configuration",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable the Prometheus exporter sidecar"
+        },
+        "image": {
+          "type": "object",
+          "description": "Exporter container image",
+          "additionalProperties": false,
+          "properties": {
+            "repository": {
+              "type": "string"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"]
+            },
+            "tag": {
+              "type": "string"
+            }
+          }
+        },
+        "service": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["ClusterIP", "NodePort", "LoadBalancer"]
+            },
+            "port": {
+              "type": "integer"
+            }
+          }
+        },
+        "servers": {
+          "type": "array",
+          "description": "AdGuard server URLs to scrape",
+          "items": {
+            "type": "string"
+          }
+        },
+        "usernames": {
+          "type": "array",
+          "description": "AdGuard admin usernames",
+          "items": {
+            "type": "string"
+          }
+        },
+        "passwords": {
+          "type": "array",
+          "description": "AdGuard admin passwords",
+          "items": {
+            "type": "string"
+          }
+        },
+        "interval": {
+          "type": "string",
+          "description": "Scrape interval (e.g. 30s)",
+          "pattern": "^[0-9]+(ms|s|m|h)$"
+        },
+        "debug": {
+          "type": "boolean"
+        },
+        "bindAddress": {
+          "type": "string",
+          "description": "Address the exporter listens on"
+        },
+        "resources": {
+          "$ref": "#/$defs/resources"
+        },
+        "nodeSelector": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "tolerations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "affinity": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "persistenceVolume": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable persistent volume"
+        },
+        "size": {
+          "type": "string",
+          "description": "Volume size (e.g. 500Mi, 1Gi)",
+          "pattern": "^[0-9]+(Mi|Gi|Ti)$"
+        },
+        "accessMode": {
+          "type": "string",
+          "description": "PVC access mode",
+          "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany"]
+        },
+        "labels": {
+          "type": "object",
+          "description": "Labels for the PVC",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "storageClass": {
+          "type": "string",
+          "description": "Storage class name"
+        }
+      }
+    },
+    "servicePort": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable this port"
+        },
+        "port": {
+          "type": "integer",
+          "description": "Service port number"
+        },
+        "targetPort": {
+          "type": "integer",
+          "description": "Target container port number"
+        },
+        "protocol": {
+          "type": "string",
+          "description": "Protocol",
+          "enum": ["TCP", "UDP"]
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "description": "Ingress configuration",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable ingress"
+        },
+        "className": {
+          "type": "string",
+          "description": "Ingress class name"
+        },
+        "annotations": {
+          "type": "object",
+          "description": "Ingress annotations",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "hosts": {
+          "type": "array",
+          "description": "Ingress host rules",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "host": {
+                "type": "string"
+              },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "pathType": {
+                      "type": "string",
+                      "enum": ["Prefix", "Exact", "ImplementationSpecific"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tls": {
+          "type": "array",
+          "description": "Ingress TLS configuration",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "secretName": {
+                "type": "string"
+              },
+              "hosts": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "description": "CPU/memory resource requests and limits",
+      "additionalProperties": false,
+      "properties": {
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            }
+          }
+        },
+        "requests": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
