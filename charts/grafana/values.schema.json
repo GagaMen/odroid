@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Grafana Wrapper Helm Chart Values",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Enable this chart (used by umbrella chart)"
+    },
+    "grafana": {
+      "type": "object",
+      "description": "Grafana upstream chart values (see https://github.com/grafana/helm-charts/tree/main/charts/grafana)",
+      "properties": {
+        "adminUser": {
+          "type": "string",
+          "description": "Admin username"
+        },
+        "adminPassword": {
+          "type": "string",
+          "description": "Admin password (override in platform/values.yaml!)"
+        },
+        "persistence": {
+          "type": "object",
+          "description": "Persistence configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "size": {
+              "type": "string",
+              "pattern": "^[0-9]+(Mi|Gi|Ti)$"
+            },
+            "storageClassName": {
+              "type": "string"
+            },
+            "accessModes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany"]
+              }
+            },
+            "existingClaim": {
+              "type": "string"
+            }
+          }
+        },
+        "ingress": {
+          "type": "object",
+          "description": "Ingress configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "ingressClassName": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "hosts": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "tls": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "secretName": {
+                    "type": "string"
+                  },
+                  "hosts": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "datasources": {
+          "type": "object",
+          "description": "Datasource provisioning configuration",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "apiVersion": {
+                "type": "integer"
+              },
+              "datasources": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "uid": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "access": {
+                      "type": "string",
+                      "enum": ["proxy", "direct"]
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "jsonData": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "grafana.ini": {
+          "type": "object",
+          "description": "Grafana.ini configuration sections"
+        },
+        "plugins": {
+          "type": "array",
+          "description": "List of Grafana plugins to install",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dashboardProviders": {
+          "type": "object",
+          "description": "Dashboard provider configuration"
+        },
+        "dashboards": {
+          "type": "object",
+          "description": "Dashboard definitions"
+        },
+        "sidecar": {
+          "type": "object",
+          "description": "Sidecar configuration for auto-discovery"
+        },
+        "resources": {
+          "type": "object",
+          "description": "CPU/memory resource requests and limits"
+        },
+        "nodeSelector": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "tolerations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "affinity": {
+          "type": "object"
+        },
+        "env": {
+          "type": "object",
+          "description": "Extra environment variables"
+        },
+        "envFromSecrets": {
+          "type": "array",
+          "description": "Environment variables from secrets"
+        },
+        "serviceAccount": {
+          "type": "object"
+        },
+        "rbac": {
+          "type": "object"
+        },
+        "replicas": {
+          "type": "integer"
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Alloy Wrapper Helm Chart Values",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Enable this chart (used by umbrella chart)"
+    },
+    "alloy": {
+      "type": "object",
+      "description": "Grafana Alloy upstream chart values (see https://github.com/grafana/alloy/tree/main/operations/helm/charts/alloy)",
+      "properties": {
+        "controller": {
+          "type": "object",
+          "description": "Controller configuration",
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "Controller type",
+              "enum": ["daemonset", "deployment", "statefulset"]
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "nodeSelector": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "tolerations": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "alloy": {
+          "type": "object",
+          "description": "Alloy application configuration",
+          "properties": {
+            "configMap": {
+              "type": "object",
+              "properties": {
+                "create": {
+                  "type": "boolean",
+                  "description": "Create a ConfigMap for Alloy configuration"
+                },
+                "content": {
+                  "type": "string",
+                  "description": "Alloy pipeline configuration (River format)"
+                },
+                "key": {
+                  "type": "string",
+                  "description": "ConfigMap key for the config file"
+                }
+              }
+            },
+            "mounts": {
+              "type": "object",
+              "description": "Extra mounts for the Alloy container",
+              "properties": {
+                "varlog": {
+                  "type": "boolean"
+                },
+                "dockercontainers": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "resources": {
+              "type": "object"
+            },
+            "extraEnv": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "extraPorts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "rbac": {
+          "type": "object",
+          "description": "RBAC configuration",
+          "properties": {
+            "create": {
+              "type": "boolean"
+            }
+          }
+        },
+        "serviceAccount": {
+          "type": "object",
+          "description": "Service account configuration",
+          "properties": {
+            "create": {
+              "type": "boolean"
+            },
+            "name": {
+              "type": "string"
+            },
+            "annotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "registry": {
+              "type": "string"
+            },
+            "repository": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "enum": ["Always", "IfNotPresent", "Never"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "yaml.schemas": {
+    "charts/adguard/values.schema.json": "charts/adguard/values.yaml",
+    "charts/ntfy/values.schema.json": "charts/ntfy/values.yaml",
+    "charts/homepage/values.schema.json": "charts/homepage/values.yaml",
+    "charts/cert-manager-dns-lexicon-webhook/values.schema.json": "charts/cert-manager-dns-lexicon-webhook/values.yaml",
+    "charts/prometheus/values.schema.json": "charts/prometheus/values.yaml",
+    "charts/grafana/values.schema.json": "charts/grafana/values.yaml",
+    "charts/loki/values.schema.json": "charts/loki/values.yaml",
+    "charts/alloy/values.schema.json": "charts/alloy/values.yaml",
+    "charts/longhorn/values.schema.json": "charts/longhorn/values.yaml",
+    "platform/values.schema.json": "platform/values.yaml"
+  }
+}

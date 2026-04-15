@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Loki Wrapper Helm Chart Values",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Enable this chart (used by umbrella chart)"
+    },
+    "loki": {
+      "type": "object",
+      "description": "Loki upstream chart values (see https://github.com/grafana/loki/tree/main/production/helm/loki)",
+      "properties": {
+        "deploymentMode": {
+          "type": "string",
+          "description": "Loki deployment mode",
+          "enum": ["SingleBinary", "SimpleScalable", "Distributed"]
+        },
+        "loki": {
+          "type": "object",
+          "description": "Loki application configuration",
+          "properties": {
+            "auth_enabled": {
+              "type": "boolean",
+              "description": "Enable multi-tenancy"
+            },
+            "commonConfig": {
+              "type": "object",
+              "properties": {
+                "replication_factor": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "storage": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["filesystem", "s3", "gcs", "azure", "swift"]
+                }
+              }
+            },
+            "schemaConfig": {
+              "type": "object",
+              "properties": {
+                "configs": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "from": {
+                        "type": "string",
+                        "description": "Date from which this schema applies (YYYY-MM-DD)"
+                      },
+                      "store": {
+                        "type": "string",
+                        "enum": ["tsdb", "boltdb-shipper"]
+                      },
+                      "object_store": {
+                        "type": "string",
+                        "enum": ["filesystem", "s3", "gcs", "azure", "swift"]
+                      },
+                      "schema": {
+                        "type": "string",
+                        "enum": ["v11", "v12", "v13"]
+                      },
+                      "index": {
+                        "type": "object",
+                        "properties": {
+                          "prefix": {
+                            "type": "string"
+                          },
+                          "period": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "pattern_ingester": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "limits_config": {
+              "type": "object",
+              "properties": {
+                "allow_structured_metadata": {
+                  "type": "boolean"
+                },
+                "volume_enabled": {
+                  "type": "boolean"
+                },
+                "retention_period": {
+                  "type": "string"
+                },
+                "max_query_series": {
+                  "type": "integer"
+                }
+              }
+            },
+            "ruler": {
+              "type": "object",
+              "properties": {
+                "enable_api": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "rulerConfig": {
+              "type": ["object", "null"]
+            }
+          }
+        },
+        "singleBinary": {
+          "type": "object",
+          "description": "SingleBinary mode configuration",
+          "properties": {
+            "replicas": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "persistence": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "size": {
+                  "type": "string",
+                  "pattern": "^[0-9]+(Mi|Gi|Ti)$"
+                },
+                "storageClass": {
+                  "type": "string"
+                }
+              }
+            },
+            "resources": {
+              "type": "object"
+            }
+          }
+        },
+        "minio": {
+          "type": "object",
+          "description": "MinIO sub-chart configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        },
+        "read": {
+          "$ref": "#/$defs/replicaComponent"
+        },
+        "write": {
+          "$ref": "#/$defs/replicaComponent"
+        },
+        "backend": {
+          "$ref": "#/$defs/replicaComponent"
+        },
+        "ingester": {
+          "$ref": "#/$defs/replicaComponent"
+        },
+        "querier": {
+          "$ref": "#/$defs/replicaComponent"
+        },
+        "queryFrontend": {
+          "$ref": "#/$defs/replicaComponent"
+        },
+        "queryScheduler": {
+          "$ref": "#/$defs/replicaComponent"
+        },
+        "distributor": {
+          "$ref": "#/$defs/replicaComponent"
+        },
+        "compactor": {
+          "$ref": "#/$defs/replicaComponent"
+        },
+        "indexGateway": {
+          "$ref": "#/$defs/replicaComponent"
+        },
+        "bloomCompactor": {
+          "$ref": "#/$defs/replicaComponent"
+        },
+        "bloomGateway": {
+          "$ref": "#/$defs/replicaComponent"
+        },
+        "promtail": {
+          "type": "object",
+          "description": "Built-in Promtail configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        },
+        "chunksCache": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        },
+        "resultsCache": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        },
+        "gateway": {
+          "type": "object",
+          "description": "Nginx gateway configuration",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "replicaComponent": {
+      "type": "object",
+      "description": "Loki component (disabled in SingleBinary mode via replicas: 0)",
+      "properties": {
+        "replicas": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resources": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

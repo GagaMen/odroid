@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "ODROID Platform Umbrella Helm Chart Values",
+  "description": "Combined values for all sub-charts and platform-level configuration. Sub-chart schemas are referenced via $ref to avoid duplication.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "cert-manager-dns-lexicon-webhook": {
+      "$ref": "../charts/cert-manager-dns-lexicon-webhook/values.schema.json"
+    },
+    "clusterIssuer": {
+      "type": "object",
+      "description": "ClusterIssuer configuration (platform-level)",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable ClusterIssuer creation"
+        },
+        "name": {
+          "type": "string",
+          "description": "ClusterIssuer resource name"
+        },
+        "email": {
+          "type": "string",
+          "description": "ACME account email address",
+          "format": "email"
+        },
+        "server": {
+          "type": "string",
+          "description": "ACME server URL",
+          "format": "uri"
+        },
+        "webhook": {
+          "type": "object",
+          "description": "Webhook solver configuration",
+          "additionalProperties": false,
+          "properties": {
+            "groupName": {
+              "type": "string",
+              "description": "Webhook solver group name"
+            },
+            "provider": {
+              "type": "string",
+              "description": "DNS provider name (e.g. inwx, cloudflare, route53)"
+            },
+            "ttl": {
+              "type": ["integer", "string"],
+              "description": "DNS record TTL in seconds"
+            }
+          }
+        },
+        "secret": {
+          "type": "object",
+          "description": "Secret for DNS provider credentials",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Secret resource name"
+            },
+            "namespace": {
+              "type": "string",
+              "description": "Namespace for the secret"
+            },
+            "auth_username": {
+              "type": "string",
+              "description": "DNS provider API username"
+            },
+            "auth_password": {
+              "type": "string",
+              "description": "DNS provider API password"
+            }
+          }
+        }
+      }
+    },
+    "longhorn": {
+      "$ref": "../charts/longhorn/values.schema.json"
+    },
+    "homepage": {
+      "$ref": "../charts/homepage/values.schema.json"
+    },
+    "adguard": {
+      "$ref": "../charts/adguard/values.schema.json"
+    },
+    "ntfy": {
+      "$ref": "../charts/ntfy/values.schema.json"
+    },
+    "prometheus": {
+      "$ref": "../charts/prometheus/values.schema.json"
+    },
+    "grafana": {
+      "$ref": "../charts/grafana/values.schema.json"
+    },
+    "loki": {
+      "$ref": "../charts/loki/values.schema.json"
+    },
+    "alloy": {
+      "$ref": "../charts/alloy/values.schema.json"
+    }
+  }
+}

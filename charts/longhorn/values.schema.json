@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Longhorn Wrapper Helm Chart Values",
+  "description": "Wrapper chart for Longhorn. Values are passed through to the upstream chart via the 'config' alias.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Enable this chart (used by umbrella chart)"
+    },
+    "config": {
+      "type": "object",
+      "description": "Longhorn upstream chart values (alias for the longhorn dependency, see https://longhorn.io/docs/)",
+      "properties": {
+        "global": {
+          "type": "object",
+          "description": "Global settings",
+          "properties": {
+            "imageRegistry": {
+              "type": "string",
+              "description": "Global override for container image registry"
+            },
+            "imagePullSecrets": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "timezone": {
+              "type": "string",
+              "description": "Container timezone (TZ env) for all Longhorn workloads"
+            },
+            "tolerations": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "nodeSelector": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "cattle": {
+              "type": "object",
+              "properties": {
+                "systemDefaultRegistry": {
+                  "type": "string"
+                },
+                "windowsCluster": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "networkPolicies": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable network policies"
+            },
+            "type": {
+              "type": "string",
+              "description": "Distribution type",
+              "enum": ["k3s", "rke2", "rke1"]
+            }
+          }
+        },
+        "image": {
+          "type": "object",
+          "description": "Container image overrides for Longhorn components"
+        },
+        "service": {
+          "type": "object",
+          "description": "Longhorn UI service configuration"
+        },
+        "persistence": {
+          "type": "object",
+          "description": "Default StorageClass configuration",
+          "properties": {
+            "defaultClass": {
+              "type": "boolean",
+              "description": "Use as the default StorageClass"
+            },
+            "defaultFsType": {
+              "type": "string",
+              "description": "Filesystem type",
+              "enum": ["ext4", "xfs"]
+            },
+            "defaultMkfsParams": {
+              "type": "string",
+              "description": "mkfs parameters"
+            },
+            "defaultClassReplicaCount": {
+              "type": "integer",
+              "description": "Replica count for the default StorageClass",
+              "minimum": 1
+            },
+            "defaultDataLocality": {
+              "type": "string",
+              "description": "Data locality setting",
+              "enum": ["disabled", "best-effort"]
+            },
+            "reclaimPolicy": {
+              "type": "string",
+              "description": "Reclaim policy for released volumes",
+              "enum": ["Retain", "Delete"]
+            },
+            "volumeBindingMode": {
+              "type": "string",
+              "description": "When volume binding and dynamic provisioning should occur",
+              "enum": ["Immediate", "WaitForFirstConsumer"]
+            },
+            "migratable": {
+              "type": "boolean",
+              "description": "Enable live migration"
+            },
+            "disableRevisionCounter": {
+              "type": "string",
+              "description": "Disable revision counter",
+              "enum": ["true", "false"]
+            },
+            "nfsOptions": {
+              "type": "string",
+              "description": "NFS mount options for RWX volumes"
+            },
+            "dataEngine": {
+              "type": "string",
+              "description": "Data engine version",
+              "enum": ["v1", "v2"]
+            },
+            "backupTargetName": {
+              "type": "string",
+              "description": "Backup target name"
+            }
+          }
+        },
+        "csi": {
+          "type": "object",
+          "description": "CSI driver configuration",
+          "properties": {
+            "kubeletRootDir": {
+              "type": ["string", "null"],
+              "description": "kubelet root directory (e.g. /var/snap/microk8s/common/var/lib/kubelet)"
+            },
+            "podAntiAffinityPreset": {
+              "type": ["string", "null"],
+              "description": "Pod anti-affinity preset (soft or hard)"
+            },
+            "attacherReplicaCount": {
+              "type": ["integer", "null"],
+              "description": "Replica count of the CSI Attacher (default: 3)",
+              "minimum": 1
+            },
+            "provisionerReplicaCount": {
+              "type": ["integer", "null"],
+              "description": "Replica count of the CSI Provisioner (default: 3)",
+              "minimum": 1
+            },
+            "resizerReplicaCount": {
+              "type": ["integer", "null"],
+              "description": "Replica count of the CSI Resizer (default: 3)",
+              "minimum": 1
+            },
+            "snapshotterReplicaCount": {
+              "type": ["integer", "null"],
+              "description": "Replica count of the CSI Snapshotter (default: 3)",
+              "minimum": 1
+            }
+          }
+        },
+        "defaultSettings": {
+          "type": "object",
+          "description": "Longhorn default settings (see https://longhorn.io/docs/latest/references/settings/)"
+        },
+        "preUpgradeChecker": {
+          "type": "object",
+          "properties": {
+            "jobEnabled": {
+              "type": "boolean",
+              "description": "Enable pre-upgrade checks"
+            },
+            "upgradeVersionCheck": {
+              "type": "boolean"
+            }
+          }
+        },
+        "longhornManager": {
+          "type": "object",
+          "description": "Longhorn Manager DaemonSet configuration"
+        },
+        "longhornDriver": {
+          "type": "object",
+          "description": "Longhorn Driver Deployer configuration"
+        },
+        "longhornUI": {
+          "type": "object",
+          "description": "Longhorn UI Deployment configuration"
+        },
+        "ingress": {
+          "type": "object",
+          "description": "Ingress for the Longhorn UI"
+        },
+        "namespaceOverride": {
+          "type": "string",
+          "description": "Override the deployment namespace"
+        },
+        "annotations": {
+          "type": "object",
+          "description": "Global annotations",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "serviceAccount": {
+          "type": "object"
+        },
+        "metrics": {
+          "type": "object",
+          "description": "Metrics and ServiceMonitor configuration"
+        },
+        "enablePSP": {
+          "type": "boolean",
+          "description": "Enable PodSecurityPolicy"
+        }
+      }
+    }
+  }
+}
