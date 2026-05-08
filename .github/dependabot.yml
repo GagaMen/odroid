@@ -20,7 +20,7 @@ updates:
   - package-ecosystem: "helm"
     directories:
       - /charts/alloy
-      - /charts/grana
+      - /charts/grafana
       - /charts/loki
       - /charts/longhorn
       - /charts/prometheus
