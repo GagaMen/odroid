@@ -153,7 +153,7 @@ prometheusExporter:
     - example
   interval: 30s
   debug: false
-  bindAddress: :9618
+  bindAddress: ":9618"
   resources: {}
     # limits:
     #   cpu: 100m
