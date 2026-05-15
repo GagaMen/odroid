@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json.schemastore.org/package",
+  "private": true,
+  "description": "Dev tooling for Helm chart JSON Schema generation",
+  "engines": {
+    "node": "24.14.1",
+    "npm": "11.11.0"
+  },
+  "scripts": {
+    "generate:adguard": "ts-json-schema-generator --path './charts/adguard/values.schema.ts' --type 'Values' --out './charts/adguard/values.schema.json'",
+    "generate:alloy": "ts-json-schema-generator --path './charts/alloy/values.schema.ts' --type 'Values' --out './charts/alloy/values.schema.json'",
+    "generate:cert-manager-dns-lexicon-webhook": "ts-json-schema-generator --path './charts/cert-manager-dns-lexicon-webhook/values.schema.ts' --type 'Values' --out './charts/cert-manager-dns-lexicon-webhook/values.schema.json'",
+    "generate:grafana": "ts-json-schema-generator --path './charts/grafana/values.schema.ts' --type 'Values' --out './charts/grafana/values.schema.json'",
+    "generate:homepage": "ts-json-schema-generator --path './charts/homepage/values.schema.ts' --type 'Values' --out './charts/homepage/values.schema.json'",
+    "generate:loki": "ts-json-schema-generator --path './charts/loki/values.schema.ts' --type 'Values' --out './charts/loki/values.schema.json'",
+    "generate:longhorn": "ts-json-schema-generator --path './charts/longhorn/values.schema.ts' --type 'Values' --out './charts/longhorn/values.schema.json'",
+    "generate:ntfy": "ts-json-schema-generator --path './charts/ntfy/values.schema.ts' --type 'Values' --out './charts/ntfy/values.schema.json'",
+    "generate:prometheus": "ts-json-schema-generator --path './charts/prometheus/values.schema.ts' --type 'Values' --out './charts/prometheus/values.schema.json'",
+    "generate:platform": "ts-json-schema-generator --path './platform/values.schema.ts' --type 'PlatformValues' --expose none --out './platform/values.schema.json'",
+    "generate:all": "npm run generate:adguard && npm run generate:alloy && npm run generate:cert-manager-dns-lexicon-webhook && npm run generate:grafana && npm run generate:homepage && npm run generate:loki && npm run generate:longhorn && npm run generate:ntfy && npm run generate:prometheus && npm run generate:platform"
+  },
+  "devDependencies": {
+    "ts-json-schema-generator": "2.9.0",
+    "typescript": "5.9.3"
+  }
+}

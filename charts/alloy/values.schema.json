@@ -1,140 +1,830 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema#",
-  "title": "Alloy Wrapper Helm Chart Values",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "enabled": {
-      "type": "boolean",
-      "description": "Enable this chart (used by umbrella chart)"
-    },
-    "alloy": {
-      "type": "object",
-      "description": "Grafana Alloy upstream chart values (see https://github.com/grafana/alloy/tree/main/operations/helm/charts/alloy)",
+  "$ref": "#/definitions/Values",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Values": {
+      "additionalProperties": false,
       "properties": {
-        "controller": {
-          "type": "object",
-          "description": "Controller configuration",
-          "properties": {
-            "type": {
-              "type": "string",
-              "description": "Controller type",
-              "enum": ["daemonset", "deployment", "statefulset"]
-            },
-            "replicas": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "nodeSelector": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            },
-            "tolerations": {
-              "type": "array",
-              "items": {
-                "type": "object"
-              }
-            }
-          }
-        },
         "alloy": {
-          "type": "object",
-          "description": "Alloy application configuration",
+          "additionalProperties": false,
+          "description": "Grafana Alloy upstream chart values (see https://github.com/grafana/alloy/tree/main/operations/helm/charts/alloy)",
           "properties": {
-            "configMap": {
-              "type": "object",
+            "alloy": {
+              "additionalProperties": false,
+              "description": "Alloy application configuration",
               "properties": {
-                "create": {
-                  "type": "boolean",
-                  "description": "Create a ConfigMap for Alloy configuration"
+                "clustering": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "description": "Deploy Alloy in a cluster to allow for load distribution",
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "description": "Name for the Alloy cluster",
+                      "type": "string"
+                    },
+                    "portName": {
+                      "description": "Name for the port used for clustering",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
                 },
-                "content": {
-                  "type": "string",
-                  "description": "Alloy pipeline configuration (River format)"
+                "configMap": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "content": {
+                      "description": "Alloy pipeline configuration (River format)",
+                      "type": "string"
+                    },
+                    "create": {
+                      "description": "Create a ConfigMap for Alloy configuration",
+                      "type": "boolean"
+                    },
+                    "key": {
+                      "description": "ConfigMap key for the config file",
+                      "type": "string"
+                    },
+                    "name": {
+                      "description": "Name of existing ConfigMap to use (when create is false)",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
                 },
-                "key": {
-                  "type": "string",
-                  "description": "ConfigMap key for the config file"
-                }
-              }
-            },
-            "mounts": {
-              "type": "object",
-              "description": "Extra mounts for the Alloy container",
-              "properties": {
-                "varlog": {
+                "enableHttpServerPort": {
+                  "description": "Enables Grafana Alloy container's http server port",
                   "type": "boolean"
                 },
-                "dockercontainers": {
+                "enableReporting": {
+                  "description": "Enables sending Grafana Labs anonymous usage stats",
                   "type": "boolean"
+                },
+                "envFrom": {
+                  "description": "Maps all the keys on a ConfigMap or Secret as environment variables",
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraArgs": {
+                  "description": "Extra args to pass to `alloy run`",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "extraEnv": {
+                  "description": "Extra environment variables to pass to the Alloy container",
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraPorts": {
+                  "description": "Extra ports to expose on the Alloy container",
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "hostAliases": {
+                  "description": "Host aliases to add to the Alloy container",
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "initialDelaySeconds": {
+                  "description": "Initial delay for readiness probe",
+                  "type": "integer"
+                },
+                "lifecycle": {
+                  "description": "Lifecycle hooks for the Grafana Alloy container",
+                  "type": "object"
+                },
+                "listenAddr": {
+                  "description": "Address to listen for traffic on",
+                  "type": "string"
+                },
+                "listenPort": {
+                  "description": "Port to listen for traffic on",
+                  "type": "integer"
+                },
+                "listenScheme": {
+                  "description": "Scheme for readiness probes. Set to \"HTTPS\" if TLS is enabled",
+                  "type": "string"
+                },
+                "livenessProbe": {
+                  "description": "Liveness probe for the Grafana Alloy container",
+                  "type": "object"
+                },
+                "mounts": {
+                  "additionalProperties": false,
+                  "description": "Extra mounts for the Alloy container",
+                  "properties": {
+                    "dockercontainers": {
+                      "description": "Mount /var/lib/docker/containers from the host into the container for log collection",
+                      "type": "boolean"
+                    },
+                    "extra": {
+                      "description": "Extra volume mounts to add into the Grafana Alloy container",
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "varlog": {
+                      "description": "Mount /var/log from the host into the container for log collection",
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                },
+                "resources": {
+                  "type": "object"
+                },
+                "securityContext": {
+                  "description": "Security context to apply to the Grafana Alloy container",
+                  "type": "object"
+                },
+                "stabilityLevel": {
+                  "description": "Minimum stability level of components and behavior to enable",
+                  "enum": [
+                    "experimental",
+                    "public-preview",
+                    "generally-available"
+                  ],
+                  "type": "string"
+                },
+                "storagePath": {
+                  "description": "Path to where Grafana Alloy stores data",
+                  "type": "string"
+                },
+                "timeoutSeconds": {
+                  "description": "Timeout for readiness probe",
+                  "type": "integer"
+                },
+                "uiPathPrefix": {
+                  "description": "Base path where the UI is exposed",
+                  "type": "string"
                 }
-              }
-            },
-            "resources": {
+              },
               "type": "object"
             },
-            "extraEnv": {
-              "type": "array",
+            "configReloader": {
+              "additionalProperties": false,
+              "properties": {
+                "customArgs": {
+                  "description": "Override the args passed to the container",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "enabled": {
+                  "description": "Enables automatically reloading when the Alloy config changes",
+                  "type": "boolean"
+                },
+                "image": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "digest": {
+                      "description": "SHA256 digest override",
+                      "type": "string"
+                    },
+                    "registry": {
+                      "type": "string"
+                    },
+                    "repository": {
+                      "type": "string"
+                    },
+                    "tag": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "resources": {
+                  "type": "object"
+                },
+                "securityContext": {
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "controller": {
+              "additionalProperties": false,
+              "description": "Controller configuration",
+              "properties": {
+                "affinity": {
+                  "type": "object"
+                },
+                "autoscaling": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "deprecated": "Use horizontal instead",
+                      "type": "boolean"
+                    },
+                    "horizontal": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "maxReplicas": {
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "minReplicas": {
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "scaleDown": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "policies": {
+                              "items": {
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "selectPolicy": {
+                              "type": "string"
+                            },
+                            "stabilizationWindowSeconds": {
+                              "type": "integer"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "scaleUp": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "policies": {
+                              "items": {
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "selectPolicy": {
+                              "type": "string"
+                            },
+                            "stabilizationWindowSeconds": {
+                              "type": "integer"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "targetCPUUtilizationPercentage": {
+                          "type": "integer"
+                        },
+                        "targetMemoryUtilizationPercentage": {
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "maxReplicas": {
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "minReplicas": {
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "scaleDown": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "policies": {
+                          "items": {
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "selectPolicy": {
+                          "type": "string"
+                        },
+                        "stabilizationWindowSeconds": {
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "scaleUp": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "policies": {
+                          "items": {
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "selectPolicy": {
+                          "type": "string"
+                        },
+                        "stabilizationWindowSeconds": {
+                          "type": "integer"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "targetCPUUtilizationPercentage": {
+                      "type": "integer"
+                    },
+                    "targetMemoryUtilizationPercentage": {
+                      "type": "integer"
+                    },
+                    "vertical": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "recommenders": {
+                          "items": {
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "resourcePolicy": {
+                          "type": "object"
+                        },
+                        "updatePolicy": {
+                          "type": "object"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                },
+                "dnsPolicy": {
+                  "description": "DNS policy for the pod",
+                  "enum": [
+                    "ClusterFirst",
+                    "ClusterFirstWithHostNet",
+                    "Default",
+                    "None"
+                  ],
+                  "type": "string"
+                },
+                "enableStatefulSetAutoDeletePVC": {
+                  "description": "Enable automatic deletion of stale PVCs on scale down (statefulset only)",
+                  "type": "boolean"
+                },
+                "extraAnnotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "extraContainers": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraLabels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "hostNetwork": {
+                  "description": "Configures Pods to use the host network",
+                  "type": "boolean"
+                },
+                "hostPID": {
+                  "description": "Configures Pods to use the host PID namespace",
+                  "type": "boolean"
+                },
+                "initContainers": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "minReadySeconds": {
+                  "description": "Minimum ready seconds",
+                  "type": "integer"
+                },
+                "nodeSelector": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "parallelRollout": {
+                  "description": "Whether to deploy pods in parallel (statefulset only)",
+                  "type": "boolean"
+                },
+                "podAnnotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "description": "Whether to create a PodDisruptionBudget",
+                      "type": "boolean"
+                    },
+                    "maxUnavailable": {
+                      "type": [
+                        "number",
+                        "string"
+                      ]
+                    },
+                    "minAvailable": {
+                      "type": [
+                        "number",
+                        "string"
+                      ]
+                    }
+                  },
+                  "type": "object"
+                },
+                "podLabels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "priorityClassName": {
+                  "type": "string"
+                },
+                "replicas": {
+                  "description": "Number of replicas",
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "terminationGracePeriodSeconds": {
+                  "description": "Termination grace period in seconds",
+                  "type": "integer"
+                },
+                "tolerations": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "topologySpreadConstraints": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "type": {
+                  "description": "Controller type",
+                  "enum": [
+                    "daemonset",
+                    "deployment",
+                    "statefulset"
+                  ],
+                  "type": "string"
+                },
+                "updateStrategy": {
+                  "type": "object"
+                },
+                "volumeClaimTemplates": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "volumes": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "extra": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "crds": {
+              "additionalProperties": false,
+              "properties": {
+                "create": {
+                  "description": "Whether to install CRDs for monitoring",
+                  "type": "boolean"
+                },
+                "global": {
+                  "description": "Helm global values propagated by Helm into sub-chart sections",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "extraObjects": {
+              "description": "Extra Kubernetes manifests to deploy",
               "items": {
                 "type": "object"
-              }
+              },
+              "type": "array"
             },
-            "extraPorts": {
-              "type": "array",
-              "items": {
-                "type": "object"
-              }
+            "fullnameOverride": {
+              "type": "string"
+            },
+            "global": {
+              "additionalProperties": false,
+              "properties": {
+                "image": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "pullSecrets": {
+                      "description": "Global image pull secrets",
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "registry": {
+                      "description": "Global image registry override",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "podSecurityContext": {
+                  "description": "Security context to apply to the Grafana Alloy pod",
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "image": {
+              "additionalProperties": false,
+              "properties": {
+                "digest": {
+                  "description": "SHA256 digest override",
+                  "type": "string"
+                },
+                "pullPolicy": {
+                  "enum": [
+                    "Always",
+                    "IfNotPresent",
+                    "Never"
+                  ],
+                  "type": "string"
+                },
+                "pullSecrets": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "registry": {
+                  "type": "string"
+                },
+                "repository": {
+                  "type": "string"
+                },
+                "tag": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "ingress": {
+              "additionalProperties": false,
+              "properties": {
+                "annotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "enabled": {
+                  "description": "Enables ingress for Alloy (Faro port)",
+                  "type": "boolean"
+                },
+                "extraPaths": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "faroPort": {
+                  "type": "integer"
+                },
+                "hosts": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "ingressClassName": {
+                  "type": "string"
+                },
+                "labels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "pathType": {
+                  "type": "string"
+                },
+                "tls": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
+            "nameOverride": {
+              "type": "string"
+            },
+            "namespaceOverride": {
+              "description": "Namespace override for the Alloy deployment",
+              "type": "string"
+            },
+            "networkPolicy": {
+              "additionalProperties": false,
+              "properties": {
+                "egress": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "enabled": {
+                  "type": "boolean"
+                },
+                "flavor": {
+                  "type": "string"
+                },
+                "ingress": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "policyTypes": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
+            "rbac": {
+              "additionalProperties": false,
+              "description": "RBAC configuration",
+              "properties": {
+                "clusterRules": {
+                  "description": "Rules for the ClusterRole objects",
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "create": {
+                  "description": "Whether to create RBAC resources for Alloy",
+                  "type": "boolean"
+                },
+                "namespaces": {
+                  "description": "Namespaces to create Roles/RoleBindings in instead of ClusterRoles",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "rules": {
+                  "description": "Rules for the ClusterRole or Role objects",
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
+            "service": {
+              "additionalProperties": false,
+              "properties": {
+                "annotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "clusterIP": {
+                  "type": "string"
+                },
+                "enabled": {
+                  "description": "Creates a Service for the controller's pods",
+                  "type": "boolean"
+                },
+                "internalTrafficPolicy": {
+                  "type": "string"
+                },
+                "nodePort": {
+                  "type": "integer"
+                },
+                "type": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "serviceAccount": {
+              "additionalProperties": false,
+              "description": "Service account configuration",
+              "properties": {
+                "additionalLabels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Additional labels to add to the created service account",
+                  "type": "object"
+                },
+                "annotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Annotations to add to the created service account",
+                  "type": "object"
+                },
+                "automountServiceAccountToken": {
+                  "description": "Whether the Alloy pod should automatically mount the service account token",
+                  "type": "boolean"
+                },
+                "create": {
+                  "description": "Whether to create a service account",
+                  "type": "boolean"
+                },
+                "name": {
+                  "description": "Name of the existing service account to use when create is false",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "serviceMonitor": {
+              "additionalProperties": false,
+              "properties": {
+                "additionalLabels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "enabled": {
+                  "type": "boolean"
+                },
+                "interval": {
+                  "type": "string"
+                },
+                "metricRelabelings": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "relabelings": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "tlsConfig": {
+                  "type": "object"
+                }
+              },
+              "type": "object"
             }
-          }
+          },
+          "type": "object"
         },
-        "rbac": {
-          "type": "object",
-          "description": "RBAC configuration",
-          "properties": {
-            "create": {
-              "type": "boolean"
-            }
-          }
+        "enabled": {
+          "description": "Enable/disable this chart (used by platform condition)",
+          "type": "boolean"
         },
-        "serviceAccount": {
-          "type": "object",
-          "description": "Service account configuration",
-          "properties": {
-            "create": {
-              "type": "boolean"
-            },
-            "name": {
-              "type": "string"
-            },
-            "annotations": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "image": {
-          "type": "object",
-          "properties": {
-            "registry": {
-              "type": "string"
-            },
-            "repository": {
-              "type": "string"
-            },
-            "tag": {
-              "type": "string"
-            },
-            "pullPolicy": {
-              "type": "string",
-              "enum": ["Always", "IfNotPresent", "Never"]
-            }
-          }
+        "global": {
+          "description": "Injected by Helm for sub-chart coordination",
+          "type": "object"
         }
-      }
+      },
+      "type": "object"
     }
   }
 }

@@ -1,143 +1,155 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema#",
-  "title": "cert-manager DNS Lexicon Webhook Helm Chart Values",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "enabled": {
-      "type": "boolean",
-      "description": "Enable this chart (used by umbrella chart)"
-    },
-    "groupName": {
-      "type": "string",
-      "description": "ACME DNS01 solver group name (e.g. acme.mycompany.com). Must be unique and referenced in each Issuer's webhook stanza."
-    },
-    "replicaCount": {
-      "type": "integer",
-      "description": "Number of replicas",
-      "minimum": 1
-    },
-    "namespaceOverride": {
-      "type": "string",
-      "description": "Override the namespace where resources are deployed (defaults to release namespace)"
-    },
-    "certManager": {
-      "type": "object",
-      "description": "cert-manager reference configuration",
+  "$ref": "#/definitions/Values",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Values": {
       "additionalProperties": false,
       "properties": {
-        "namespace": {
-          "type": "string",
-          "description": "Namespace where cert-manager is installed"
+        "affinity": {
+          "description": "Affinity rules for pod assignment",
+          "type": "object"
         },
-        "serviceAccountName": {
-          "type": "string",
-          "description": "cert-manager service account name"
-        }
-      }
-    },
-    "image": {
-      "type": "object",
-      "description": "Container image configuration",
-      "additionalProperties": false,
-      "properties": {
-        "repository": {
-          "type": "string",
-          "description": "Container image repository"
-        },
-        "tag": {
-          "type": "string",
-          "description": "Image tag"
-        },
-        "digest": {
-          "type": "string",
-          "description": "Image digest (sha256:...)",
-          "pattern": "^sha256:[a-f0-9]{64}$"
-        },
-        "pullPolicy": {
-          "type": "string",
-          "description": "Image pull policy",
-          "enum": ["Always", "IfNotPresent", "Never"]
-        }
-      }
-    },
-    "nameOverride": {
-      "type": "string",
-      "description": "Override the chart name"
-    },
-    "fullnameOverride": {
-      "type": "string",
-      "description": "Override the full release name"
-    },
-    "service": {
-      "type": "object",
-      "description": "Service configuration",
-      "additionalProperties": false,
-      "properties": {
-        "type": {
-          "type": "string",
-          "description": "Service type",
-          "enum": ["ClusterIP", "NodePort", "LoadBalancer"]
-        },
-        "port": {
-          "type": "integer",
-          "description": "Service port number"
-        }
-      }
-    },
-    "resources": {
-      "$ref": "#/$defs/resources"
-    },
-    "nodeSelector": {
-      "type": "object",
-      "description": "Node selector for pod assignment",
-      "additionalProperties": {
-        "type": "string"
-      }
-    },
-    "tolerations": {
-      "type": "array",
-      "description": "Tolerations for pod assignment",
-      "items": {
-        "type": "object"
-      }
-    },
-    "affinity": {
-      "type": "object",
-      "description": "Affinity rules for pod assignment"
-    }
-  },
-  "$defs": {
-    "resources": {
-      "type": "object",
-      "description": "CPU/memory resource requests and limits",
-      "additionalProperties": false,
-      "properties": {
-        "limits": {
-          "type": "object",
+        "certManager": {
           "additionalProperties": false,
+          "description": "cert-manager reference configuration",
           "properties": {
-            "cpu": {
+            "namespace": {
+              "description": "Namespace where cert-manager is installed",
               "type": "string"
             },
-            "memory": {
+            "serviceAccountName": {
+              "description": "cert-manager service account name",
               "type": "string"
             }
-          }
+          },
+          "type": "object"
         },
-        "requests": {
-          "type": "object",
+        "enabled": {
+          "description": "Enable/disable this chart (used by platform condition)",
+          "type": "boolean"
+        },
+        "fullnameOverride": {
+          "description": "Override the full release name",
+          "type": "string"
+        },
+        "global": {
+          "description": "Injected by Helm for sub-chart coordination",
+          "type": "object"
+        },
+        "groupName": {
+          "description": "ACME DNS01 solver group name (e.g. acme.mycompany.com). Must be unique and referenced in each Issuer's webhook stanza.",
+          "type": "string"
+        },
+        "image": {
           "additionalProperties": false,
+          "description": "Container image configuration",
           "properties": {
-            "cpu": {
+            "digest": {
+              "description": "Image digest (sha256:...)",
+              "pattern": "^sha256:[a-f0-9]{64}$",
               "type": "string"
             },
-            "memory": {
+            "pullPolicy": {
+              "description": "Image pull policy",
+              "enum": [
+                "Always",
+                "IfNotPresent",
+                "Never"
+              ],
+              "type": "string"
+            },
+            "repository": {
+              "description": "Container image repository",
+              "type": "string"
+            },
+            "tag": {
+              "description": "Image tag",
               "type": "string"
             }
-          }
+          },
+          "type": "object"
+        },
+        "nameOverride": {
+          "description": "Override the chart name",
+          "type": "string"
+        },
+        "namespaceOverride": {
+          "description": "Override the namespace where resources are deployed (defaults to release namespace)",
+          "type": "string"
+        },
+        "nodeSelector": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Node selector for pod assignment",
+          "type": "object"
+        },
+        "replicaCount": {
+          "description": "Number of replicas",
+          "minimum": 1,
+          "type": "integer"
+        },
+        "resources": {
+          "additionalProperties": false,
+          "description": "CPU/memory resource requests and limits",
+          "properties": {
+            "limits": {
+              "additionalProperties": false,
+              "description": "CPU/memory resource requests and limits",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "requests": {
+              "additionalProperties": false,
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "service": {
+          "additionalProperties": false,
+          "description": "Service configuration",
+          "properties": {
+            "port": {
+              "description": "Service port number",
+              "type": "integer"
+            },
+            "type": {
+              "description": "Service type",
+              "enum": [
+                "ClusterIP",
+                "NodePort",
+                "LoadBalancer"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "tolerations": {
+          "description": "Tolerations for pod assignment",
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
         }
-      }
+      },
+      "type": "object"
     }
   }
 }

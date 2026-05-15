@@ -1,358 +1,744 @@
 {
-  "$schema": "https://json-schema.org/draft-07/schema#",
-  "title": "AdGuard Home Helm Chart Values",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "enabled": {
-      "type": "boolean",
-      "description": "Enable this chart (used by umbrella chart)"
-    },
-    "namespaceOverride": {
-      "type": "string",
-      "description": "Override the deployment namespace"
-    },
-    "image": {
-      "type": "object",
-      "description": "Container image configuration",
+  "$ref": "#/definitions/Values",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Values": {
       "additionalProperties": false,
       "properties": {
-        "repository": {
-          "type": "string",
-          "description": "Container image repository"
+        "affinity": {
+          "description": "Affinity rules for pod assignment",
+          "type": "object"
         },
-        "pullPolicy": {
-          "type": "string",
-          "description": "Image pull policy",
-          "enum": ["Always", "IfNotPresent", "Never"]
-        },
-        "tag": {
-          "type": "string",
-          "description": "Overrides the image tag whose default is the chart appVersion"
-        }
-      }
-    },
-    "nameOverride": {
-      "type": "string",
-      "description": "Override the chart name"
-    },
-    "fullnameOverride": {
-      "type": "string",
-      "description": "Override the full release name"
-    },
-    "hostNetwork": {
-      "type": "boolean",
-      "description": "Use host network for DNS service (required for DHCP and direct DNS access)"
-    },
-    "persistence": {
-      "type": "object",
-      "description": "Persistent Volume Claims for configuration and work data",
-      "additionalProperties": false,
-      "properties": {
-        "conf": {
-          "$ref": "#/$defs/persistenceVolume",
-          "description": "PVC for AdGuard configuration data"
-        },
-        "work": {
-          "$ref": "#/$defs/persistenceVolume",
-          "description": "PVC for AdGuard work/runtime data"
-        }
-      }
-    },
-    "service": {
-      "type": "object",
-      "description": "Service configuration",
-      "additionalProperties": false,
-      "properties": {
-        "type": {
-          "type": "string",
-          "description": "Service type",
-          "enum": ["ClusterIP", "NodePort", "LoadBalancer", "ExternalName"]
-        },
-        "ports": {
-          "type": "object",
-          "description": "Service port definitions",
-          "additionalProperties": false,
-          "patternProperties": {
-            "^(dns-tcp|dns-udp|dhcp-listen|dhcp-tcp|dhcp-udp|http|admin|dns-over-tls|dns-over-quic|dnscrypt-tcp|dnscrypt-udp|debug)$": {
-              "$ref": "#/$defs/servicePort"
-            }
-          }
-        }
-      }
-    },
-    "ingress": {
-      "$ref": "#/$defs/ingress"
-    },
-    "resources": {
-      "$ref": "#/$defs/resources"
-    },
-    "nodeSelector": {
-      "type": "object",
-      "description": "Node selector for pod assignment",
-      "additionalProperties": {
-        "type": "string"
-      }
-    },
-    "tolerations": {
-      "type": "array",
-      "description": "Tolerations for pod assignment",
-      "items": {
-        "type": "object"
-      }
-    },
-    "affinity": {
-      "type": "object",
-      "description": "Affinity rules for pod assignment"
-    },
-    "prometheusExporter": {
-      "type": "object",
-      "description": "Prometheus exporter sidecar configuration",
-      "additionalProperties": false,
-      "properties": {
         "enabled": {
-          "type": "boolean",
-          "description": "Enable the Prometheus exporter sidecar"
-        },
-        "image": {
-          "type": "object",
-          "description": "Exporter container image",
-          "additionalProperties": false,
-          "properties": {
-            "repository": {
-              "type": "string"
-            },
-            "pullPolicy": {
-              "type": "string",
-              "enum": ["Always", "IfNotPresent", "Never"]
-            },
-            "tag": {
-              "type": "string"
-            }
-          }
-        },
-        "service": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "type": {
-              "type": "string",
-              "enum": ["ClusterIP", "NodePort", "LoadBalancer"]
-            },
-            "port": {
-              "type": "integer"
-            }
-          }
-        },
-        "servers": {
-          "type": "array",
-          "description": "AdGuard server URLs to scrape",
-          "items": {
-            "type": "string"
-          }
-        },
-        "usernames": {
-          "type": "array",
-          "description": "AdGuard admin usernames",
-          "items": {
-            "type": "string"
-          }
-        },
-        "passwords": {
-          "type": "array",
-          "description": "AdGuard admin passwords",
-          "items": {
-            "type": "string"
-          }
-        },
-        "interval": {
-          "type": "string",
-          "description": "Scrape interval (e.g. 30s)",
-          "pattern": "^[0-9]+(ms|s|m|h)$"
-        },
-        "debug": {
+          "description": "Enable/disable this chart (used by platform condition)",
           "type": "boolean"
         },
-        "bindAddress": {
-          "type": "string",
-          "description": "Address the exporter listens on"
+        "fullnameOverride": {
+          "description": "Override the full release name",
+          "type": "string"
         },
-        "resources": {
-          "$ref": "#/$defs/resources"
-        },
-        "nodeSelector": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "tolerations": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
-        },
-        "affinity": {
+        "global": {
+          "description": "Injected by Helm for sub-chart coordination",
           "type": "object"
-        }
-      }
-    }
-  },
-  "$defs": {
-    "persistenceVolume": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "description": "Enable persistent volume"
         },
-        "size": {
-          "type": "string",
-          "description": "Volume size (e.g. 500Mi, 1Gi)",
-          "pattern": "^[0-9]+(Mi|Gi|Ti)$"
+        "hostNetwork": {
+          "description": "Use host network for DNS service (required for DHCP and direct DNS access)",
+          "type": "boolean"
         },
-        "accessMode": {
-          "type": "string",
-          "description": "PVC access mode",
-          "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany"]
+        "image": {
+          "additionalProperties": false,
+          "description": "Container image configuration",
+          "properties": {
+            "pullPolicy": {
+              "description": "Image pull policy",
+              "enum": [
+                "Always",
+                "IfNotPresent",
+                "Never"
+              ],
+              "type": "string"
+            },
+            "repository": {
+              "description": "Container image repository",
+              "type": "string"
+            },
+            "tag": {
+              "description": "Overrides the image tag whose default is the chart appVersion",
+              "type": "string"
+            }
+          },
+          "type": "object"
         },
-        "labels": {
-          "type": "object",
-          "description": "Labels for the PVC",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "storageClass": {
-          "type": "string",
-          "description": "Storage class name"
-        }
-      }
-    },
-    "servicePort": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "description": "Enable this port"
-        },
-        "port": {
-          "type": "integer",
-          "description": "Service port number"
-        },
-        "targetPort": {
-          "type": "integer",
-          "description": "Target container port number"
-        },
-        "protocol": {
-          "type": "string",
-          "description": "Protocol",
-          "enum": ["TCP", "UDP"]
-        }
-      }
-    },
-    "ingress": {
-      "type": "object",
-      "description": "Ingress configuration",
-      "additionalProperties": false,
-      "properties": {
-        "enabled": {
-          "type": "boolean",
-          "description": "Enable ingress"
-        },
-        "className": {
-          "type": "string",
-          "description": "Ingress class name"
-        },
-        "annotations": {
-          "type": "object",
-          "description": "Ingress annotations",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "hosts": {
-          "type": "array",
-          "description": "Ingress host rules",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "host": {
+        "ingress": {
+          "additionalProperties": false,
+          "description": "Ingress configuration",
+          "properties": {
+            "annotations": {
+              "additionalProperties": {
                 "type": "string"
               },
-              "paths": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "additionalProperties": false,
-                  "properties": {
-                    "path": {
+              "description": "Ingress annotations",
+              "type": "object"
+            },
+            "className": {
+              "description": "Ingress class name",
+              "type": "string"
+            },
+            "enabled": {
+              "description": "Enable ingress",
+              "type": "boolean"
+            },
+            "hosts": {
+              "description": "Ingress host rules",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "host": {
+                    "type": "string"
+                  },
+                  "paths": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "pathType": {
+                          "enum": [
+                            "Prefix",
+                            "Exact",
+                            "ImplementationSpecific"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "tls": {
+              "description": "Ingress TLS configuration",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "hosts": {
+                    "items": {
                       "type": "string"
                     },
-                    "pathType": {
-                      "type": "string",
-                      "enum": ["Prefix", "Exact", "ImplementationSpecific"]
-                    }
+                    "type": "array"
+                  },
+                  "secretName": {
+                    "type": "string"
                   }
-                }
-              }
-            }
-          }
-        },
-        "tls": {
-          "type": "array",
-          "description": "Ingress TLS configuration",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "secretName": {
-                "type": "string"
+                },
+                "type": "object"
               },
-              "hosts": {
-                "type": "array",
-                "items": {
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "nameOverride": {
+          "description": "Override the chart name",
+          "type": "string"
+        },
+        "namespaceOverride": {
+          "description": "Override the deployment namespace",
+          "type": "string"
+        },
+        "nodeSelector": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Node selector for pod assignment",
+          "type": "object"
+        },
+        "persistence": {
+          "additionalProperties": false,
+          "description": "Persistent Volume Claims for configuration and work data",
+          "properties": {
+            "conf": {
+              "additionalProperties": false,
+              "description": "PVC for AdGuard configuration data",
+              "properties": {
+                "accessMode": {
+                  "description": "PVC access mode",
+                  "enum": [
+                    "ReadWriteOnce",
+                    "ReadOnlyMany",
+                    "ReadWriteMany"
+                  ],
+                  "type": "string"
+                },
+                "enabled": {
+                  "description": "Enable persistent volume",
+                  "type": "boolean"
+                },
+                "labels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Labels for the PVC",
+                  "type": "object"
+                },
+                "size": {
+                  "description": "Volume size (e.g. 500Mi, 1Gi)",
+                  "pattern": "^[0-9]+(Mi|Gi|Ti)$",
+                  "type": "string"
+                },
+                "storageClass": {
+                  "description": "Storage class name",
                   "type": "string"
                 }
-              }
-            }
-          }
-        }
-      }
-    },
-    "resources": {
-      "type": "object",
-      "description": "CPU/memory resource requests and limits",
-      "additionalProperties": false,
-      "properties": {
-        "limits": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "cpu": {
-              "type": "string"
+              },
+              "type": "object"
             },
-            "memory": {
-              "type": "string"
+            "work": {
+              "additionalProperties": false,
+              "description": "PVC for AdGuard work/runtime data",
+              "properties": {
+                "accessMode": {
+                  "description": "PVC access mode",
+                  "enum": [
+                    "ReadWriteOnce",
+                    "ReadOnlyMany",
+                    "ReadWriteMany"
+                  ],
+                  "type": "string"
+                },
+                "enabled": {
+                  "description": "Enable persistent volume",
+                  "type": "boolean"
+                },
+                "labels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Labels for the PVC",
+                  "type": "object"
+                },
+                "size": {
+                  "description": "Volume size (e.g. 500Mi, 1Gi)",
+                  "pattern": "^[0-9]+(Mi|Gi|Ti)$",
+                  "type": "string"
+                },
+                "storageClass": {
+                  "description": "Storage class name",
+                  "type": "string"
+                }
+              },
+              "type": "object"
             }
-          }
+          },
+          "type": "object"
         },
-        "requests": {
-          "type": "object",
+        "prometheusExporter": {
           "additionalProperties": false,
+          "description": "Prometheus exporter sidecar configuration",
           "properties": {
-            "cpu": {
+            "affinity": {
+              "type": "object"
+            },
+            "bindAddress": {
+              "description": "Address the exporter listens on",
               "type": "string"
             },
-            "memory": {
+            "debug": {
+              "type": "boolean"
+            },
+            "enabled": {
+              "description": "Enable the Prometheus exporter sidecar",
+              "type": "boolean"
+            },
+            "image": {
+              "additionalProperties": false,
+              "description": "Exporter container image",
+              "properties": {
+                "pullPolicy": {
+                  "description": "Image pull policy",
+                  "enum": [
+                    "Always",
+                    "IfNotPresent",
+                    "Never"
+                  ],
+                  "type": "string"
+                },
+                "repository": {
+                  "description": "Container image repository",
+                  "type": "string"
+                },
+                "tag": {
+                  "description": "Overrides the image tag whose default is the chart appVersion",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "interval": {
+              "description": "Scrape interval (e.g. 30s)",
+              "pattern": "^[0-9]+(ms|s|m|h)$",
+              "type": "string"
+            },
+            "nodeSelector": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "passwords": {
+              "description": "AdGuard admin passwords",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "resources": {
+              "additionalProperties": false,
+              "properties": {
+                "limits": {
+                  "additionalProperties": false,
+                  "description": "CPU/memory resource limits",
+                  "properties": {
+                    "cpu": {
+                      "type": "string"
+                    },
+                    "memory": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "requests": {
+                  "additionalProperties": false,
+                  "description": "CPU/memory resource requests",
+                  "properties": {
+                    "cpu": {
+                      "type": "string"
+                    },
+                    "memory": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "servers": {
+              "description": "AdGuard server URLs to scrape",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "service": {
+              "additionalProperties": false,
+              "properties": {
+                "port": {
+                  "type": "integer"
+                },
+                "type": {
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ],
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "tolerations": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "usernames": {
+              "description": "AdGuard admin usernames",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "resources": {
+          "additionalProperties": false,
+          "description": "CPU/memory resource requests and limits",
+          "properties": {
+            "limits": {
+              "additionalProperties": false,
+              "description": "CPU/memory resource limits",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "requests": {
+              "additionalProperties": false,
+              "description": "CPU/memory resource requests",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "service": {
+          "additionalProperties": false,
+          "description": "Service configuration",
+          "properties": {
+            "ports": {
+              "additionalProperties": false,
+              "description": "Service port definitions",
+              "properties": {
+                "admin": {
+                  "additionalProperties": false,
+                  "description": "Admin panel (port 3000)",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable this port",
+                      "type": "boolean"
+                    },
+                    "port": {
+                      "description": "Service port number",
+                      "type": "integer"
+                    },
+                    "protocol": {
+                      "description": "Protocol",
+                      "enum": [
+                        "TCP",
+                        "UDP"
+                      ],
+                      "type": "string"
+                    },
+                    "targetPort": {
+                      "description": "Target container port number",
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "debug": {
+                  "additionalProperties": false,
+                  "description": "Debug/profiling endpoint",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable this port",
+                      "type": "boolean"
+                    },
+                    "port": {
+                      "description": "Service port number",
+                      "type": "integer"
+                    },
+                    "protocol": {
+                      "description": "Protocol",
+                      "enum": [
+                        "TCP",
+                        "UDP"
+                      ],
+                      "type": "string"
+                    },
+                    "targetPort": {
+                      "description": "Target container port number",
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "dhcp-listen": {
+                  "additionalProperties": false,
+                  "description": "DHCP server listen port",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable this port",
+                      "type": "boolean"
+                    },
+                    "port": {
+                      "description": "Service port number",
+                      "type": "integer"
+                    },
+                    "protocol": {
+                      "description": "Protocol",
+                      "enum": [
+                        "TCP",
+                        "UDP"
+                      ],
+                      "type": "string"
+                    },
+                    "targetPort": {
+                      "description": "Target container port number",
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "dhcp-tcp": {
+                  "additionalProperties": false,
+                  "description": "DHCP (TCP)",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable this port",
+                      "type": "boolean"
+                    },
+                    "port": {
+                      "description": "Service port number",
+                      "type": "integer"
+                    },
+                    "protocol": {
+                      "description": "Protocol",
+                      "enum": [
+                        "TCP",
+                        "UDP"
+                      ],
+                      "type": "string"
+                    },
+                    "targetPort": {
+                      "description": "Target container port number",
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "dhcp-udp": {
+                  "additionalProperties": false,
+                  "description": "DHCP (UDP)",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable this port",
+                      "type": "boolean"
+                    },
+                    "port": {
+                      "description": "Service port number",
+                      "type": "integer"
+                    },
+                    "protocol": {
+                      "description": "Protocol",
+                      "enum": [
+                        "TCP",
+                        "UDP"
+                      ],
+                      "type": "string"
+                    },
+                    "targetPort": {
+                      "description": "Target container port number",
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "dns-over-quic": {
+                  "additionalProperties": false,
+                  "description": "DNS-over-QUIC",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable this port",
+                      "type": "boolean"
+                    },
+                    "port": {
+                      "description": "Service port number",
+                      "type": "integer"
+                    },
+                    "protocol": {
+                      "description": "Protocol",
+                      "enum": [
+                        "TCP",
+                        "UDP"
+                      ],
+                      "type": "string"
+                    },
+                    "targetPort": {
+                      "description": "Target container port number",
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "dns-over-tls": {
+                  "additionalProperties": false,
+                  "description": "DNS-over-TLS",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable this port",
+                      "type": "boolean"
+                    },
+                    "port": {
+                      "description": "Service port number",
+                      "type": "integer"
+                    },
+                    "protocol": {
+                      "description": "Protocol",
+                      "enum": [
+                        "TCP",
+                        "UDP"
+                      ],
+                      "type": "string"
+                    },
+                    "targetPort": {
+                      "description": "Target container port number",
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "dns-tcp": {
+                  "additionalProperties": false,
+                  "description": "Plain DNS (TCP)",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable this port",
+                      "type": "boolean"
+                    },
+                    "port": {
+                      "description": "Service port number",
+                      "type": "integer"
+                    },
+                    "protocol": {
+                      "description": "Protocol",
+                      "enum": [
+                        "TCP",
+                        "UDP"
+                      ],
+                      "type": "string"
+                    },
+                    "targetPort": {
+                      "description": "Target container port number",
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "dns-udp": {
+                  "additionalProperties": false,
+                  "description": "Plain DNS (UDP)",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable this port",
+                      "type": "boolean"
+                    },
+                    "port": {
+                      "description": "Service port number",
+                      "type": "integer"
+                    },
+                    "protocol": {
+                      "description": "Protocol",
+                      "enum": [
+                        "TCP",
+                        "UDP"
+                      ],
+                      "type": "string"
+                    },
+                    "targetPort": {
+                      "description": "Target container port number",
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "dnscrypt-tcp": {
+                  "additionalProperties": false,
+                  "description": "DNSCrypt (TCP)",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable this port",
+                      "type": "boolean"
+                    },
+                    "port": {
+                      "description": "Service port number",
+                      "type": "integer"
+                    },
+                    "protocol": {
+                      "description": "Protocol",
+                      "enum": [
+                        "TCP",
+                        "UDP"
+                      ],
+                      "type": "string"
+                    },
+                    "targetPort": {
+                      "description": "Target container port number",
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "dnscrypt-udp": {
+                  "additionalProperties": false,
+                  "description": "DNSCrypt (UDP)",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable this port",
+                      "type": "boolean"
+                    },
+                    "port": {
+                      "description": "Service port number",
+                      "type": "integer"
+                    },
+                    "protocol": {
+                      "description": "Protocol",
+                      "enum": [
+                        "TCP",
+                        "UDP"
+                      ],
+                      "type": "string"
+                    },
+                    "targetPort": {
+                      "description": "Target container port number",
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "http": {
+                  "additionalProperties": false,
+                  "description": "Admin panel HTTP",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable this port",
+                      "type": "boolean"
+                    },
+                    "port": {
+                      "description": "Service port number",
+                      "type": "integer"
+                    },
+                    "protocol": {
+                      "description": "Protocol",
+                      "enum": [
+                        "TCP",
+                        "UDP"
+                      ],
+                      "type": "string"
+                    },
+                    "targetPort": {
+                      "description": "Target container port number",
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "type": {
+              "description": "Service type",
+              "enum": [
+                "ClusterIP",
+                "NodePort",
+                "LoadBalancer",
+                "ExternalName"
+              ],
               "type": "string"
             }
-          }
+          },
+          "type": "object"
+        },
+        "tolerations": {
+          "description": "Tolerations for pod assignment",
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
         }
-      }
+      },
+      "type": "object"
     }
   }
 }

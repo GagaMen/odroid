@@ -2,6 +2,9 @@
 .backups
 *.bak
 
+# node
+node_modules/
+
 # helm
 charts/**/charts/*.tgz
 charts/**/charts/*/
