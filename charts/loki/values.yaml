@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=values.schema.json
 # Default values for the loki chart wrapper.
 # Real credentials and host overrides go into platform/values.yaml (gitignored).
 

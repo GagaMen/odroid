@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=values.schema.json
 # Default values for the alloy chart wrapper.
 # Override in platform/values.yaml (gitignored) if needed.
 

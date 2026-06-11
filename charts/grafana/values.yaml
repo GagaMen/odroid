@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=values.schema.json
 # Default values for the grafana chart wrapper.
 # Override admin credentials and ingress host in platform/values.yaml (gitignored).
 
