@@ -157,6 +157,42 @@ helm upgrade odroid-platform ./platform -f platform/values.yaml
 └── wireguard/                              # WireGuard VPN setup guide
 ```
 
+## 🔧 Development
+
+### JSON Schema Generation
+
+Each chart and the platform provide a `values.schema.json` that enables IDE validation and autocompletion when editing `values.yaml` files. The schemas are generated from TypeScript type definitions (`values.schema.ts`) using [`ts-json-schema-generator`](https://github.com/vega/ts-json-schema-generator).
+
+#### Prerequisites
+
+```bash
+node --version  # requires 24.x
+npm install
+```
+
+#### Generate a Single Schema
+
+```bash
+npm run generate:adguard
+npm run generate:alloy
+npm run generate:cert-manager-dns-lexicon-webhook
+npm run generate:grafana
+npm run generate:homepage
+npm run generate:loki
+npm run generate:longhorn
+npm run generate:ntfy
+npm run generate:prometheus
+npm run generate:platform
+```
+
+#### Generate All Schemas at Once
+
+```bash
+npm run generate:all
+```
+
+After modifying any `values.schema.ts` file, re-run the corresponding script to keep the `values.schema.json` in sync.
+
 ## 🔐 Security Notes
 
 - The `platform/values.yaml` file is gitignored as it contains sensitive configuration

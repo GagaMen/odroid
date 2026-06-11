@@ -212,6 +212,22 @@ kubectl describe challenge <challenge-name>
 dig TXT _acme-challenge.example.com
 ```
 
+## Schema
+
+The chart's `values.schema.json` enables IDE validation and autocompletion for `values.yaml`. It is generated from the TypeScript type definitions in `values.schema.ts` using [`ts-json-schema-generator`](https://github.com/vega/ts-json-schema-generator).
+
+To regenerate after modifying `values.schema.ts`:
+
+```bash
+npm run generate:cert-manager-dns-lexicon-webhook
+```
+
+Or regenerate all schemas at once:
+
+```bash
+npm run generate:all
+```
+
 ## Links
 
 - [cert-manager-dns-lexicon-webhook GitHub](https://github.com/gradecam/cert-manager-dns-lexicon-webhook)

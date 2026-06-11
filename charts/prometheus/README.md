@@ -38,3 +38,19 @@ prometheus:
 ```
 
 Each job needs a unique `job_name`. Targets follow the format `<service>.<namespace>.svc.cluster.local:<port>`.
+
+## Schema
+
+The chart's `values.schema.json` enables IDE validation and autocompletion for `values.yaml`. It is generated from the TypeScript type definitions in `values.schema.ts` using [`ts-json-schema-generator`](https://github.com/vega/ts-json-schema-generator).
+
+To regenerate after modifying `values.schema.ts`:
+
+```bash
+npm run generate:prometheus
+```
+
+Or regenerate all schemas at once:
+
+```bash
+npm run generate:all
+```

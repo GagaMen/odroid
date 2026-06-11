@@ -255,6 +255,22 @@ This enables the pre-configured GFS (Grandfather-Father-Son) backup strategy wit
 
 You can add custom blocklists in the AdGuard Home web interface under *Filters* → *DNS blocklists*.
 
+## Schema
+
+The chart's `values.schema.json` enables IDE validation and autocompletion for `values.yaml`. It is generated from the TypeScript type definitions in `values.schema.ts` using [`ts-json-schema-generator`](https://github.com/vega/ts-json-schema-generator).
+
+To regenerate after modifying `values.schema.ts`:
+
+```bash
+npm run generate:adguard
+```
+
+Or regenerate all schemas at once:
+
+```bash
+npm run generate:all
+```
+
 ## Links
 
 - [AdGuard Home GitHub](https://github.com/AdguardTeam/AdGuardHome)

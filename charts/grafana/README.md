@@ -28,3 +28,19 @@ After deployment, configure ntfy as a contact point in Grafana UI:
 | `config.grafana\.ini.server.root_url` | `https://grafana.example.com` | Public URL |
 
 Override values in `platform/values.yaml` (gitignored).
+
+## Schema
+
+The chart's `values.schema.json` enables IDE validation and autocompletion for `values.yaml`. It is generated from the TypeScript type definitions in `values.schema.ts` using [`ts-json-schema-generator`](https://github.com/vega/ts-json-schema-generator).
+
+To regenerate after modifying `values.schema.ts`:
+
+```bash
+npm run generate:grafana
+```
+
+Or regenerate all schemas at once:
+
+```bash
+npm run generate:all
+```

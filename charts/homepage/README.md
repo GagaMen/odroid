@@ -237,6 +237,22 @@ Homepage includes many built-in icons. See the [icon list](https://github.com/wa
 
 Homepage supports direct integration with many services for live status. Check the [service widgets documentation](https://gethomepage.dev/widgets/services/) for details.
 
+## Schema
+
+The chart's `values.schema.json` enables IDE validation and autocompletion for `values.yaml`. It is generated from the TypeScript type definitions in `values.schema.ts` using [`ts-json-schema-generator`](https://github.com/vega/ts-json-schema-generator).
+
+To regenerate after modifying `values.schema.ts`:
+
+```bash
+npm run generate:homepage
+```
+
+Or regenerate all schemas at once:
+
+```bash
+npm run generate:all
+```
+
 ## Links
 
 - [Homepage Documentation](https://gethomepage.dev/)
