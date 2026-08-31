@@ -11,3 +11,6 @@ charts/**/charts/*/
 Chart.lock
 platform/charts
 platform/values.yaml
+
+# Crash reports (contain internal addresses and paths)
+crash_report.md

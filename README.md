@@ -10,6 +10,7 @@ A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkern
 - **[Longhorn](charts/longhorn/)** - Cloud-native distributed storage
 - **[cert-manager DNS Lexicon Webhook](charts/cert-manager-dns-lexicon-webhook/)** - DNS-01 ACME challenge solver
 - **[WireGuard VPN](wireguard/)** - Secure remote access to your home network
+- **[Host Configuration](host/)** - Kernel, systemd, logging and update hardening
 - **[Prometheus](charts/prometheus/)** - Metrics collection and storage (incl. node-exporter & kube-state-metrics)
 - **[Grafana](charts/grafana/)** - Dashboards, visualization, and alerting (with ntfy integration)
 - **[Loki](charts/loki/)** - Log aggregation
@@ -41,6 +42,9 @@ microk8s enable ingress
 microk8s enable cert-manager
 microk8s enable metrics-server
 ```
+
+> **Also apply the host configuration.** See [host/README.md](host/README.md) for kernel,
+> systemd, logging and update settings that are not managed by Kubernetes.
 
 ### 3. Configure Shell (zsh)
 
@@ -154,6 +158,9 @@ helm upgrade odroid-platform ./platform -f platform/values.yaml
 │   │   ├── secret.yaml                     # DNS provider credentials
 │   │   └── storageclass.yaml               # Longhorn storage class
 │   └── values.yaml                         # Your configuration (gitignored)
+├── host/                                   # Host configuration below Kubernetes
+│   ├── README.md                           # What each file does and how to apply it
+│   └── files/                              # Target-faithful paths (Ansible-role layout)
 └── wireguard/                              # WireGuard VPN setup guide
 ```
 
