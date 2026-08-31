@@ -88,3 +88,82 @@ sudo journalctl --list-boots | tail -3                  # -> previous boot prese
 
 `journalctl -b -1` is the indicator that matters: only once that works can a future incident
 be analysed at all.
+
+## Deadlock recovery
+
+### The problem
+
+This vendor kernel is built without any lockup detector — `CONFIG_DETECT_HUNG_TASK`,
+`CONFIG_SOFTLOCKUP_DETECTOR` and `CONFIG_PSI` are all disabled, and there is no hardware
+watchdog device by default. A machine that deadlocks in uninterruptible sleep therefore stays
+up, answers pings, and serves nothing — indefinitely, with nothing to notice or end it.
+
+Check what a given kernel offers:
+
+```bash
+ls /proc/sys/kernel/ | grep -E "hung|lockup|watchdog|panic"
+ls /proc/pressure /dev/watchdog 2>/dev/null
+```
+
+`panic_on_rcu_stall` is usually the only detector that survives such a configuration. It is a
+partial measure: tasks blocked on dead storage yield the CPU and pass through quiescent states,
+so they do not reliably produce a stall. It costs nothing to enable and covers the cases where
+a CPU really does get stuck.
+
+### Applying
+
+```bash
+sudo install -Dm644 host/files/etc/sysctl.d/99-lockup-recovery.conf \
+  /etc/sysctl.d/99-lockup-recovery.conf
+sudo sysctl --system
+```
+
+### Verifying
+
+```bash
+sysctl kernel.panic_on_rcu_stall kernel.panic   # -> 1 and 10
+```
+
+## Snap update discipline
+
+### The problem
+
+MicroK8s is distributed as a snap, and snapd refreshes snaps automatically up to four times a
+day. A refresh restarts `containerd` and `kubelite` without warning. If a CSI driver such as
+Longhorn is serving volumes over iSCSI at that moment, its instance manager is killed while
+the filesystems on those volumes are still mounted. The block devices vanish underneath them,
+ext4 aborts its journal and remounts read-only, and every pod holding a persistent volume
+loses its data until the node is repaired.
+
+Refreshing the snap's base has the same effect, because snapd restarts the snaps that use it:
+
+```bash
+snap list                                     # note the base column
+grep ^base /snap/microk8s/current/meta/snap.yaml
+```
+
+### Applying
+
+```bash
+sudo snap refresh --hold microk8s core22
+```
+
+The hold is indefinite and blocks both automatic refreshes and a blanket `snap refresh`.
+A targeted `snap refresh microk8s` still works, which is the intended path for controlled
+updates:
+
+```bash
+microk8s stop          # let the CSI driver unmount its volumes cleanly
+sudo snap refresh microk8s
+microk8s start
+```
+
+Holding updates means nothing reminds you they exist. The metrics and alerts described below
+close that gap.
+
+### Verifying
+
+```bash
+snap list --all microk8s core22     # the Notes column shows "held"
+snap refresh --time                 # hold is reflected in the schedule
+```
