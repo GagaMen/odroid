@@ -9,8 +9,21 @@ type NetworkPolicyType = "k3s" | "rke2" | "rke1";
 /** @asType integer */
 type IntegerType = number;
 
+interface CattleWindowsClusterDefaultSetting {
+  /** Toleration for system-managed Longhorn components */
+  taintToleration?: string;
+  /** Node selector for system-managed Longhorn components */
+  systemManagedComponentsNodeSelector?: string;
+}
+
 interface CattleWindowsCluster {
+  /** Allow Longhorn to run on a Rancher Windows cluster */
   enabled?: boolean;
+  /** Toleration for Linux nodes running user-deployed Longhorn components */
+  tolerations?: object[];
+  /** Node selector for Linux nodes running user-deployed Longhorn components */
+  nodeSelector?: { [key: string]: string };
+  defaultSetting?: CattleWindowsClusterDefaultSetting;
 }
 
 interface Cattle {

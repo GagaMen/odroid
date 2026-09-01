@@ -8098,8 +8098,37 @@
                         "windowsCluster": {
                           "additionalProperties": false,
                           "properties": {
+                            "defaultSetting": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "systemManagedComponentsNodeSelector": {
+                                  "description": "Node selector for system-managed Longhorn components",
+                                  "type": "string"
+                                },
+                                "taintToleration": {
+                                  "description": "Toleration for system-managed Longhorn components",
+                                  "type": "string"
+                                }
+                              },
+                              "type": "object"
+                            },
                             "enabled": {
+                              "description": "Allow Longhorn to run on a Rancher Windows cluster",
                               "type": "boolean"
+                            },
+                            "nodeSelector": {
+                              "additionalProperties": {
+                                "type": "string"
+                              },
+                              "description": "Node selector for Linux nodes running user-deployed Longhorn components",
+                              "type": "object"
+                            },
+                            "tolerations": {
+                              "description": "Toleration for Linux nodes running user-deployed Longhorn components",
+                              "items": {
+                                "type": "object"
+                              },
+                              "type": "array"
                             }
                           },
                           "type": "object"
