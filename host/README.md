@@ -167,3 +167,76 @@ close that gap.
 snap list --all microk8s core22     # the Notes column shows "held"
 snap refresh --time                 # hold is reflected in the schedule
 ```
+
+## TRIM scope
+
+### Why TRIM matters
+
+Flash storage cannot overwrite in place. A cell must be erased before it is rewritten, and
+erasing happens in large blocks. When a file is deleted the filesystem marks the space free,
+but the device controller is never told — to it those blocks still look like live data it must
+preserve during wear levelling.
+
+TRIM is the notification that those blocks are no longer needed. The controller can then erase
+them in the background and keep a pool of ready-to-write blocks. Without it that pool shrinks,
+and writes increasingly require a read-modify-erase-write cycle. The result is slower writes
+and faster wear, because each logical write costs more physical erase cycles.
+
+Running it weekly rather than continuously is the usual compromise: the `discard` mount option
+issues a TRIM on every delete, which hurts latency on many devices.
+
+### The problem
+
+The stock `fstrim.service` reads its list of targets from `/proc/self/mountinfo`, so it trims
+**everything currently mounted**. On a Kubernetes node that includes volumes provided by a CSI
+driver over iSCSI. Those advertise discard support:
+
+```bash
+lsblk -o NAME,DISC-GRAN,DISC-MAX,MOUNTPOINT
+```
+
+so `fstrim` sends discards down the iSCSI path into the storage engine. That subsystem is
+exactly the one most likely to be fragile under load, and a distributed volume has its own
+notion of which blocks are free across replicas. Trimming it from the host is at best
+redundant work and at worst a stall in the storage path.
+
+Restrict the service to the machine's own devices and let the storage layer handle its own
+volumes through its own tooling.
+
+### Applying
+
+Because the timer may fire a long-delayed catch-up run — `fstrim.timer` has `Persistent=true`,
+so a run missed while the service was broken is executed at the next opportunity — mask the
+timer first and do the initial pass by hand, watching it:
+
+```bash
+sudo systemctl mask fstrim.timer
+
+sudo install -Dm644 host/files/etc/systemd/system/fstrim.service.d/20-scope.conf \
+  /etc/systemd/system/fstrim.service.d/20-scope.conf
+sudo systemctl daemon-reload
+
+# One device at a time. The first pass after a long gap has the most work to do.
+time sudo fstrim --verbose /
+time sudo fstrim --verbose /mnt/data
+
+sudo systemctl unmask fstrim.timer
+sudo systemctl start fstrim.service
+```
+
+Watch load and I/O from a second shell while the manual passes run:
+
+```bash
+watch -n1 'uptime; grep -E " (mmcblk0|nvme0n1) " /proc/diskstats'
+```
+
+If a pass stalls the machine noticeably, leave the timer masked and run `fstrim` by hand at a
+quiet time instead.
+
+### Verifying
+
+```bash
+systemctl cat fstrim.service | grep ExecStart   # only the intended mountpoints
+systemctl is-failed fstrim.service              # -> not failed
+systemctl list-timers fstrim.timer              # active again, next run scheduled
+```
