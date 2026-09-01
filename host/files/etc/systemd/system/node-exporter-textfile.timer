@@ -1,0 +1,12 @@
+[Unit]
+Description=Refresh host update metrics hourly
+
+[Timer]
+OnCalendar=hourly
+# Run a missed collection after downtime instead of waiting for the next hour.
+Persistent=true
+# Spread the load so every timer on the machine does not fire at once.
+RandomizedDelaySec=5m
+
+[Install]
+WantedBy=timers.target

@@ -5,6 +5,10 @@
 # node
 node_modules/
 
+# python
+__pycache__/
+*.pyc
+
 # helm
 charts/**/charts/*.tgz
 charts/**/charts/*/

@@ -240,3 +240,107 @@ systemctl cat fstrim.service | grep ExecStart   # only the intended mountpoints
 systemctl is-failed fstrim.service              # -> not failed
 systemctl list-timers fstrim.timer              # active again, next run scheduled
 ```
+
+## Update visibility
+
+### The problem
+
+Holding a snap (see above) means nothing tells you an update exists. Distribution packages
+have the same gap in the other direction: unattended-upgrades may install them, but nothing
+reports what is outstanding or that a reboot is now required.
+
+Both gaps are filled by writing metrics into the node_exporter textfile collector, so update
+state shows up beside every other host metric and can be alerted on.
+
+### What is exported
+
+`node-exporter-apt` (Python, uses `python3-apt`):
+
+| Metric | Meaning |
+|---|---|
+| `apt_upgrades_all_pending` | packages that can be upgraded |
+| `apt_upgrades_security_pending` | of those, ones from a security source |
+| `apt_upgrades_pending{origin,archive}` | breakdown by source |
+| `node_reboot_required` | `/var/run/reboot-required` exists |
+
+Note that Ubuntu mirrors security fixes into `-updates`, so a package can appear in both
+archives. The script counts a package as a security update if *any* of its origins is a
+security source, which matches what `/usr/lib/update-notifier/apt-check` reports.
+
+`node-exporter-snap` (Python, standard library only):
+
+| Metric | Meaning |
+|---|---|
+| `snap_refresh_available{snap,held}` | a newer revision exists on the tracked channel |
+| `node_watchdog_present` | `/dev/watchdog` exists |
+
+It queries snapd over its REST socket rather than parsing CLI output. The socket is
+world-readable and these are read-only queries, so no privileges are needed:
+
+```bash
+curl -s --unix-socket /run/snapd.socket http://localhost/v2/snaps
+```
+
+Two sources are combined deliberately. `/v2/find?select=refresh` is what `snap refresh --list`
+uses, but whether it includes held snaps is not guaranteed — and a held snap is exactly the one
+whose updates must not go unnoticed. Held snaps are therefore also compared directly against
+the revision their channel currently offers.
+
+That comparison uses the snap's `channel` field rather than `tracking-channel`. A snap may
+track a branch such as `4.0/stable/ubuntu-24.04`, which the channel map does not list, while
+`channel` holds the resolved track/risk pair that does.
+
+Both scripts write atomically, because node_exporter may read a file at any moment.
+
+### Applying
+
+```bash
+sudo install -Dm755 host/files/usr/local/bin/node-exporter-apt  /usr/local/bin/node-exporter-apt
+sudo install -Dm755 host/files/usr/local/bin/node-exporter-snap /usr/local/bin/node-exporter-snap
+sudo install -Dm644 host/files/etc/systemd/system/node-exporter-textfile.service \
+  /etc/systemd/system/node-exporter-textfile.service
+sudo install -Dm644 host/files/etc/systemd/system/node-exporter-textfile.timer \
+  /etc/systemd/system/node-exporter-textfile.timer
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now node-exporter-textfile.timer
+sudo systemctl start node-exporter-textfile.service
+```
+
+The service unit deliberately carries **no** `SystemCallFilter`. On a system affected by the
+`faccessat2` defect described above, any allowlist would kill these scripts with SIGSYS.
+
+Then let node_exporter read the directory and query systemd, by adding to its chart values:
+
+```yaml
+extraArgs:
+  - --collector.systemd
+  - --collector.textfile.directory=/host/textfile
+extraHostVolumeMounts:
+  - name: textfile
+    hostPath: /var/lib/prometheus/node-exporter
+    mountPath: /host/textfile
+    readOnly: true
+  - name: systemd-private
+    hostPath: /run/systemd/private
+    mountPath: /run/systemd/private
+    readOnly: true
+```
+
+The systemd collector reaches systemd over its private socket, which a container does not see
+by default. node_exporter runs unprivileged, so systemd answers read-only queries and refuses
+anything else.
+
+### Verifying
+
+```bash
+ls -l /var/lib/prometheus/node-exporter/            # apt.prom and snap.prom
+systemctl list-timers node-exporter-textfile.timer
+
+curl -s localhost:9100/metrics | grep -E \
+  "apt_upgrades|snap_refresh_available|node_reboot_required|node_watchdog_present"
+curl -s localhost:9100/metrics | grep -c node_systemd_unit_state   # > 0
+```
+
+A zero count for `node_systemd_unit_state` means the systemd collector could not reach the
+socket; check `kubectl logs` for the node_exporter pod.

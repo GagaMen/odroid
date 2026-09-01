@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""Export pending apt upgrades as node_exporter textfile metrics.
+
+Runs unprivileged: it only reads the apt cache and dpkg status.
+"""
+
+import os
+import sys
+import tempfile
+
+import apt
+
+OUT = os.environ.get(
+    "TEXTFILE_DIR", "/var/lib/prometheus/node-exporter"
+) + "/apt.prom"
+
+
+def is_security(origin):
+    """Ubuntu ships security fixes from a *-security archive; ESM has its own origin."""
+    return origin.archive.endswith("-security") or "ESM" in origin.origin
+
+
+def collect():
+    cache = apt.Cache()
+    cache.open(None)
+
+    by_source = {}
+    security = 0
+    total = 0
+
+    for pkg in cache:
+        if not pkg.is_upgradable:
+            continue
+        total += 1
+        candidate = pkg.candidate
+        # A version can be published in several archives at once. Ubuntu mirrors
+        # security fixes into -updates, so a package listed there may still be one.
+        origins = [o for o in candidate.origins if o.archive]
+        if not origins:
+            continue
+        secure = [o for o in origins if is_security(o)]
+        if secure:
+            security += 1
+        # Label by the security archive where there is one, so the breakdown agrees
+        # with the security counter instead of hiding it behind -updates.
+        origin = secure[0] if secure else origins[0]
+        key = (origin.origin, origin.archive)
+        by_source[key] = by_source.get(key, 0) + 1
+
+    return total, security, by_source
+
+
+def main():
+    try:
+        total, security, by_source = collect()
+    except Exception as exc:  # noqa: BLE001 - a broken cache must not kill the timer
+        print(f"reading the apt cache failed: {exc}", file=sys.stderr)
+        return 1
+
+    lines = [
+        "# HELP apt_upgrades_all_pending Packages that can be upgraded.",
+        "# TYPE apt_upgrades_all_pending gauge",
+        f"apt_upgrades_all_pending {total}",
+        "# HELP apt_upgrades_security_pending Upgradable packages from a security source.",
+        "# TYPE apt_upgrades_security_pending gauge",
+        f"apt_upgrades_security_pending {security}",
+        "# HELP apt_upgrades_pending Upgradable packages by origin and archive.",
+        "# TYPE apt_upgrades_pending gauge",
+    ]
+    for (origin, archive), count in sorted(by_source.items()):
+        lines.append(
+            f'apt_upgrades_pending{{origin="{origin}",archive="{archive}"}} {count}'
+        )
+
+    reboot = 1 if os.path.exists("/var/run/reboot-required") else 0
+    lines += [
+        "# HELP node_reboot_required Whether a package upgrade asked for a reboot.",
+        "# TYPE node_reboot_required gauge",
+        f"node_reboot_required {reboot}",
+    ]
+
+    # Write atomically: node_exporter must never read a half-written file.
+    directory = os.path.dirname(OUT)
+    with tempfile.NamedTemporaryFile(
+        "w", dir=directory, prefix=".apt.prom.", delete=False
+    ) as handle:
+        handle.write("\n".join(lines) + "\n")
+        temporary = handle.name
+    os.chmod(temporary, 0o644)
+    os.replace(temporary, OUT)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

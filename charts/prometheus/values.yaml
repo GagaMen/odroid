@@ -18,6 +18,24 @@ prometheus:
   # -- node-exporter: collect host-level metrics
   prometheus-node-exporter:
     enabled: true
+    extraArgs:
+      # Surfaces failed units as node_systemd_unit_state{state="failed"}, so a
+      # service that dies silently is visible instead of going unnoticed.
+      - --collector.systemd
+      # Reads the *.prom files written by the node-exporter-textfile timer.
+      - --collector.textfile.directory=/host/textfile
+    extraHostVolumeMounts:
+      - name: textfile
+        hostPath: /var/lib/prometheus/node-exporter
+        mountPath: /host/textfile
+        readOnly: true
+      # The systemd collector talks to systemd over its private socket, which the
+      # container does not otherwise see. The pod runs as uid 65534, so systemd
+      # refuses privileged operations on it and only answers read-only queries.
+      - name: systemd-private
+        hostPath: /run/systemd/private
+        mountPath: /run/systemd/private
+        readOnly: true
 
   # -- kube-state-metrics: collect Kubernetes object metrics
   kube-state-metrics:

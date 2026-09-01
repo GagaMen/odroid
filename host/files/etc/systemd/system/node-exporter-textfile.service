@@ -1,0 +1,23 @@
+[Unit]
+Description=Collect host update state for the node_exporter textfile collector
+Documentation=https://github.com/prometheus/node_exporter#textfile-collector
+
+[Service]
+Type=oneshot
+
+# Creates /var/lib/prometheus/node-exporter on first start and keeps it writable
+# while the rest of the filesystem stays read-only for this unit.
+StateDirectory=prometheus/node-exporter
+
+ExecStart=/usr/local/bin/node-exporter-apt
+ExecStart=/usr/local/bin/node-exporter-snap
+
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+NoNewPrivileges=yes
+
+# Deliberately no SystemCallFilter here. systemd 245 omits faccessat2 from its
+# filter groups while glibc 2.39 uses it, so any allowlist would kill these
+# scripts with SIGSYS - the same defect that breaks rsyslog and fstrim on this
+# system. See the logging section of this directory's README.
