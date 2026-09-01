@@ -321,15 +321,20 @@ extraHostVolumeMounts:
     hostPath: /var/lib/prometheus/node-exporter
     mountPath: /host/textfile
     readOnly: true
-  - name: systemd-private
-    hostPath: /run/systemd/private
-    mountPath: /run/systemd/private
+  - name: dbus
+    hostPath: /run/dbus/system_bus_socket
+    mountPath: /var/run/dbus/system_bus_socket
     readOnly: true
 ```
 
-The systemd collector reaches systemd over its private socket, which a container does not see
-by default. node_exporter runs unprivileged, so systemd answers read-only queries and refuses
-anything else.
+The systemd collector reaches systemd over the D-Bus system bus, which a container does not see
+by default. node_exporter dials `/var/run/dbus/system_bus_socket` literally and its image has
+no `/var/run`, so the mount must land on that path rather than on `/run`. Give the host path
+unresolved, since `/var/run` is itself a symlink to `/run`.
+
+node_exporter runs unprivileged, so systemd answers read-only queries over the bus and refuses
+anything else. Mounting the socket read-only is fine: the kernel exempts sockets from the
+read-only mount check, so `connect()` still succeeds.
 
 ### Verifying
 

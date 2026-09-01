@@ -29,12 +29,18 @@ prometheus:
         hostPath: /var/lib/prometheus/node-exporter
         mountPath: /host/textfile
         readOnly: true
-      # The systemd collector talks to systemd over its private socket, which the
-      # container does not otherwise see. The pod runs as uid 65534, so systemd
-      # refuses privileged operations on it and only answers read-only queries.
-      - name: systemd-private
-        hostPath: /run/systemd/private
-        mountPath: /run/systemd/private
+      # The systemd collector reaches systemd over the D-Bus system bus, which a
+      # container does not otherwise see. node_exporter dials the path below
+      # literally, and the image has no /var/run, so the mount has to land there
+      # rather than on /run. The host path is given unresolved because /var/run
+      # is itself a symlink to /run.
+      #
+      # The pod runs as uid 65534, so systemd answers read-only queries over the
+      # bus and refuses anything else. readOnly is safe here: the kernel exempts
+      # sockets from the read-only mount check, so connect() still succeeds.
+      - name: dbus
+        hostPath: /run/dbus/system_bus_socket
+        mountPath: /var/run/dbus/system_bus_socket
         readOnly: true
 
   # -- kube-state-metrics: collect Kubernetes object metrics
