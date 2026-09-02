@@ -106,7 +106,7 @@ be analysed at all.
 
 ## Services that cannot run here
 
-Five units fail on every boot. Four of them are collateral damage from the same pinned systemd
+Six units fail on every boot. Four of them are collateral damage from the same pinned systemd
 described above; the fifth asks for a kernel feature this build does not have.
 
 | Unit | What it is for | Why it fails |
@@ -115,6 +115,7 @@ described above; the fifth asks for a kernel feature this build does not have.
 | `udisks2` | Detects and mounts removable media, such as a USB stick being plugged in | `libudev.so.1: version 'LIBUDEV_247' not found` |
 | `fwupd` | Fetches firmware updates from LVFS, the cross-vendor service used for PC BIOS/UEFI | `libfwupdengine.so: cannot change memory protections` |
 | `fwupd-refresh` | Downloads the LVFS metadata for `fwupd` once a day | follows from `fwupd` — `fwupdmgr refresh` needs the daemon |
+| `fwupd-refresh.timer` | Triggers the above once a day | fails once its service is masked |
 | `systemd-binfmt` | Registers foreign binary formats so the kernel runs them through an interpreter, e.g. ARM binaries on x86 via qemu | `CONFIG_BINFMT_MISC is not set` in this kernel |
 
 The distribution builds `polkitd` and `udisksd` against the systemd its release ships. A vendor
@@ -143,8 +144,16 @@ machine. It is worth doing only with console access and a bootable recovery medi
 it is deliberately not part of this configuration.
 
 ```bash
-sudo systemctl mask fwupd.service fwupd-refresh.service polkit.service \
-  udisks2.service systemd-binfmt.service
+sudo systemctl mask fwupd.service fwupd-refresh.service fwupd-refresh.timer \
+  polkit.service udisks2.service systemd-binfmt.service
+```
+
+Mask the timer along with its service. A timer whose service is masked still fires and still
+fails, so masking only the service trades one failed unit for another. Check for companions
+before masking anything:
+
+```bash
+systemctl list-unit-files 'fwupd*'
 ```
 
 Verify none remain, and that the metric agrees:
