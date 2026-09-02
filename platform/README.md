@@ -81,19 +81,19 @@ clusterIssuer:
 ### 3. Install
 
 ```bash
-helm install odroid-platform ./platform -f platform/values.yaml
+helm install platform ./platform -f platform/values.yaml
 ```
 
 ### 4. Upgrade
 
 ```bash
-helm upgrade odroid-platform ./platform -f platform/values.yaml
+helm upgrade platform ./platform -f platform/values.yaml
 ```
 
 ### 5. Uninstall
 
 ```bash
-helm uninstall odroid-platform
+helm uninstall platform
 ```
 
 ## Configuration
@@ -425,10 +425,10 @@ longhorn:
 
 ```bash
 # Dry run
-helm install --dry-run --debug odroid-platform ./platform -f platform/values.yaml
+helm install --dry-run --debug platform ./platform -f platform/values.yaml
 
 # Template rendering
-helm template odroid-platform ./platform -f platform/values.yaml
+helm template platform ./platform -f platform/values.yaml
 ```
 
 ## Troubleshooting
@@ -436,8 +436,8 @@ helm template odroid-platform ./platform -f platform/values.yaml
 ### Check Deployment Status
 
 ```bash
-helm status odroid-platform
-helm get all odroid-platform
+helm status platform
+helm get all platform
 ```
 
 ### View All Resources

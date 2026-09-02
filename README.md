@@ -127,13 +127,13 @@ Create a `platform/values.yaml` file with your configuration. See the individual
 ### 3. Install the Platform
 
 ```bash
-helm install odroid-platform ./platform -f platform/values.yaml
+helm install platform ./platform -f platform/values.yaml
 ```
 
 ### 4. Upgrade the Platform
 
 ```bash
-helm upgrade odroid-platform ./platform -f platform/values.yaml
+helm upgrade platform ./platform -f platform/values.yaml
 ```
 
 ## 📁 Repository Structure
