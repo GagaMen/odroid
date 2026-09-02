@@ -12,6 +12,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-grafana-alerting
+  # Must match where the grafana subchart puts its own resources, which is
+  # namespaceOverride when set and the release namespace otherwise.
+  namespace: {{ .Values.grafana.namespaceOverride | default .Release.Namespace }}
   labels:
     app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: {{ .Release.Name }}
