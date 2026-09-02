@@ -54,9 +54,7 @@ groups:
     execErrState: Error
     for: 5m
     annotations:
-      summary: '⚠️ Mindestens eine systemd-Unit ist fehlgeschlagen
-
-        Betroffen: {{ $labels.name }}'
+      summary: '⚠️ Mindestens eine systemd-Unit ist fehlgeschlagen\nBetroffen: {{ $labels.name }}'
     labels:
       priority: '3'
     isPaused: false
@@ -109,18 +107,15 @@ groups:
     execErrState: Error
     for: 10m
     annotations:
-      summary: '🐕 Kein Hardware-Watchdog aktiv — die Selbstheilung greift nicht.
-
-        Nach einem Kernel-Update muss das Device-Tree-Overlay neu abgelegt werden.
-
-        (Regel ist bis zur Watchdog-Einrichtung pausiert.)'
+      summary: 🐕 Kein Hardware-Watchdog aktiv — die Selbstheilung greift nicht.\nNach einem Kernel-Update muss das Device-Tree-Overlay
+        neu abgelegt werden.\n(Regel ist bis zur Watchdog-Einrichtung pausiert.)
     labels:
       priority: '4'
     isPaused: true
     notification_settings:
       receiver: Ntfy
   - uid: dfx2axr8b9ibkd
-    title: Odroid | Metriken fehlen
+    title: Odroid | Metrik-Quelle nicht erreichbar
     condition: C
     data:
     - refId: A
@@ -130,7 +125,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: code
-        expr: absent(node_boot_time_seconds)
+        expr: up
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -143,8 +138,8 @@ groups:
         conditions:
         - evaluator:
             params:
-            - 0
-            type: gt
+            - 1
+            type: lt
           operator:
             type: and
           query:
@@ -162,11 +157,12 @@ groups:
         maxDataPoints: 43200
         refId: C
         type: threshold
-    noDataState: OK
+    noDataState: NoData
     execErrState: Error
     for: 5m
     annotations:
-      summary: 🚨 Der node-exporter liefert keine Daten mehr — das Monitoring ist blind.
+      summary: '🚨 Prometheus erreicht ein Scrape-Target nicht mehr: {{ $labels.job }} ({{ $labels.instance }}).\nRegeln, die
+        auf diese Quelle bauen, melden ab jetzt nichts mehr.'
     labels:
       priority: '5'
     isPaused: false
@@ -329,9 +325,7 @@ groups:
     noDataState: NoData
     execErrState: Error
     annotations:
-      summary: '🔄 Der Server wurde neu gestartet
-
-        Boot liegt {{ $values.A }} Sekunden zurück'
+      summary: 🔄 Der Server wurde neu gestartet\nBoot liegt {{ $values.A }} Sekunden zurück
     labels:
       priority: '4'
     isPaused: false
@@ -770,9 +764,8 @@ groups:
     execErrState: Error
     for: 15m
     annotations:
-      summary: '📦 Für microk8s liegt ein Update bereit.
-
-        Der Snap ist bewusst gehalten — einspielen mit: microk8s stop; snap refresh microk8s; microk8s start'
+      summary: '📦 Für microk8s liegt ein Update bereit.\nDer Snap ist bewusst gehalten — einspielen mit: microk8s stop; snap
+        refresh microk8s; microk8s start'
     labels:
       priority: '4'
     isPaused: false
@@ -877,9 +870,8 @@ groups:
     execErrState: Error
     for: 30m
     annotations:
-      summary: '🕰️ Die Update-Metriken sind seit {{ $values.A }} Sekunden nicht aktualisiert worden.
-
-        Vermutlich läuft der Timer node-exporter-textfile nicht mehr.'
+      summary: 🕰️ Die Update-Metriken sind seit {{ $values.A }} Sekunden nicht aktualisiert worden.\nVermutlich läuft der
+        Timer node-exporter-textfile nicht mehr.
     labels:
       priority: '2'
       schedule: weekly
@@ -933,7 +925,7 @@ groups:
         maxDataPoints: 43200
         refId: C
         type: threshold
-    noDataState: NoData
+    noDataState: OK
     execErrState: Error
     for: 2m
     annotations:
@@ -986,7 +978,7 @@ groups:
         maxDataPoints: 43200
         refId: C
         type: threshold
-    noDataState: NoData
+    noDataState: OK
     execErrState: Error
     annotations:
       summary: '🚨 Pod im OOMKilled\n\nNamespace: {{ $labels.namespace }}\nContainer: {{ $labels.container }}'
@@ -1038,7 +1030,7 @@ groups:
         maxDataPoints: 43200
         refId: C
         type: threshold
-    noDataState: NoData
+    noDataState: OK
     execErrState: Error
     for: 1m
     annotations:
@@ -1091,7 +1083,7 @@ groups:
         maxDataPoints: 43200
         refId: C
         type: threshold
-    noDataState: NoData
+    noDataState: OK
     execErrState: Error
     for: 5m
     annotations:
@@ -1150,15 +1142,11 @@ groups:
         maxDataPoints: 43200
         refId: C
         type: threshold
-    noDataState: NoData
+    noDataState: OK
     execErrState: Error
     for: 6m
     annotations:
-      summary: '🚨PVC ist Pending
-
-        Betroffene PVC:
-
-        {{ $values.A }}'
+      summary: 🚨PVC ist Pending\nBetroffene PVC:\n{{ $values.A }}
     labels:
       priority: '3'
     isPaused: false
@@ -1216,9 +1204,7 @@ groups:
     execErrState: Error
     for: 10m
     annotations:
-      summary: '⚠️ Speicherplatzauslastung für Longhorn ist auf über 80% gestiegen
-
-        Aktuelle Auslastung: {{ $values.A }}%'
+      summary: '⚠️ Speicherplatzauslastung für Longhorn ist auf über 80% gestiegen\nAktuelle Auslastung: {{ $values.A }}%'
     labels:
       priority: '3'
     isPaused: false
@@ -1276,9 +1262,8 @@ groups:
     execErrState: Error
     for: 1m
     annotations:
-      summary: '🚨 Ein Dateisystem wurde auf read-only umgestellt: {{ $labels.mountpoint }}
-
-        Typische Ursache: die Block-Devices sind unter dem Dateisystem weggefallen.'
+      summary: '🚨 Ein Dateisystem wurde auf read-only umgestellt: {{ $labels.mountpoint }}\nTypische Ursache: die Block-Devices
+        sind unter dem Dateisystem weggefallen.'
     labels:
       priority: '5'
     isPaused: false
@@ -1332,15 +1317,11 @@ groups:
         maxDataPoints: 43200
         refId: C
         type: threshold
-    noDataState: NoData
+    noDataState: OK
     execErrState: Error
     for: 2m
     annotations:
-      summary: '💾 Longhorn Volume ist degraded/faulted!
-
-        Betroffene Volumes:
-
-        {{ $values.A }}'
+      summary: 💾 Longhorn Volume ist degraded/faulted!\nBetroffene Volumes:\n{{ $values.A }}
     labels:
       priority: '5'
     isPaused: false
