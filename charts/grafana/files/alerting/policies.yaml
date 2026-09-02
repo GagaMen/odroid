@@ -1,0 +1,25 @@
+# Provisioned by the platform chart. Managed here, read-only in the Grafana UI.
+# Edit this file and run helm upgrade.
+apiVersion: 1
+policies:
+- orgId: 1
+  receiver: Ntfy
+  group_by:
+  - grafana_folder
+  - alertname
+  routes:
+  - receiver: Ntfy
+    group_by:
+    - grafana_folder
+    object_matchers:
+    - - schedule
+      - '='
+      - weekly
+    active_time_intervals:
+    - Sonntagvormittag
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 1w
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h

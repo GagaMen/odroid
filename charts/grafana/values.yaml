@@ -47,3 +47,20 @@ grafana:
       enabled: false  # legacy alerting off; use unified alerting
     unified_alerting:
       enabled: true
+
+  # -- Mount the alerting provisioning files built by templates/alerting-configmap.yaml
+  extraConfigmapMounts:
+    - name: alerting
+      configMap: '{{ .Release.Name }}-grafana-alerting'
+      mountPath: /etc/grafana/provisioning/alerting
+      readOnly: true
+
+  # -- The alerting contact point reads its endpoint from this variable, so the
+  # real address stays out of the repository. Override it in platform/values.yaml:
+  #
+  #   grafana:
+  #     grafana:
+  #       env:
+  #         NTFY_WEBHOOK_URL: https://ntfy.your-domain.example/your-topic
+  env:
+    NTFY_WEBHOOK_URL: https://ntfy.example.com/alerts

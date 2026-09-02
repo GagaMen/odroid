@@ -1,0 +1,13 @@
+# Provisioned by the platform chart. Managed here, read-only in the Grafana UI.
+# Edit this file and run helm upgrade.
+apiVersion: 1
+muteTimes:
+- orgId: 1
+  name: Sonntagvormittag
+  time_intervals:
+  - times:
+    - start_time: 09:00
+      end_time: '10:00'
+    weekdays:
+    - sunday
+    location: Europe/Berlin

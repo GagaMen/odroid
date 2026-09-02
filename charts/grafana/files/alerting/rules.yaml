@@ -1,0 +1,1348 @@
+# Provisioned by the platform chart. Managed here, read-only in the Grafana UI.
+# Edit this file and run helm upgrade.
+apiVersion: 1
+groups:
+- orgId: 1
+  name: Every 5 minutes
+  folder: Infrastructure
+  interval: 5m
+  rules:
+  - uid: cfx2axpsmv4sgc
+    title: Odroid | Fehlgeschlagene systemd-Units
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: node_systemd_unit_state{state="failed"} == 1
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 5m
+    annotations:
+      summary: '⚠️ Mindestens eine systemd-Unit ist fehlgeschlagen
+
+        Betroffen: {{ $labels.name }}'
+    labels:
+      priority: '3'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: bfx2axqi3bvnkb
+    title: Odroid | Watchdog nicht aktiv
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: node_watchdog_present
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 1
+            type: lt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 10m
+    annotations:
+      summary: '🐕 Kein Hardware-Watchdog aktiv — die Selbstheilung greift nicht.
+
+        Nach einem Kernel-Update muss das Device-Tree-Overlay neu abgelegt werden.
+
+        (Regel ist bis zur Watchdog-Einrichtung pausiert.)'
+    labels:
+      priority: '4'
+    isPaused: true
+    notification_settings:
+      receiver: Ntfy
+  - uid: dfx2axr8b9ibkd
+    title: Odroid | Metriken fehlen
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: absent(node_boot_time_seconds)
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 5m
+    annotations:
+      summary: 🚨 Der node-exporter liefert keine Daten mehr — das Monitoring ist blind.
+    labels:
+      priority: '5'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: dfgt682askirke
+    title: Odroid | Speicherplatzauslastung zu hoch
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: 100 * (1 - (node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs"}))
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 80
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 10m
+    annotations:
+      summary: '⚠️ Speicherplatzauslastung ist auf über 80% gestiegen\nAktuelle Auslastung: {{ $values.A }}%'
+    labels:
+      priority: '3'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: efgt6qq3ahfr4d
+    title: Odroid | Speicherauslastung ist kritisch
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: 100 * (1 - (node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs"}))
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 95
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 5m
+    annotations:
+      summary: '💀 Speicherplatzauslastung ist auf über 95% gestiegen\nAktuelle Auslastung: {{ $values.A }}%'
+    labels:
+      priority: '5'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+- orgId: 1
+  name: Every minute
+  folder: Infrastructure
+  interval: 1m
+  rules:
+  - uid: cfx2axp3qdkowd
+    title: Odroid | Server wurde neu gestartet
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: time() - node_boot_time_seconds
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 3600
+            type: lt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    annotations:
+      summary: '🔄 Der Server wurde neu gestartet
+
+        Boot liegt {{ $values.A }} Sekunden zurück'
+    labels:
+      priority: '4'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: cfgpcf90dv9q8e
+    title: Odroid | CPU-Auslastung zu hoch
+    condition: B
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: builder
+        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: B
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 85
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: B
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 5m
+    annotations:
+      summary: '🔥 CPU-Last auf dem Odroid Server seit 5min über 85%\nAktuell: {{ $values.A }}%'
+    labels:
+      priority: '3'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: ffgsqzwxyg4cgb
+    title: Odroid | RAM-Auslastung zu hoch
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: 100 * (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes))
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 90
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 3m
+    annotations:
+      summary: '🚨 RAM auf dem Odroid Server seit 3min über 90%\nAktuell: {{ $values.A }}% belegt'
+    labels:
+      priority: '4'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: afgt7koy2pkw0a
+    title: Odroid | CPU-Temparatur zu hoch
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: builder
+        expr: max(node_hwmon_temp_celsius{chip=~".*thermal.*", sensor="temp1"})
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 75
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 2m
+    annotations:
+      summary: '💀 Die CPU-Temparatur ist auf über 75° gestiegen\nAktuell: {{ $values.A }}°'
+    labels:
+      priority: '5'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+- orgId: 1
+  name: Every 5 minutes
+  folder: Services
+  interval: 5m
+  rules:
+  - uid: afib3mdn2spvkd
+    title: Adguard | DNS-Query-Rate zu hoch
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: rate(adguard_queries[5m])
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 250
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 10m
+    annotations:
+      summary: '⚠️ Die DNS-Query-Rate ist auf über 250/s gestiegen\n\nAktuelle Query-Rate: {{ $values.A }} req/s'
+    labels:
+      priority: '2'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+- orgId: 1
+  name: Every minute
+  folder: Services
+  interval: 1m
+  rules:
+  - uid: afib2cumssc1sd
+    title: Adguard | Nicht erreichbar
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: adguard_running{}
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: eq
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 2m
+    annotations:
+      summary: 💀 Adguard ist nicht erreichbar
+    labels:
+      priority: '5'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+- orgId: 1
+  name: Every 5 minutes
+  folder: Wartung
+  interval: 1m
+  rules:
+  - uid: ffx2axsnn6e4ge
+    title: Wartung | Sicherheitsupdates verfügbar
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: apt_upgrades_security_pending
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 15m
+    annotations:
+      summary: 🔐 {{ $values.A }} Sicherheitsupdates stehen aus
+    labels:
+      priority: '4'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: bfx2axterkpa8c
+    title: Wartung | Neustart erforderlich
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: node_reboot_required
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 15m
+    annotations:
+      summary: 🔁 Ein Paketupdate verlangt einen Neustart
+    labels:
+      priority: '4'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: afx2axu3t222of
+    title: Wartung | microk8s-Update verfügbar
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: snap_refresh_available{snap="microk8s"}
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 15m
+    annotations:
+      summary: '📦 Für microk8s liegt ein Update bereit.
+
+        Der Snap ist bewusst gehalten — einspielen mit: microk8s stop; snap refresh microk8s; microk8s start'
+    labels:
+      priority: '4'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: bfx2axure3jlsb
+    title: Wartung | Updates verfügbar
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: sum(apt_upgrades_all_pending) + sum(snap_refresh_available)
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 1h
+    annotations:
+      summary: 📬 {{ $values.A }} Updates stehen aus (Wochenbericht)
+    labels:
+      priority: '2'
+      schedule: weekly
+    isPaused: false
+  - uid: dfx2axvfbmiv4c
+    title: Wartung | Update-Metriken veraltet
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: time() - node_textfile_mtime_seconds
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 7200
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 30m
+    annotations:
+      summary: '🕰️ Die Update-Metriken sind seit {{ $values.A }} Sekunden nicht aktualisiert worden.
+
+        Vermutlich läuft der Timer node-exporter-textfile nicht mehr.'
+    labels:
+      priority: '2'
+      schedule: weekly
+    isPaused: false
+- orgId: 1
+  name: Every minute
+  folder: Kubernetes
+  interval: 1m
+  rules:
+  - uid: cfgx27ol8nwg0a
+    title: Kubernetes | Pod im CrashLoopBackOff
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        exemplar: false
+        expr: kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"} == 1
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 2m
+    annotations:
+      summary: '💥 Pod im CrashLoopBackOff\n\nNamespace: {{ $labels.namespace }}\nContainer: {{ $labels.container }}'
+    labels:
+      priority: '5'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: bfh4hsb53bjswb
+    title: Kubernetes | Pod im OOMKilled
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    annotations:
+      summary: '🚨 Pod im OOMKilled\n\nNamespace: {{ $labels.namespace }}\nContainer: {{ $labels.container }}'
+    labels:
+      priority: '3'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: dfh4i1n8mhclcf
+    title: Kubernetes | Node im NotReady
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 1m
+    annotations:
+      summary: '💥 Node im NotReady\nBetroffene Node: {{ $labels.node }}'
+    labels:
+      priority: '5'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: dfh4igrp9q6f4a
+    title: Kubernetes | Deployment nicht vollständig verfügbar
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: kube_deployment_status_replicas_unavailable > 0
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 5m
+    annotations:
+      summary: '🚨Deployment nicht vollständig verfügbar\n\nNamespace: {{ $labels.namespace }}\nDeployment: {{ $labels.deployment
+        }}'
+    labels:
+      priority: '3'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+- orgId: 1
+  name: Every two minutes
+  folder: Kubernetes
+  interval: 2m
+  rules:
+  - uid: bfh4j83n5cjr4f
+    title: Kubernetes | PersistentVolumeClaim Pending
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: kube_persistentvolumeclaim_status_phase{phase="Pending"} == 1
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 6m
+    annotations:
+      summary: '🚨PVC ist Pending
+
+        Betroffene PVC:
+
+        {{ $values.A }}'
+    labels:
+      priority: '3'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+- orgId: 1
+  name: Every 5 minutes
+  folder: Storage
+  interval: 5m
+  rules:
+  - uid: afhwwie3ayk1sb
+    title: Longhorn | Disk fast voll
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: 100 * (longhorn_disk_usage_bytes / longhorn_disk_capacity_bytes)
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 80
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 10m
+    annotations:
+      summary: '⚠️ Speicherplatzauslastung für Longhorn ist auf über 80% gestiegen
+
+        Aktuelle Auslastung: {{ $values.A }}%'
+    labels:
+      priority: '3'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+- orgId: 1
+  name: Every minute
+  folder: Storage
+  interval: 1m
+  rules:
+  - uid: ffx2axs0jm70ge
+    title: Odroid | Dateisystem read-only
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: max by (mountpoint) (node_filesystem_readonly{fstype!~"tmpfs|squashfs|overlay|iso9660"}) == 1
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 1m
+    annotations:
+      summary: '🚨 Ein Dateisystem wurde auf read-only umgestellt: {{ $labels.mountpoint }}
+
+        Typische Ursache: die Block-Devices sind unter dem Dateisystem weggefallen.'
+    labels:
+      priority: '5'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+- orgId: 1
+  name: Every two minutes
+  folder: Storage
+  interval: 2m
+  rules:
+  - uid: efh4k63t8xam8e
+    title: Longhorn | Volume Degraded oder Faulted
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: longhorn_volume_robustness == 2 or longhorn_volume_robustness == 3
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 1
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: NoData
+    execErrState: Error
+    for: 2m
+    annotations:
+      summary: '💾 Longhorn Volume ist degraded/faulted!
+
+        Betroffene Volumes:
+
+        {{ $values.A }}'
+    labels:
+      priority: '5'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy

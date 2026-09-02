@@ -1,0 +1,23 @@
+# Provisioned by the platform chart. Managed here, read-only in the Grafana UI.
+# Edit this file and run helm upgrade.
+apiVersion: 1
+contactPoints:
+- orgId: 1
+  name: Ntfy
+  receivers:
+  - uid: efgp3d0yavi80c
+    type: webhook
+    settings:
+      headers:
+        Content-Type: application/json
+      httpMethod: POST
+      payload:
+        template: "{\n  \"topic\": \"alerts\",\n  \"title\": \"{{ if eq .Status \"resolved\" }}Resolved: {{ else }}Grafana\
+          \ Alert: {{ end }}{{ .CommonLabels.alertname }}\",\n  \"message\": \"{{ range .Alerts }}{{ .Annotations.summary\
+          \ }}\\n{{ .Annotations.description }}\\nStatus: {{ .Status }}\\n{{ end }}\",\n  \"priority\": {{ if .CommonLabels.priority\
+          \ }}{{ .CommonLabels.priority }}{{ else }}3{{ end }},\n  \"tags\": [\"{{ if eq .Status `firing` }}{{ if or (eq .CommonLabels.priority\
+          \ `4`) (eq .CommonLabels.priority `5`) }}rotating_light{{ else }}warning{{ end }}{{ else }}white_check_mark{{ end\
+          \ }}\"],\n\"actions\": [\n   {\n        \"action\": \"view\",\n        \"label\": \"Silent\",\n        \"url\":\
+          \ \"{{ (index .Alerts 0).SilenceURL }}\",\n        \"clear\": true\n      }\n    ]\n}"
+      url: $__env{NTFY_WEBHOOK_URL}
+    disableResolveMessage: false

@@ -1,0 +1,22 @@
+{{/*
+Alerting provisioning, shipped as plain files rather than through the upstream
+chart's `alerting` value.
+
+That value is passed through Helm's `tpl`, which would try to evaluate the Go
+templates inside alert annotations and the webhook payload -- {{`{{ $labels.x }}`}}
+and friends -- as Helm templates and fail. Escaping every brace would work but
+leaves a trap in every future annotation. Reading the files verbatim avoids the
+problem entirely.
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-grafana-alerting
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+{{- range $path, $_ := .Files.Glob "files/alerting/*.yaml" }}
+  {{ base $path }}: |
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}
