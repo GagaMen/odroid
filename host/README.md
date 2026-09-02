@@ -89,6 +89,45 @@ sudo journalctl --list-boots | tail -3                  # -> previous boot prese
 `journalctl -b -1` is the indicator that matters: only once that works can a future incident
 be analysed at all.
 
+## Services that cannot run here
+
+Five units fail on every boot. Four of them are collateral damage from the same pinned systemd
+described above; the fifth asks for a kernel feature this build does not have.
+
+| Unit | Why it fails |
+|---|---|
+| `polkit` | `libsystemd.so.0: version 'LIBSYSTEMD_253' not found` |
+| `udisks2` | `libudev.so.1: version 'LIBUDEV_247' not found` |
+| `fwupd` | `libfwupdengine.so: cannot change memory protections` |
+| `fwupd-refresh` | follows from `fwupd` — `fwupdmgr refresh` needs the daemon |
+| `systemd-binfmt` | `CONFIG_BINFMT_MISC is not set` in this kernel |
+
+The distribution builds `polkitd` and `udisksd` against the systemd its release ships. A vendor
+systemd held at an older version provides those shared libraries at its own, older symbol
+versions, so the binaries cannot resolve what they were linked against. `fwupd` fails a step
+earlier: its unit sets `MemoryDenyWriteExecute=yes`, and the older systemd's seccomp filter for
+that option rejects the `mprotect` call the dynamic loader needs.
+
+None can be repaired without unpinning systemd, which on a vendor BSP risks an unbootable
+system. None of them has a job on a headless Kubernetes node either: authorization runs through
+`sudo`, there is no removable media to manage, and firmware comes from the board vendor rather
+than LVFS.
+
+Masking them states that plainly, stops the retries at every boot, and keeps the "failed units"
+alert meaningful instead of permanently red. It is reversible with `systemctl unmask`.
+
+```bash
+sudo systemctl mask fwupd.service fwupd-refresh.service polkit.service \
+  udisks2.service systemd-binfmt.service
+```
+
+Verify none remain, and that the metric agrees:
+
+```bash
+systemctl list-units --state=failed
+curl -s localhost:9100/metrics | grep 'state="failed"} 1'
+```
+
 ## Deadlock recovery
 
 ### The problem
