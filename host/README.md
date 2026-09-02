@@ -20,13 +20,28 @@ directory moves to `ansible/roles/host/files/` without a single file needing to 
 
 ### The problem
 
-On this board the vendor kernel and systemd come from the Hardkernel PPA and are built against
-Ubuntu 20.04, while the userspace is Ubuntu 24.04. systemd is held at version 245 by an epoch
-in its version string, so Ubuntu's own 255.4 never replaces it.
+### How the system got here
+
+The board vendor shipped an Ubuntu 20.04 image. Moving to a current LTS meant two consecutive
+`do-release-upgrade` runs, 20.04 to 22.04 to 24.04. Userspace moved with them; the vendor's
+kernel and systemd did not.
+
+They stayed behind because of an epoch. The vendor package is versioned
+`5:245.4-4ubuntu3+...~focal`, and apt compares the leading `5:` before anything else, so
+`5:245.4` outranks Ubuntu's `255.4`. apt therefore considers the installed package newer than
+the one in the archive and never offers the upgrade. Nothing warns about this: the release
+upgrade completes, the machine boots, and the mismatch only surfaces later as unrelated-looking
+failures in individual services.
+
+The consequence is a userspace built against systemd 255 running on systemd 245.
+
+### The seccomp symptom
 
 systemd 245 predates the `faccessat2` syscall (439 on arm64) and therefore omits it from the
 `@system-service` filter group. glibc 2.39 shipped with Ubuntu 24.04 does use it. Any service
-with a `SystemCallFilter` that calls `faccessat2` is killed by seccomp with SIGSYS:
+with a `SystemCallFilter` that calls `faccessat2` is killed by seccomp with SIGSYS.
+
+The failure looks like this:
 
 ```
 audit: type=1326 ... comm="rsyslogd" sig=31 arch=c00000b7 syscall=439
@@ -94,13 +109,13 @@ be analysed at all.
 Five units fail on every boot. Four of them are collateral damage from the same pinned systemd
 described above; the fifth asks for a kernel feature this build does not have.
 
-| Unit | Why it fails |
-|---|---|
-| `polkit` | `libsystemd.so.0: version 'LIBSYSTEMD_253' not found` |
-| `udisks2` | `libudev.so.1: version 'LIBUDEV_247' not found` |
-| `fwupd` | `libfwupdengine.so: cannot change memory protections` |
-| `fwupd-refresh` | follows from `fwupd` — `fwupdmgr refresh` needs the daemon |
-| `systemd-binfmt` | `CONFIG_BINFMT_MISC is not set` in this kernel |
+| Unit | What it is for | Why it fails |
+|---|---|---|
+| `polkit` | Decides whether a program may perform a privileged action without being root — on a desktop, the password prompt when installing software | `libsystemd.so.0: version 'LIBSYSTEMD_253' not found` |
+| `udisks2` | Detects and mounts removable media, such as a USB stick being plugged in | `libudev.so.1: version 'LIBUDEV_247' not found` |
+| `fwupd` | Fetches firmware updates from LVFS, the cross-vendor service used for PC BIOS/UEFI | `libfwupdengine.so: cannot change memory protections` |
+| `fwupd-refresh` | Downloads the LVFS metadata for `fwupd` once a day | follows from `fwupd` — `fwupdmgr refresh` needs the daemon |
+| `systemd-binfmt` | Registers foreign binary formats so the kernel runs them through an interpreter, e.g. ARM binaries on x86 via qemu | `CONFIG_BINFMT_MISC is not set` in this kernel |
 
 The distribution builds `polkitd` and `udisksd` against the systemd its release ships. A vendor
 systemd held at an older version provides those shared libraries at its own, older symbol
@@ -114,7 +129,18 @@ system. None of them has a job on a headless Kubernetes node either: authorizati
 than LVFS.
 
 Masking them states that plainly, stops the retries at every boot, and keeps the "failed units"
-alert meaningful instead of permanently red. It is reversible with `systemctl unmask`.
+alert meaningful instead of permanently red.
+
+`mask` rather than `disable` on purpose. `disable` only stops a unit from starting on its own —
+it can still be started by hand or pulled in as another unit's dependency. `mask` links it to
+`/dev/null` so it cannot start at all. These units genuinely cannot work here, so the stronger
+statement is the accurate one. Both are reversible: `systemctl unmask <unit>`.
+
+The real repair would be to unpin systemd and let the distribution's own version take over,
+which would fix all four at once along with the seccomp problem above. That means overriding
+apt's version comparison to install an apparently older package, on the component that boots the
+machine. It is worth doing only with console access and a bootable recovery medium at hand, and
+it is deliberately not part of this configuration.
 
 ```bash
 sudo systemctl mask fwupd.service fwupd-refresh.service polkit.service \
