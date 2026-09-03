@@ -18,3 +18,6 @@ platform/values.yaml
 
 # Crash reports (contain internal addresses and paths)
 crash_report.md
+
+# Local Claude Code settings (personal, not shared)
+.claude/settings.local.json
