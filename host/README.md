@@ -106,7 +106,7 @@ be analysed at all.
 
 ## Services that cannot run here
 
-Six units fail on every boot. Four of them are collateral damage from the same pinned systemd
+Seven units fail on every boot. Four of them are collateral damage from the same pinned systemd
 described above; the fifth asks for a kernel feature this build does not have.
 
 | Unit | What it is for | Why it fails |
@@ -117,6 +117,7 @@ described above; the fifth asks for a kernel feature this build does not have.
 | `fwupd-refresh` | Downloads the LVFS metadata for `fwupd` once a day | follows from `fwupd` — `fwupdmgr refresh` needs the daemon |
 | `fwupd-refresh.timer` | Triggers the above once a day | fails once its service is masked |
 | `systemd-binfmt` | Registers foreign binary formats so the kernel runs them through an interpreter, e.g. ARM binaries on x86 via qemu | `CONFIG_BINFMT_MISC is not set` in this kernel |
+| `ModemManager` | Manages mobile broadband modems (WWAN, LTE sticks) | `Requires=polkit.service`, so masking polkit stops it too |
 
 The distribution builds `polkitd` and `udisksd` against the systemd its release ships. A vendor
 systemd held at an older version provides those shared libraries at its own, older symbol
@@ -145,8 +146,18 @@ it is deliberately not part of this configuration.
 
 ```bash
 sudo systemctl mask fwupd.service fwupd-refresh.service fwupd-refresh.timer \
-  polkit.service udisks2.service systemd-binfmt.service
+  polkit.service udisks2.service systemd-binfmt.service ModemManager.service
 ```
+
+`ModemManager` is on the list as a consequence, not a cause: it declares `Requires=polkit.service`,
+so once polkit is masked it can no longer start. Check what a unit pulls along before masking it:
+
+```bash
+systemctl list-dependencies --reverse polkit.service
+```
+
+Here that lists `ModemManager` and nothing else, and this board has no WWAN hardware at all --
+no modem device nodes, no `ww*` interfaces -- so it has no work to do either way.
 
 Mask the timer along with its service. A timer whose service is masked still fires and still
 fails, so masking only the service trades one failed unit for another. Check for companions
