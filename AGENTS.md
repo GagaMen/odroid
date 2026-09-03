@@ -109,6 +109,60 @@ When creating new files with potentially sensitive data:
 2. Create an `.example` version with placeholders for documentation
 3. Document the required values in the README
 
+## ⚙️ Traps in This Repository
+
+Three things that are not obvious and have cost real debugging time.
+
+### The umbrella renders from vendored archives, not the working tree
+
+`helm template ./platform` and `helm upgrade` read `platform/charts/*.tgz`, **not** the files
+you just edited under `charts/`. Editing a subchart and rendering immediately shows the *old*
+content, which reads as "my change had no effect" and sends you looking for the wrong bug.
+
+After touching anything under `charts/`, repackage before rendering or deploying:
+
+```bash
+helm dependency update platform/
+```
+
+The same applies one level down: `charts/<name>/charts/*.tgz` is vendored too, and a mismatch
+between a dependency's declared version and the vendored archive makes Helm silently drop that
+dependency's `alias`, so values addressed through the alias never arrive. Check the status with
+`helm dependency list charts/<name>` — it must say `ok`, not `wrong version`.
+
+Verify what will actually be deployed by looking inside the archive, not at the working tree:
+
+```bash
+tar xzOf platform/charts/<chart>-1.0.0.tgz <chart>/values.yaml | grep <what-you-changed>
+```
+
+### Grafana alerting is provisioned from files
+
+Alert rules, the contact point, the notification policy and time intervals live in
+`charts/grafana/files/alerting/*.yaml` and are mounted through a ConfigMap built by
+`charts/grafana/templates/alerting-configmap.yaml`. They are **read-only in the Grafana UI**;
+anything changed there is overwritten on the next `helm upgrade`. Edit the files and deploy.
+
+Do not move this into the upstream chart's `alerting` value. That value is passed through
+Helm's `tpl`, which tries to evaluate the Go templates inside alert annotations and the webhook
+payload — `{{ $labels.x }}`, `{{ .CommonLabels.y }}` — as Helm templates and fails.
+
+Alert annotations are rendered into a JSON payload. Write `\n` as two characters for a line
+break; a real newline lands unescaped inside a JSON string, the request becomes malformed, and
+the notification is silently dropped.
+
+### The host is not a stock Ubuntu
+
+The kernel and systemd come from the board vendor and are pinned to a much older version than
+the rest of userspace. Consequences that matter when touching services:
+
+- A unit with a `SystemCallFilter` may be killed by seccomp with SIGSYS, because the older
+  systemd omits syscalls current glibc uses.
+- Several distribution services cannot start at all and are deliberately masked.
+- `microk8s stop` does not unmount CSI volumes and strands them on dead devices.
+
+Read [`host/README.md`](host/README.md) before changing anything below Kubernetes.
+
 ## 🛠️ Technology Stack
 
 - **Kubernetes:** MicroK8s on ARM64 (ODROID-M2)
