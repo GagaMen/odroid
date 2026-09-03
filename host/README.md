@@ -224,13 +224,51 @@ sudo snap refresh --hold microk8s core22
 
 The hold is indefinite and blocks both automatic refreshes and a blanket `snap refresh`.
 A targeted `snap refresh microk8s` still works, which is the intended path for controlled
-updates:
+updates.
+
+`microk8s stop` does **not** unmount CSI volumes. There is no `umount` anywhere in the snap,
+and the stop script's first act is to stop kubelite, which kills the pod serving the iSCSI
+targets. Every mount kubelet made stays behind pointing at a device that no longer answers --
+the same state an unplanned restart produces, and the reason a later shutdown blocks.
+
+Remove the workloads first, so the CSI driver unmounts and the storage layer detaches while its
+provider is still alive:
 
 ```bash
-microk8s stop          # let the CSI driver unmount its volumes cleanly
+microk8s kubectl cordon <node>
+microk8s kubectl drain <node> --ignore-daemonsets --delete-emptydir-data
+microk8s kubectl -n longhorn get volumes.longhorn.io   # wait for detached
+microk8s stop
 sudo snap refresh microk8s
 microk8s start
+microk8s kubectl uncordon <node>
 ```
+
+`microk8s stop` passes `--disable` to the kubelite service, so the cluster does not come back
+on its own after a reboot. Start it with `microk8s start`.
+
+### Recovering stranded volumes
+
+If the devices are already gone while the mounts are still listed, detach them before
+rebooting -- otherwise the shutdown blocks on filesystems that cannot answer. Confirm the
+situation first; a bounded read returns immediately when the device is dead:
+
+```bash
+timeout 5 dd if=/dev/sda of=/dev/null bs=512 count=1   # no output, non-zero exit = gone
+```
+
+Then detach, deepest paths first. Lazy unmount returns at once instead of waiting on dead I/O;
+the pending writes are lost either way, since their target is already gone:
+
+```bash
+awk '$2 ~ /globalmount|kubernetes\.io~csi/ {print $2}' /proc/mounts \
+  | awk '{print length"\t"$0}' | sort -rn | cut -f2- \
+  | while read -r m; do sudo umount -l "$m"; done
+sudo iscsiadm -m node --logoutall=all
+```
+
+Before rebooting, `/proc/mounts` should list none of those paths and `lsblk` should show no
+leftover `sd*` devices.
 
 Holding updates means nothing reminds you they exist. The metrics and alerts described below
 close that gap.
