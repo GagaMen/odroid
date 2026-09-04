@@ -1,0 +1,27 @@
+/*
+ * Enable the RK3588 Designware watchdog.
+ *
+ * The node exists in the board's device tree with status = "disabled", and the
+ * dw_wdt driver is built into the kernel -- only the node is switched off, so
+ * /dev/watchdog never appears and systemd has nothing to feed. Turning it on
+ * gives systemd a hardware watchdog that resets the board when it stops being
+ * fed, which is the only self-heal mechanism this kernel offers: it ships
+ * without CONFIG_DETECT_HUNG_TASK, CONFIG_SOFTLOCKUP_DETECTOR and PSI.
+ *
+ * Targeted by path rather than by label, so the overlay needs no __symbols__
+ * in the base device tree.
+ *
+ * Build:   dtc -I dts -O dtb -o watchdog.dtbo watchdog.dts
+ * Install: /boot/dtbs/$(uname -r)/rockchip/overlays/odroidm2/watchdog.dtbo
+ *          plus "watchdog" appended to the overlays= line in /boot/config.ini
+ *
+ * A kernel update creates a new dtbs directory and leaves this behind; the
+ * "watchdog not active" alert catches that.
+ */
+
+/dts-v1/;
+/plugin/;
+
+&{/watchdog@feaf0000} {
+    status = "okay";
+};
