@@ -151,6 +151,20 @@ Alert annotations are rendered into a JSON payload. Write `\n` as two characters
 break; a real newline lands unescaped inside a JSON string, the request becomes malformed, and
 the notification is silently dropped.
 
+**Changing a rule needs a reload, not a restart.** Grafana reads provisioning files only at
+startup, and `helm upgrade` changes the ConfigMap without touching the pod spec, so nothing
+rolls -- correctly, because nothing needs to. kubelet syncs the new content into the running
+container by itself (allow up to a minute), and Grafana just has to be told to re-read it:
+
+```bash
+curl -s -u admin:<pw> -X POST http://<grafana>/api/admin/provisioning/alerting/reload
+```
+
+A checksum annotation on the pod template is the usual trick for ConfigMap changes, but it does
+not apply here: this chart renders `podAnnotations` with `toYaml`, not `tpl`, so a computed
+checksum would arrive as literal text. It would also restart a pod that has no reason to
+restart.
+
 ### The host is not a stock Ubuntu
 
 The kernel and systemd come from the board vendor and are pinned to a much older version than
