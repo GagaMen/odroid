@@ -108,10 +108,10 @@ groups:
     for: 10m
     annotations:
       summary: 🐕 Kein Hardware-Watchdog aktiv — die Selbstheilung greift nicht.\nNach einem Kernel-Update muss das Device-Tree-Overlay
-        neu abgelegt werden.\n(Regel ist bis zur Watchdog-Einrichtung pausiert.)
+        neu abgelegt werden.
     labels:
       priority: '4'
-    isPaused: true
+    isPaused: false
     notification_settings:
       receiver: Ntfy
   - uid: dfx2axr8b9ibkd
