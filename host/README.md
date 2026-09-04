@@ -190,10 +190,26 @@ ls /proc/sys/kernel/ | grep -E "hung|lockup|watchdog|panic"
 ls /proc/pressure /dev/watchdog 2>/dev/null
 ```
 
-`panic_on_rcu_stall` is usually the only detector that survives such a configuration. It is a
-partial measure: tasks blocked on dead storage yield the CPU and pass through quiescent states,
-so they do not reliably produce a stall. It costs nothing to enable and covers the cases where
-a CPU really does get stuck.
+`panic_on_rcu_stall` is usually the only detector that survives such a configuration, and it is
+a partial measure: tasks blocked on dead storage yield the CPU and pass through quiescent
+states, so they do not reliably produce a stall. It costs nothing and covers a genuinely stuck
+CPU, but it cannot be the whole answer.
+
+The hardware watchdog can. It does not depend on the kernel noticing anything — if nothing feeds
+it, the board resets.
+
+### The watchdog is present but switched off
+
+Check before concluding there is none. The device tree may carry the node with
+`status = "disabled"` while the driver is built into the kernel:
+
+```bash
+grep -r . /proc/device-tree/watchdog*/status /proc/device-tree/watchdog*/compatible 2>/dev/null
+grep -E "CONFIG_(WATCHDOG|DW_WATCHDOG)=" /boot/config-$(uname -r)
+```
+
+A node reading `disabled` next to a compiled-in driver means only the node needs enabling, which
+a device tree overlay does. See `files/boot/overlays/watchdog.dts`.
 
 ### Applying
 
@@ -201,13 +217,84 @@ a CPU really does get stuck.
 sudo install -Dm644 host/files/etc/sysctl.d/99-lockup-recovery.conf \
   /etc/sysctl.d/99-lockup-recovery.conf
 sudo sysctl --system
+
+# Back up the boot config before touching it -- a broken one means booting from
+# removable media to repair it.
+sudo cp -n /boot/config.ini /boot/config.ini.bak
+
+dtc -I dts -O dtb -o /tmp/watchdog.dtbo host/files/boot/overlays/watchdog.dts
+sudo install -Dm644 /tmp/watchdog.dtbo \
+  /boot/dtbs/$(uname -r)/rockchip/overlays/odroidm2/watchdog.dtbo
+# Append the overlay name to the overlays= line under [generic] -- note there is a
+# second overlays= line further down that must stay untouched.
+sudo nano /boot/config.ini
+
+sudo install -Dm644 host/files/etc/systemd/system.conf.d/10-watchdog.conf \
+  /etc/systemd/system.conf.d/10-watchdog.conf
+sudo reboot
+```
+
+Verify the overlay offline before rebooting — it costs nothing and turns a failed boot into a
+caught mistake:
+
+```bash
+fdtoverlay -i "$(readlink -f /boot/dtb)" -o /tmp/merged.dtb /tmp/watchdog.dtbo
+fdtget /tmp/merged.dtb /watchdog@feaf0000 status     # -> okay
 ```
 
 ### Verifying
 
 ```bash
-sysctl kernel.panic_on_rcu_stall kernel.panic   # -> 1 and 10
+sysctl kernel.panic_on_rcu_stall kernel.panic       # -> 1 and 10
+ls -l /dev/watchdog                                 # exists after the reboot
+systemctl show -p RuntimeWatchdogUSec               # -> 2min
+journalctl -b | grep -i "hardware watchdog"         # names the driver and the timeout applied
 ```
+
+The journal line matters: the driver clamps the requested timeout to its own maximum, and this
+is where you find out what you actually got. `/sys/class/watchdog/` carries that information on
+kernels built with `CONFIG_WATCHDOG_SYSFS`; without it, the journal is the only report.
+
+### Testing that it really resets
+
+Configuration proves the driver answers ioctls, not that the hardware pulls the reset line.
+Testing that means letting the watchdog bite, which hard-resets the board — so drain the node
+first and confirm every volume reads `detached`.
+
+systemd holds `/dev/watchdog` open, and a second open fails with `EBUSY`, so it has to let go
+first. Doing that through a separate drop-in is deliberate: the machine comes back with the
+watchdog unfed rather than into a reset loop.
+
+```bash
+printf '[Manager]\nRuntimeWatchdogSec=0\n' | sudo tee /etc/systemd/system.conf.d/99-watchdog-test.conf
+sudo systemctl daemon-reexec
+systemctl show -p RuntimeWatchdogUSec               # -> 0, systemd has released it
+
+sudo sh -c 'exec 3>/dev/watchdog; sleep 600'        # open, never feed
+```
+
+The board resets within roughly the configured timeout; the session dies without warning. That
+is the pass condition. Afterwards:
+
+```bash
+sudo rm /etc/systemd/system.conf.d/99-watchdog-test.conf
+sudo systemctl daemon-reexec
+systemctl show -p RuntimeWatchdogUSec               # -> back to 2min
+```
+
+### After every kernel update
+
+`/boot/overlays` points into a version-specific directory that a kernel update replaces, and the
+`.dtbo` files belong to no package. An update therefore removes the overlay silently, taking the
+only self-heal with it. Re-install it and reboot:
+
+```bash
+dtc -I dts -O dtb -o /tmp/watchdog.dtbo host/files/boot/overlays/watchdog.dts
+sudo install -Dm644 /tmp/watchdog.dtbo \
+  /boot/dtbs/$(uname -r)/rockchip/overlays/odroidm2/watchdog.dtbo
+```
+
+The "watchdog not active" alert exists to catch this when the step is forgotten.
 
 ## Snap update discipline
 
