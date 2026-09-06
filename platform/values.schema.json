@@ -791,6 +791,13 @@
                       },
                       "type": "object"
                     },
+                    "command": {
+                      "description": "Override the container entrypoint; empty means the image default (chart 1.11.0+)",
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
                     "configMap": {
                       "additionalProperties": false,
                       "properties": {
@@ -954,6 +961,14 @@
                           "description": "SHA256 digest override",
                           "type": "string"
                         },
+                        "pullPolicy": {
+                          "enum": [
+                            "Always",
+                            "IfNotPresent",
+                            "Never"
+                          ],
+                          "type": "string"
+                        },
                         "registry": {
                           "type": "string"
                         },
@@ -993,6 +1008,10 @@
                           "additionalProperties": false,
                           "properties": {
                             "enabled": {
+                              "type": "boolean"
+                            },
+                            "externalHPA": {
+                              "description": "Let an externally managed HPA drive the replica count (chart 1.9.0+)",
                               "type": "boolean"
                             },
                             "maxReplicas": {
@@ -1122,6 +1141,10 @@
                       },
                       "type": "object"
                     },
+                    "dnsConfig": {
+                      "description": "Pod DNS settings -- nameservers, searches, options (chart 1.12.0+)",
+                      "type": "object"
+                    },
                     "dnsPolicy": {
                       "description": "DNS policy for the pod",
                       "enum": [
@@ -1224,6 +1247,11 @@
                       "minimum": 1,
                       "type": "integer"
                     },
+                    "revisionHistoryLimit": {
+                      "description": "Number of old ReplicaSets/ControllerRevisions to retain (chart 1.12.0+)",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
                     "terminationGracePeriodSeconds": {
                       "description": "Termination grace period in seconds",
                       "type": "integer"
@@ -1303,6 +1331,16 @@
                     "image": {
                       "additionalProperties": false,
                       "properties": {
+                        "pullPolicy": {
+                          "description": "Global pull policy for both images; empty means the per-image setting wins (chart 1.8.0+)",
+                          "enum": [
+                            "Always",
+                            "IfNotPresent",
+                            "Never",
+                            ""
+                          ],
+                          "type": "string"
+                        },
                         "pullSecrets": {
                           "description": "Global image pull secrets",
                           "items": {
@@ -1493,6 +1531,9 @@
                     "enabled": {
                       "description": "Creates a Service for the controller's pods",
                       "type": "boolean"
+                    },
+                    "externalTrafficPolicy": {
+                      "type": "string"
                     },
                     "internalTrafficPolicy": {
                       "type": "string"

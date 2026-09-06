@@ -8,6 +8,8 @@ interface GlobalImage {
   registry?: string;
   /** Global image pull secrets */
   pullSecrets?: object[];
+  /** Global pull policy for both images; empty means the per-image setting wins (chart 1.8.0+) */
+  pullPolicy?: PullPolicy | "";
 }
 
 interface GlobalConfig {
@@ -53,6 +55,8 @@ interface AlloyMounts {
 }
 
 interface AlloyAppConfig {
+  /** Override the container entrypoint; empty means the image default (chart 1.11.0+) */
+  command?: string[];
   configMap?: ConfigMap;
   clustering?: ClusteringConfig;
   /** Minimum stability level of components and behavior to enable */
@@ -135,6 +139,7 @@ interface ConfigReloaderImage {
   tag?: string;
   /** SHA256 digest override */
   digest?: string;
+  pullPolicy?: PullPolicy;
 }
 
 interface ConfigReloader {
@@ -163,6 +168,8 @@ interface AutoscalingScalePolicy {
 
 interface HorizontalAutoscaling {
   enabled?: boolean;
+  /** Let an externally managed HPA drive the replica count (chart 1.9.0+) */
+  externalHPA?: boolean;
   /**
    * @asType integer
    * @minimum 1
@@ -235,6 +242,14 @@ interface ControllerConfig {
   hostPID?: boolean;
   /** DNS policy for the pod */
   dnsPolicy?: DNSPolicy;
+  /** Pod DNS settings -- nameservers, searches, options (chart 1.12.0+) */
+  dnsConfig?: object;
+  /**
+   * Number of old ReplicaSets/ControllerRevisions to retain (chart 1.12.0+)
+   * @asType integer
+   * @minimum 0
+   */
+  revisionHistoryLimit?: number;
   /**
    * Termination grace period in seconds
    * @asType integer
@@ -274,6 +289,7 @@ interface ServiceConfig {
   nodePort?: number;
   clusterIP?: string;
   internalTrafficPolicy?: string;
+  externalTrafficPolicy?: string;
   annotations?: { [key: string]: string };
 }
 
