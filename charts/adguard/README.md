@@ -52,7 +52,7 @@ helm install adguard ./charts/adguard -f values.yaml
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `image.repository` | Container image repository | `adguard/adguardhome` |
-| `image.tag` | Container image tag | `v0.107.73` |
+| `image.tag` | Container image tag | `v0.107.79` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 
 ### Network
