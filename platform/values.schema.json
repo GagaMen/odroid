@@ -3210,6 +3210,26 @@
                 "httpGet": {
                   "additionalProperties": false,
                   "properties": {
+                    "httpHeaders": {
+                      "description": "Extra request headers -- homepage v2 needs a Host it accepts",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "value"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
                     "path": {
                       "type": "string"
                     },
@@ -3281,6 +3301,26 @@
                 "httpGet": {
                   "additionalProperties": false,
                   "properties": {
+                    "httpHeaders": {
+                      "description": "Extra request headers -- homepage v2 needs a Host it accepts",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "value"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
                     "path": {
                       "type": "string"
                     },

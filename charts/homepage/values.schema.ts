@@ -114,9 +114,16 @@ interface Resources {
   requests?: ResourceSpec;
 }
 
+interface ProbeHttpHeader {
+  name: string;
+  value: string;
+}
+
 interface ProbeHttpGet {
   path?: string;
   port?: string | IntegerType;
+  /** Extra request headers -- homepage v2 needs a Host it accepts */
+  httpHeaders?: ProbeHttpHeader[];
 }
 
 interface Probe {

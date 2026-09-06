@@ -199,14 +199,26 @@ resources: {}
   #   memory: 128Mi
 
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+#
+# Since v2 homepage rejects any request whose Host header is neither localhost
+# nor listed in HOMEPAGE_ALLOWED_HOSTS. The kubelet addresses the pod by its IP,
+# so an unheadered probe gets a 400 and the pod never turns ready. Sending
+# "localhost:3000" keeps host validation on -- the port has to be there, a bare
+# "localhost" is rejected too.
 livenessProbe:
   httpGet:
     path: /
     port: http
+    httpHeaders:
+      - name: Host
+        value: localhost:3000
 readinessProbe:
   httpGet:
     path: /
     port: http
+    httpHeaders:
+      - name: Host
+        value: localhost:3000
 
 env:
   - name: HOMEPAGE_ALLOWED_HOSTS
