@@ -18,6 +18,13 @@ fullnameOverride: ""
 # Use host network for DNS service (required for DHCP and direct DNS access)
 hostNetwork: true
 
+# With hostNetwork the pod binds port 53 on the node itself, so a second pod can
+# never be scheduled alongside the first -- a rolling update deadlocks with the
+# new pod Pending on "didn't have free ports". Recreate stops the old pod first.
+# The price is a few seconds without DNS during an upgrade.
+strategy:
+  type: Recreate
+
 # Persistent Volume Claims for configuration and work data
 persistence:
   conf:

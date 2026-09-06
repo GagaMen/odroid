@@ -145,6 +145,11 @@ interface PrometheusExporter {
   affinity?: object;
 }
 
+interface DeploymentStrategy {
+  type?: "Recreate" | "RollingUpdate";
+  rollingUpdate?: object;
+}
+
 export interface Values {
   /** Injected by Helm for sub-chart coordination */
   global?: object;
@@ -160,6 +165,8 @@ export interface Values {
   fullnameOverride?: string;
   /** Use host network for DNS service (required for DHCP and direct DNS access) */
   hostNetwork?: boolean;
+  /** Deployment update strategy -- Recreate, because hostNetwork blocks a surge pod */
+  strategy?: DeploymentStrategy;
   /** Persistent Volume Claims for configuration and work data */
   persistence?: {
     /** PVC for AdGuard configuration data */

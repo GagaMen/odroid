@@ -734,6 +734,23 @@
               },
               "type": "object"
             },
+            "strategy": {
+              "additionalProperties": false,
+              "description": "Deployment update strategy -- Recreate, because hostNetwork blocks a surge pod",
+              "properties": {
+                "rollingUpdate": {
+                  "type": "object"
+                },
+                "type": {
+                  "enum": [
+                    "Recreate",
+                    "RollingUpdate"
+                  ],
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
             "tolerations": {
               "description": "Tolerations for pod assignment",
               "items": {
