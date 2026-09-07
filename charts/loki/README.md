@@ -1,6 +1,10 @@
 # Loki
 
-Helm chart wrapper for [grafana/loki](https://github.com/grafana/loki/tree/main/production/helm/loki).
+Helm chart wrapper for [grafana-community/loki](https://github.com/grafana-community/helm-charts/tree/main/charts/loki).
+
+Grafana split the chart on 2026-03-16: the copy in the `grafana/loki` repository is
+maintained for Grafana Enterprise Logs from 7.0.0 on, while open-source Loki was forked
+to `grafana-community` at chart 6.55.0. This wrapper follows the community chart.
 
 Deployed in **Single-Binary** mode – suitable for a single-node home server.
 Stores logs on a Longhorn PVC using the local filesystem backend.

@@ -42,11 +42,18 @@
                     }
                   ]
                 },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
                 "autoscaling": {
                   "type": "object"
                 },
                 "dnsConfig": {
                   "type": "object"
+                },
+                "enabled": {
+                  "description": "Deploy this component at all",
+                  "type": "boolean"
                 },
                 "extraArgs": {
                   "anyOf": [
@@ -97,6 +104,12 @@
                   },
                   "type": "array"
                 },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "hostAliases": {
                   "items": {
                     "type": "object"
@@ -118,6 +131,14 @@
                     "type": "object"
                   },
                   "type": "array"
+                },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
                 },
                 "labels": {
                   "additionalProperties": {
@@ -134,202 +155,13 @@
                 "livenessProbe": {
                   "type": "object"
                 },
-                "nodeSelector": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "persistence": {
-                  "type": "object"
-                },
-                "podAnnotations": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "podLabels": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "podManagementPolicy": {
-                  "type": "string"
-                },
-                "priorityClassName": {
-                  "type": "string"
-                },
-                "readinessProbe": {
-                  "type": "object"
-                },
-                "replicas": {
-                  "minimum": 0,
-                  "type": "integer"
-                },
-                "resources": {
-                  "type": "object"
-                },
-                "selectorLabels": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "service": {
-                  "type": "object"
-                },
-                "serviceAnnotations": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "serviceLabels": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "serviceType": {
-                  "type": "string"
-                },
-                "startupProbe": {
-                  "type": "object"
-                },
-                "targetModule": {
-                  "type": "string"
-                },
-                "terminationGracePeriodSeconds": {
-                  "type": "integer"
-                },
-                "tolerations": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "topologySpreadConstraints": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "trafficDistribution": {
-                  "type": "string"
-                }
-              },
-              "type": "object"
-            },
-            "bloomBuilder": {
-              "type": "object"
-            },
-            "bloomCompactor": {
-              "additionalProperties": false,
-              "properties": {
-                "affinity": {
-                  "type": "object"
-                },
-                "annotations": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "appProtocol": {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "object"
-                    }
-                  ]
-                },
-                "autoscaling": {
-                  "type": "object"
-                },
-                "dnsConfig": {
-                  "type": "object"
-                },
-                "extraArgs": {
-                  "anyOf": [
-                    {
-                      "type": "object"
-                    },
-                    {
-                      "items": {
-                        "type": "string"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                },
-                "extraContainers": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "extraEnv": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "extraEnvFrom": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "extraVolumeMounts": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "extraVolumes": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "hostAliases": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "hostUsers": {
+                "maxUnavailable": {
                   "type": [
-                    "boolean",
+                    "number",
                     "string",
                     "null"
                   ]
                 },
-                "image": {
-                  "type": "object"
-                },
-                "initContainers": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "labels": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "lifecycle": {
-                  "type": "object"
-                },
-                "livenessProbe": {
-                  "type": "object"
-                },
                 "nodeSelector": {
                   "additionalProperties": {
                     "type": "string"
@@ -343,6 +175,9 @@
                   "additionalProperties": {
                     "type": "string"
                   },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
                   "type": "object"
                 },
                 "podLabels": {
@@ -364,198 +199,11 @@
                   "minimum": 0,
                   "type": "integer"
                 },
-                "resources": {
-                  "type": "object"
-                },
-                "selectorLabels": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "service": {
-                  "type": "object"
-                },
-                "serviceAnnotations": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "serviceLabels": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "serviceType": {
-                  "type": "string"
-                },
-                "startupProbe": {
-                  "type": "object"
-                },
-                "terminationGracePeriodSeconds": {
-                  "type": "integer"
-                },
-                "tolerations": {
+                "resizePolicy": {
                   "items": {
                     "type": "object"
                   },
                   "type": "array"
-                },
-                "topologySpreadConstraints": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "trafficDistribution": {
-                  "type": "string"
-                }
-              },
-              "type": "object"
-            },
-            "bloomGateway": {
-              "additionalProperties": false,
-              "properties": {
-                "affinity": {
-                  "type": "object"
-                },
-                "annotations": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "appProtocol": {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "object"
-                    }
-                  ]
-                },
-                "autoscaling": {
-                  "type": "object"
-                },
-                "dnsConfig": {
-                  "type": "object"
-                },
-                "extraArgs": {
-                  "anyOf": [
-                    {
-                      "type": "object"
-                    },
-                    {
-                      "items": {
-                        "type": "string"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                },
-                "extraContainers": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "extraEnv": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "extraEnvFrom": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "extraVolumeMounts": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "extraVolumes": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "hostAliases": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "hostUsers": {
-                  "type": [
-                    "boolean",
-                    "string",
-                    "null"
-                  ]
-                },
-                "image": {
-                  "type": "object"
-                },
-                "initContainers": {
-                  "items": {
-                    "type": "object"
-                  },
-                  "type": "array"
-                },
-                "joinMemberlist": {
-                  "type": "boolean"
-                },
-                "labels": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "lifecycle": {
-                  "type": "object"
-                },
-                "livenessProbe": {
-                  "type": "object"
-                },
-                "nodeSelector": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "persistence": {
-                  "type": "object"
-                },
-                "podAnnotations": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "podLabels": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "podManagementPolicy": {
-                  "type": "string"
-                },
-                "priorityClassName": {
-                  "type": "string"
-                },
-                "readinessProbe": {
-                  "type": "object"
-                },
-                "replicas": {
-                  "minimum": 0,
-                  "type": "integer"
                 },
                 "resources": {
                   "type": "object"
@@ -587,7 +235,282 @@
                 "serviceType": {
                   "type": "string"
                 },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
                 "startupProbe": {
+                  "type": "object"
+                },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
+                "strategy": {
+                  "type": "object"
+                },
+                "targetModule": {
+                  "type": "string"
+                },
+                "terminationGracePeriodSeconds": {
+                  "type": "integer"
+                },
+                "tolerations": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "topologySpreadConstraints": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "trafficDistribution": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "bloomBuilder": {
+              "type": "object"
+            },
+            "bloomGateway": {
+              "additionalProperties": false,
+              "properties": {
+                "affinity": {
+                  "type": "object"
+                },
+                "annotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "appProtocol": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ]
+                },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
+                "autoscaling": {
+                  "type": "object"
+                },
+                "dnsConfig": {
+                  "type": "object"
+                },
+                "enabled": {
+                  "description": "Deploy this component at all",
+                  "type": "boolean"
+                },
+                "extraArgs": {
+                  "anyOf": [
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                },
+                "extraContainers": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraEnv": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraEnvFrom": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraVolumeMounts": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraVolumes": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "hostAliases": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "hostUsers": {
+                  "type": [
+                    "boolean",
+                    "string",
+                    "null"
+                  ]
+                },
+                "image": {
+                  "type": "object"
+                },
+                "initContainers": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "joinMemberlist": {
+                  "type": "boolean"
+                },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
+                },
+                "labels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "lifecycle": {
+                  "type": "object"
+                },
+                "livenessProbe": {
+                  "type": "object"
+                },
+                "maxUnavailable": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
+                },
+                "nodeSelector": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "persistence": {
+                  "type": "object"
+                },
+                "podAnnotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
+                  "type": "object"
+                },
+                "podLabels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "podManagementPolicy": {
+                  "type": "string"
+                },
+                "priorityClassName": {
+                  "type": "string"
+                },
+                "readinessProbe": {
+                  "type": "object"
+                },
+                "replicas": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "resources": {
+                  "type": "object"
+                },
+                "selectorLabels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "service": {
+                  "type": "object"
+                },
+                "serviceAccount": {
+                  "type": "object"
+                },
+                "serviceAnnotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "serviceLabels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "serviceType": {
+                  "type": "string"
+                },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
+                "startupProbe": {
+                  "type": "object"
+                },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
+                "strategy": {
                   "type": "object"
                 },
                 "terminationGracePeriodSeconds": {
@@ -626,6 +549,10 @@
                 "affinity": {
                   "type": "object"
                 },
+                "allocatedCPU": {
+                  "description": "CPU allocation in Kubernetes quantity form, e.g. \"500m\"",
+                  "type": "string"
+                },
                 "allocatedMemory": {
                   "type": "integer"
                 },
@@ -645,6 +572,9 @@
                     }
                   ]
                 },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
                 "autoscaling": {
                   "type": "object"
                 },
@@ -661,6 +591,7 @@
                   "type": "object"
                 },
                 "enabled": {
+                  "description": "Deploy this component at all",
                   "type": "boolean"
                 },
                 "extraArgs": {
@@ -719,6 +650,12 @@
                   },
                   "type": "array"
                 },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "hostAliases": {
                   "items": {
                     "type": "object"
@@ -741,6 +678,14 @@
                   },
                   "type": "array"
                 },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
+                },
                 "l2": {
                   "type": "object"
                 },
@@ -762,7 +707,8 @@
                 "maxUnavailable": {
                   "type": [
                     "number",
-                    "string"
+                    "string",
+                    "null"
                   ]
                 },
                 "nodeSelector": {
@@ -781,6 +727,9 @@
                   "additionalProperties": {
                     "type": "string"
                   },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
                   "type": "object"
                 },
                 "podLabels": {
@@ -804,6 +753,12 @@
                 "replicas": {
                   "type": "integer"
                 },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "resources": {
                   "type": "object"
                 },
@@ -814,6 +769,9 @@
                   "type": "object"
                 },
                 "service": {
+                  "type": "object"
+                },
+                "serviceAccount": {
                   "type": "object"
                 },
                 "serviceAnnotations": {
@@ -831,10 +789,28 @@
                 "serviceType": {
                   "type": "string"
                 },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
                 "startupProbe": {
                   "type": "object"
                 },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
                 "statefulStrategy": {
+                  "type": "object"
+                },
+                "strategy": {
                   "type": "object"
                 },
                 "suffix": {
@@ -879,6 +855,13 @@
                 "null"
               ]
             },
+            "commonLabels": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Labels put on every rendered object",
+              "type": "object"
+            },
             "compactor": {
               "additionalProperties": false,
               "properties": {
@@ -901,11 +884,18 @@
                     }
                   ]
                 },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
                 "autoscaling": {
                   "type": "object"
                 },
                 "dnsConfig": {
                   "type": "object"
+                },
+                "enabled": {
+                  "description": "Deploy this component at all",
+                  "type": "boolean"
                 },
                 "extraArgs": {
                   "anyOf": [
@@ -950,6 +940,12 @@
                   },
                   "type": "array"
                 },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "hostAliases": {
                   "items": {
                     "type": "object"
@@ -975,6 +971,14 @@
                 "joinMemberlist": {
                   "type": "boolean"
                 },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
+                },
                 "labels": {
                   "additionalProperties": {
                     "type": "string"
@@ -986,6 +990,13 @@
                 },
                 "livenessProbe": {
                   "type": "object"
+                },
+                "maxUnavailable": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
                 },
                 "nodeSelector": {
                   "additionalProperties": {
@@ -1000,6 +1011,9 @@
                   "additionalProperties": {
                     "type": "string"
                   },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
                   "type": "object"
                 },
                 "podLabels": {
@@ -1020,6 +1034,12 @@
                 "replicas": {
                   "minimum": 0,
                   "type": "integer"
+                },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
                 },
                 "resources": {
                   "type": "object"
@@ -1051,7 +1071,25 @@
                 "serviceType": {
                   "type": "string"
                 },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
                 "startupProbe": {
+                  "type": "object"
+                },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
+                "strategy": {
                   "type": "object"
                 },
                 "terminationGracePeriodSeconds": {
@@ -1076,6 +1114,10 @@
                   "type": "object"
                 }
               },
+              "type": "object"
+            },
+            "defaults": {
+              "description": "Values merged into every component before its own settings apply",
               "type": "object"
             },
             "deploymentMode": {
@@ -1109,11 +1151,18 @@
                     }
                   ]
                 },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
                 "autoscaling": {
                   "type": "object"
                 },
                 "dnsConfig": {
                   "type": "object"
+                },
+                "enabled": {
+                  "description": "Deploy this component at all",
+                  "type": "boolean"
                 },
                 "extraArgs": {
                   "anyOf": [
@@ -1158,6 +1207,12 @@
                   },
                   "type": "array"
                 },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "hostAliases": {
                   "items": {
                     "type": "object"
@@ -1180,6 +1235,14 @@
                   },
                   "type": "array"
                 },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
+                },
                 "labels": {
                   "additionalProperties": {
                     "type": "string"
@@ -1201,6 +1264,13 @@
                     "string"
                   ]
                 },
+                "maxUnavailable": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
+                },
                 "nodeSelector": {
                   "additionalProperties": {
                     "type": "string"
@@ -1214,6 +1284,9 @@
                   "additionalProperties": {
                     "type": "string"
                   },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
                   "type": "object"
                 },
                 "podLabels": {
@@ -1235,6 +1308,12 @@
                   "minimum": 0,
                   "type": "integer"
                 },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "resources": {
                   "type": "object"
                 },
@@ -1245,6 +1324,9 @@
                   "type": "object"
                 },
                 "service": {
+                  "type": "object"
+                },
+                "serviceAccount": {
                   "type": "object"
                 },
                 "serviceAnnotations": {
@@ -1262,7 +1344,32 @@
                 "serviceType": {
                   "type": "string"
                 },
+                "shutdownDelay": {
+                  "description": "Delay before shutdown so in-flight pushes drain",
+                  "type": [
+                    "number",
+                    "string"
+                  ]
+                },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
                 "startupProbe": {
+                  "type": "object"
+                },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
+                "strategy": {
                   "type": "object"
                 },
                 "terminationGracePeriodSeconds": {
@@ -1321,6 +1428,9 @@
                     }
                   ]
                 },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
                 "autoscaling": {
                   "type": "object"
                 },
@@ -1340,6 +1450,7 @@
                   "type": "object"
                 },
                 "enabled": {
+                  "description": "Deploy this component at all",
                   "type": "boolean"
                 },
                 "extraArgs": {
@@ -1385,6 +1496,12 @@
                   },
                   "type": "array"
                 },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "hostAliases": {
                   "items": {
                     "type": "object"
@@ -1410,6 +1527,14 @@
                   },
                   "type": "array"
                 },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
+                },
                 "labels": {
                   "additionalProperties": {
                     "type": "string"
@@ -1420,6 +1545,16 @@
                   "type": "object"
                 },
                 "livenessProbe": {
+                  "type": "object"
+                },
+                "maxUnavailable": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
+                },
+                "metrics": {
                   "type": "object"
                 },
                 "nginxConfig": {
@@ -1438,6 +1573,9 @@
                   "additionalProperties": {
                     "type": "string"
                   },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
                   "type": "object"
                 },
                 "podLabels": {
@@ -1461,7 +1599,16 @@
                 "replicas": {
                   "type": "integer"
                 },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "resources": {
+                  "type": "object"
+                },
+                "route": {
                   "type": "object"
                 },
                 "selectorLabels": {
@@ -1471,6 +1618,9 @@
                   "type": "object"
                 },
                 "service": {
+                  "type": "object"
+                },
+                "serviceAccount": {
                   "type": "object"
                 },
                 "serviceAnnotations": {
@@ -1488,7 +1638,25 @@
                 "serviceType": {
                   "type": "string"
                 },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
                 "startupProbe": {
+                  "type": "object"
+                },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
+                "strategy": {
                   "type": "object"
                 },
                 "terminationGracePeriodSeconds": {
@@ -1519,6 +1687,10 @@
               "description": "Global configuration",
               "type": "object"
             },
+            "ignoreMinioDeprecation": {
+              "description": "Silence the warning about the bundled minio subchart",
+              "type": "boolean"
+            },
             "imagePullSecrets": {
               "items": {
                 "type": "object"
@@ -1547,11 +1719,18 @@
                     }
                   ]
                 },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
                 "autoscaling": {
                   "type": "object"
                 },
                 "dnsConfig": {
                   "type": "object"
+                },
+                "enabled": {
+                  "description": "Deploy this component at all",
+                  "type": "boolean"
                 },
                 "extraArgs": {
                   "anyOf": [
@@ -1596,6 +1775,12 @@
                   },
                   "type": "array"
                 },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "hostAliases": {
                   "items": {
                     "type": "object"
@@ -1621,6 +1806,14 @@
                 "joinMemberlist": {
                   "type": "boolean"
                 },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
+                },
                 "labels": {
                   "additionalProperties": {
                     "type": "string"
@@ -1632,6 +1825,13 @@
                 },
                 "livenessProbe": {
                   "type": "object"
+                },
+                "maxUnavailable": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
                 },
                 "nodeSelector": {
                   "additionalProperties": {
@@ -1646,6 +1846,9 @@
                   "additionalProperties": {
                     "type": "string"
                   },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
                   "type": "object"
                 },
                 "podLabels": {
@@ -1666,6 +1869,12 @@
                 "replicas": {
                   "minimum": 0,
                   "type": "integer"
+                },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
                 },
                 "resources": {
                   "type": "object"
@@ -1697,7 +1906,25 @@
                 "serviceType": {
                   "type": "string"
                 },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
                 "startupProbe": {
+                  "type": "object"
+                },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
+                "strategy": {
                   "type": "object"
                 },
                 "terminationGracePeriodSeconds": {
@@ -1749,11 +1976,18 @@
                     }
                   ]
                 },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
                 "autoscaling": {
                   "type": "object"
                 },
                 "dnsConfig": {
                   "type": "object"
+                },
+                "enabled": {
+                  "description": "Deploy this component at all",
+                  "type": "boolean"
                 },
                 "extraArgs": {
                   "anyOf": [
@@ -1798,6 +2032,12 @@
                   },
                   "type": "array"
                 },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "hostAliases": {
                   "items": {
                     "type": "object"
@@ -1819,6 +2059,14 @@
                     "type": "object"
                   },
                   "type": "array"
+                },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
                 },
                 "labels": {
                   "additionalProperties": {
@@ -1853,6 +2101,9 @@
                   },
                   "type": "object"
                 },
+                "podDisruptionBudget": {
+                  "type": "object"
+                },
                 "podLabels": {
                   "additionalProperties": {
                     "type": "string"
@@ -1872,6 +2123,12 @@
                   "minimum": 0,
                   "type": "integer"
                 },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "resources": {
                   "type": "object"
                 },
@@ -1882,6 +2139,9 @@
                   "type": "object"
                 },
                 "service": {
+                  "type": "object"
+                },
+                "serviceAccount": {
                   "type": "object"
                 },
                 "serviceAnnotations": {
@@ -1899,7 +2159,25 @@
                 "serviceType": {
                   "type": "string"
                 },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
                 "startupProbe": {
+                  "type": "object"
+                },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
+                "strategy": {
                   "type": "object"
                 },
                 "terminationGracePeriodSeconds": {
@@ -2111,15 +2389,6 @@
                 },
                 "revisionHistoryLimit": {
                   "type": "integer"
-                },
-                "ruler": {
-                  "additionalProperties": false,
-                  "properties": {
-                    "enable_api": {
-                      "type": "boolean"
-                    }
-                  },
-                  "type": "object"
                 },
                 "rulerConfig": {
                   "anyOf": [
@@ -2357,14 +2626,7 @@
             "patternIngester": {
               "type": "object"
             },
-            "promtail": {
-              "additionalProperties": false,
-              "description": "Built-in Promtail configuration",
-              "properties": {
-                "enabled": {
-                  "type": "boolean"
-                }
-              },
+            "podDisruptionBudget": {
               "type": "object"
             },
             "querier": {
@@ -2389,11 +2651,18 @@
                     }
                   ]
                 },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
                 "autoscaling": {
                   "type": "object"
                 },
                 "dnsConfig": {
                   "type": "object"
+                },
+                "enabled": {
+                  "description": "Deploy this component at all",
+                  "type": "boolean"
                 },
                 "extraArgs": {
                   "anyOf": [
@@ -2438,6 +2707,12 @@
                   },
                   "type": "array"
                 },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "hostAliases": {
                   "items": {
                     "type": "object"
@@ -2460,6 +2735,14 @@
                   },
                   "type": "array"
                 },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
+                },
                 "labels": {
                   "additionalProperties": {
                     "type": "string"
@@ -2481,6 +2764,13 @@
                     "string"
                   ]
                 },
+                "maxUnavailable": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
+                },
                 "nodeSelector": {
                   "additionalProperties": {
                     "type": "string"
@@ -2494,6 +2784,9 @@
                   "additionalProperties": {
                     "type": "string"
                   },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
                   "type": "object"
                 },
                 "podLabels": {
@@ -2515,6 +2808,12 @@
                   "minimum": 0,
                   "type": "integer"
                 },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "resources": {
                   "type": "object"
                 },
@@ -2525,6 +2824,9 @@
                   "type": "object"
                 },
                 "service": {
+                  "type": "object"
+                },
+                "serviceAccount": {
                   "type": "object"
                 },
                 "serviceAnnotations": {
@@ -2542,7 +2844,32 @@
                 "serviceType": {
                   "type": "string"
                 },
+                "shutdownDelay": {
+                  "description": "Delay before shutdown so in-flight pushes drain",
+                  "type": [
+                    "number",
+                    "string"
+                  ]
+                },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
                 "startupProbe": {
+                  "type": "object"
+                },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
+                "strategy": {
                   "type": "object"
                 },
                 "terminationGracePeriodSeconds": {
@@ -2588,11 +2915,18 @@
                     }
                   ]
                 },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
                 "autoscaling": {
                   "type": "object"
                 },
                 "dnsConfig": {
                   "type": "object"
+                },
+                "enabled": {
+                  "description": "Deploy this component at all",
+                  "type": "boolean"
                 },
                 "extraArgs": {
                   "anyOf": [
@@ -2637,6 +2971,12 @@
                   },
                   "type": "array"
                 },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "hostAliases": {
                   "items": {
                     "type": "object"
@@ -2659,6 +2999,14 @@
                   },
                   "type": "array"
                 },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
+                },
                 "labels": {
                   "additionalProperties": {
                     "type": "string"
@@ -2680,6 +3028,13 @@
                     "string"
                   ]
                 },
+                "maxUnavailable": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
+                },
                 "nodeSelector": {
                   "additionalProperties": {
                     "type": "string"
@@ -2693,6 +3048,9 @@
                   "additionalProperties": {
                     "type": "string"
                   },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
                   "type": "object"
                 },
                 "podLabels": {
@@ -2714,6 +3072,12 @@
                   "minimum": 0,
                   "type": "integer"
                 },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "resources": {
                   "type": "object"
                 },
@@ -2724,6 +3088,9 @@
                   "type": "object"
                 },
                 "service": {
+                  "type": "object"
+                },
+                "serviceAccount": {
                   "type": "object"
                 },
                 "serviceAnnotations": {
@@ -2741,7 +3108,32 @@
                 "serviceType": {
                   "type": "string"
                 },
+                "shutdownDelay": {
+                  "description": "Delay before shutdown so in-flight pushes drain",
+                  "type": [
+                    "number",
+                    "string"
+                  ]
+                },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
                 "startupProbe": {
+                  "type": "object"
+                },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
+                "strategy": {
                   "type": "object"
                 },
                 "terminationGracePeriodSeconds": {
@@ -2787,11 +3179,18 @@
                     }
                   ]
                 },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
                 "autoscaling": {
                   "type": "object"
                 },
                 "dnsConfig": {
                   "type": "object"
+                },
+                "enabled": {
+                  "description": "Deploy this component at all",
+                  "type": "boolean"
                 },
                 "extraArgs": {
                   "anyOf": [
@@ -2836,6 +3235,12 @@
                   },
                   "type": "array"
                 },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "hostAliases": {
                   "items": {
                     "type": "object"
@@ -2858,6 +3263,14 @@
                   },
                   "type": "array"
                 },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
+                },
                 "labels": {
                   "additionalProperties": {
                     "type": "string"
@@ -2873,7 +3286,8 @@
                 "maxUnavailable": {
                   "type": [
                     "number",
-                    "string"
+                    "string",
+                    "null"
                   ]
                 },
                 "nodeSelector": {
@@ -2889,6 +3303,9 @@
                   "additionalProperties": {
                     "type": "string"
                   },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
                   "type": "object"
                 },
                 "podLabels": {
@@ -2910,6 +3327,12 @@
                   "minimum": 0,
                   "type": "integer"
                 },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "resources": {
                   "type": "object"
                 },
@@ -2920,6 +3343,9 @@
                   "type": "object"
                 },
                 "service": {
+                  "type": "object"
+                },
+                "serviceAccount": {
                   "type": "object"
                 },
                 "serviceAnnotations": {
@@ -2937,7 +3363,25 @@
                 "serviceType": {
                   "type": "string"
                 },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
                 "startupProbe": {
+                  "type": "object"
+                },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
+                "strategy": {
                   "type": "object"
                 },
                 "terminationGracePeriodSeconds": {
@@ -2986,11 +3430,18 @@
                     }
                   ]
                 },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
                 "autoscaling": {
                   "type": "object"
                 },
                 "dnsConfig": {
                   "type": "object"
+                },
+                "enabled": {
+                  "description": "Deploy this component at all",
+                  "type": "boolean"
                 },
                 "extraArgs": {
                   "anyOf": [
@@ -3041,6 +3492,12 @@
                   },
                   "type": "array"
                 },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "hostAliases": {
                   "items": {
                     "type": "object"
@@ -3063,6 +3520,14 @@
                   },
                   "type": "array"
                 },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
+                },
                 "labels": {
                   "additionalProperties": {
                     "type": "string"
@@ -3078,6 +3543,13 @@
                 "livenessProbe": {
                   "type": "object"
                 },
+                "maxUnavailable": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
+                },
                 "nodeSelector": {
                   "additionalProperties": {
                     "type": "string"
@@ -3091,6 +3563,9 @@
                   "additionalProperties": {
                     "type": "string"
                   },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
                   "type": "object"
                 },
                 "podLabels": {
@@ -3112,6 +3587,12 @@
                   "minimum": 0,
                   "type": "integer"
                 },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "resources": {
                   "type": "object"
                 },
@@ -3122,6 +3603,9 @@
                   "type": "object"
                 },
                 "service": {
+                  "type": "object"
+                },
+                "serviceAccount": {
                   "type": "object"
                 },
                 "serviceAnnotations": {
@@ -3139,7 +3623,25 @@
                 "serviceType": {
                   "type": "string"
                 },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
                 "startupProbe": {
+                  "type": "object"
+                },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
+                "strategy": {
                   "type": "object"
                 },
                 "targetModule": {
@@ -3175,6 +3677,10 @@
                 "affinity": {
                   "type": "object"
                 },
+                "allocatedCPU": {
+                  "description": "CPU allocation in Kubernetes quantity form, e.g. \"500m\"",
+                  "type": "string"
+                },
                 "allocatedMemory": {
                   "type": "integer"
                 },
@@ -3194,6 +3700,9 @@
                     }
                   ]
                 },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
                 "autoscaling": {
                   "type": "object"
                 },
@@ -3210,6 +3719,7 @@
                   "type": "object"
                 },
                 "enabled": {
+                  "description": "Deploy this component at all",
                   "type": "boolean"
                 },
                 "extraArgs": {
@@ -3268,6 +3778,12 @@
                   },
                   "type": "array"
                 },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "hostAliases": {
                   "items": {
                     "type": "object"
@@ -3290,6 +3806,14 @@
                   },
                   "type": "array"
                 },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
+                },
                 "l2": {
                   "type": "object"
                 },
@@ -3311,7 +3835,8 @@
                 "maxUnavailable": {
                   "type": [
                     "number",
-                    "string"
+                    "string",
+                    "null"
                   ]
                 },
                 "nodeSelector": {
@@ -3330,6 +3855,9 @@
                   "additionalProperties": {
                     "type": "string"
                   },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
                   "type": "object"
                 },
                 "podLabels": {
@@ -3353,6 +3881,12 @@
                 "replicas": {
                   "type": "integer"
                 },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "resources": {
                   "type": "object"
                 },
@@ -3363,6 +3897,9 @@
                   "type": "object"
                 },
                 "service": {
+                  "type": "object"
+                },
+                "serviceAccount": {
                   "type": "object"
                 },
                 "serviceAnnotations": {
@@ -3380,10 +3917,28 @@
                 "serviceType": {
                   "type": "string"
                 },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
                 "startupProbe": {
                   "type": "object"
                 },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
                 "statefulStrategy": {
+                  "type": "object"
+                },
+                "strategy": {
                   "type": "object"
                 },
                 "suffix": {
@@ -3422,13 +3977,20 @@
               },
               "type": "object"
             },
+            "rollout-operator": {
+              "type": "object"
+            },
             "rollout_operator": {
+              "type": "object"
+            },
+            "route": {
               "type": "object"
             },
             "ruler": {
               "type": "object"
             },
             "serviceAccount": {
+              "description": "Built-in Promtail configuration",
               "type": "object"
             },
             "sidecar": {
@@ -3457,11 +4019,18 @@
                     }
                   ]
                 },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
                 "autoscaling": {
                   "type": "object"
                 },
                 "dnsConfig": {
                   "type": "object"
+                },
+                "enabled": {
+                  "description": "Deploy this component at all",
+                  "type": "boolean"
                 },
                 "extraArgs": {
                   "anyOf": [
@@ -3506,6 +4075,12 @@
                   },
                   "type": "array"
                 },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "hostAliases": {
                   "items": {
                     "type": "object"
@@ -3528,6 +4103,14 @@
                   },
                   "type": "array"
                 },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
+                },
                 "labels": {
                   "additionalProperties": {
                     "type": "string"
@@ -3539,6 +4122,13 @@
                 },
                 "livenessProbe": {
                   "type": "object"
+                },
+                "maxUnavailable": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
                 },
                 "nodeSelector": {
                   "additionalProperties": {
@@ -3559,6 +4149,10 @@
                       "additionalProperties": {
                         "type": "string"
                       },
+                      "type": "object"
+                    },
+                    "dataVolumeParameters": {
+                      "description": "Extra fields merged into the generated PVC spec",
                       "type": "object"
                     },
                     "enableStatefulSetAutoDeletePVC": {
@@ -3599,6 +4193,9 @@
                   },
                   "type": "object"
                 },
+                "podDisruptionBudget": {
+                  "type": "object"
+                },
                 "podLabels": {
                   "additionalProperties": {
                     "type": "string"
@@ -3618,6 +4215,12 @@
                   "minimum": 0,
                   "type": "integer"
                 },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "resources": {
                   "type": "object"
                 },
@@ -3628,6 +4231,9 @@
                   "type": "object"
                 },
                 "service": {
+                  "type": "object"
+                },
+                "serviceAccount": {
                   "type": "object"
                 },
                 "serviceAnnotations": {
@@ -3645,7 +4251,25 @@
                 "serviceType": {
                   "type": "string"
                 },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
                 "startupProbe": {
+                  "type": "object"
+                },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
+                "strategy": {
                   "type": "object"
                 },
                 "targetModule": {
@@ -3700,11 +4324,18 @@
                     }
                   ]
                 },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
                 "autoscaling": {
                   "type": "object"
                 },
                 "dnsConfig": {
                   "type": "object"
+                },
+                "enabled": {
+                  "description": "Deploy this component at all",
+                  "type": "boolean"
                 },
                 "extraArgs": {
                   "anyOf": [
@@ -3755,6 +4386,12 @@
                   },
                   "type": "array"
                 },
+                "fullnameOverride": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "hostAliases": {
                   "items": {
                     "type": "object"
@@ -3777,6 +4414,14 @@
                   },
                   "type": "array"
                 },
+                "kedaAutoscaling": {
+                  "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                  "type": "object"
+                },
+                "kind": {
+                  "description": "Workload kind -- Deployment or StatefulSet",
+                  "type": "string"
+                },
                 "labels": {
                   "additionalProperties": {
                     "type": "string"
@@ -3792,6 +4437,13 @@
                 "livenessProbe": {
                   "type": "object"
                 },
+                "maxUnavailable": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
+                },
                 "nodeSelector": {
                   "additionalProperties": {
                     "type": "string"
@@ -3805,6 +4457,9 @@
                   "additionalProperties": {
                     "type": "string"
                   },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
                   "type": "object"
                 },
                 "podLabels": {
@@ -3826,6 +4481,12 @@
                   "minimum": 0,
                   "type": "integer"
                 },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "resources": {
                   "type": "object"
                 },
@@ -3836,6 +4497,9 @@
                   "type": "object"
                 },
                 "service": {
+                  "type": "object"
+                },
+                "serviceAccount": {
                   "type": "object"
                 },
                 "serviceAnnotations": {
@@ -3853,7 +4517,25 @@
                 "serviceType": {
                   "type": "string"
                 },
+                "sidecar": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "object"
+                    }
+                  ],
+                  "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                },
                 "startupProbe": {
+                  "type": "object"
+                },
+                "statefulSetRecreateJob": {
+                  "description": "Job that recreates the StatefulSet when an immutable field changes",
+                  "type": "object"
+                },
+                "strategy": {
                   "type": "object"
                 },
                 "targetModule": {

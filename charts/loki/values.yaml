@@ -26,7 +26,7 @@ loki:
     limits_config:
       allow_structured_metadata: true
       volume_enabled: true
-    ruler:
+    rulerConfig:
       enable_api: true
 
   singleBinary:
@@ -61,14 +61,12 @@ loki:
     replicas: 0
   indexGateway:
     replicas: 0
-  bloomCompactor:
+  bloomPlanner:
+    replicas: 0
+  bloomBuilder:
     replicas: 0
   bloomGateway:
     replicas: 0
-
-  # Disable built-in promtail (we use alloy for log collection)
-  promtail:
-    enabled: false
 
   # Disable external Memcached caches – not needed for a single-node home server.
   # Loki falls back to its built-in in-memory cache.
@@ -80,3 +78,11 @@ loki:
   # Disable the nginx gateway – Loki is accessed directly within the cluster
   gateway:
     enabled: false
+
+  # The rules sidecar (k8s-sidecar 2.x) runs on Python 3.15, whose OpenSSL insists
+  # that a CA certificate carry a Key Usage extension. The CA MicroK8s generates
+  # does not, so the sidecar cannot reach the API server and the loki pod never
+  # turns ready. This relaxes the strict X.509 extension checks; certificate
+  # verification itself stays on, unlike sidecar.skipTlsVerify.
+  sidecar:
+    disableX509StrictVerification: true

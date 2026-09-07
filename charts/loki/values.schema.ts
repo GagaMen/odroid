@@ -54,6 +54,23 @@ interface LokiComponentBase {
   livenessProbe?: object;
   readinessProbe?: object;
   startupProbe?: object;
+  /** Deploy this component at all */
+  enabled?: boolean;
+  /** Workload kind -- Deployment or StatefulSet */
+  kind?: string;
+  strategy?: object;
+  resizePolicy?: object[];
+  podDisruptionBudget?: object;
+  /** Scale on Loki metrics via KEDA instead of a plain HPA */
+  kedaAutoscaling?: object;
+  serviceAccount?: object;
+  /** Job that recreates the StatefulSet when an immutable field changes */
+  statefulSetRecreateJob?: object;
+  automountServiceAccountToken?: boolean;
+  fullnameOverride?: string | null;
+  maxUnavailable?: number | string | null;
+  /** Mount the config-reloading sidecar; a bare true takes the chart defaults */
+  sidecar?: boolean | object;
 }
 
 // ---------------------------------------------------------------------------
@@ -120,10 +137,6 @@ interface LokiLimitsConfig {
   query_timeout?: string;
 }
 
-interface LokiRuler {
-  enable_api?: boolean;
-}
-
 interface LokiAppConfig {
   /** Enable multi-tenancy */
   auth_enabled?: boolean;
@@ -132,7 +145,6 @@ interface LokiAppConfig {
   schemaConfig?: { configs?: SchemaConfig[] };
   pattern_ingester?: LokiPatternIngester;
   limits_config?: LokiLimitsConfig;
-  ruler?: LokiRuler;
   rulerConfig?: object | null;
   // Image and pod config
   image?: object;
@@ -208,6 +220,8 @@ interface SingleBinaryPersistence {
   enableStatefulSetRecreationForSizeChange?: boolean;
   whenDeleted?: string;
   whenScaled?: string;
+  /** Extra fields merged into the generated PVC spec */
+  dataVolumeParameters?: object;
 }
 
 // ---------------------------------------------------------------------------
@@ -244,17 +258,20 @@ interface MemcachedCache extends LokiComponentBase {
   /** @asType integer */
   parallelism?: number;
   suffix?: string;
-  maxUnavailable?: number | string;
   statefulStrategy?: object;
   podManagementPolicy?: string;
   extraExtendedOptions?: string | object[];
   l2?: object;
+  /** CPU allocation in Kubernetes quantity form, e.g. "500m" */
+  allocatedCPU?: string;
 }
 
 // ---------------------------------------------------------------------------
 // Gateway
 // ---------------------------------------------------------------------------
 interface LokiGateway extends LokiComponentBase {
+  metrics?: object;
+  route?: object;
   enabled?: boolean;
   /** @asType integer */
   replicas?: number;
@@ -311,14 +328,14 @@ interface LokiScalableComponent extends LokiComponentBase {
 interface LokiDistributorComponent extends LokiComponentBase {
   maxSurge?: number | string;
   loadBalancer?: object;
+  /** Delay before shutdown so in-flight pushes drain */
+  shutdownDelay?: number | string;
 }
 
 // ---------------------------------------------------------------------------
 // QueryScheduler
 // ---------------------------------------------------------------------------
-interface LokiQueryScheduler extends LokiComponentBase {
-  maxUnavailable?: number | string;
-}
+interface LokiQueryScheduler extends LokiComponentBase {}
 
 // ---------------------------------------------------------------------------
 // IndexGateway / BloomGateway / Compactor
@@ -326,7 +343,6 @@ interface LokiQueryScheduler extends LokiComponentBase {
 interface LokiIndexGateway extends LokiComponentBase {
   joinMemberlist?: boolean;
   updateStrategy?: object;
-  serviceAccount?: object;
 }
 
 // ---------------------------------------------------------------------------
@@ -342,6 +358,15 @@ interface LokiUpstream {
   namespaceOverride?: string | null;
   clusterLabelOverride?: string | null;
   imagePullSecrets?: object[];
+  /** Labels put on every rendered object */
+  commonLabels?: { [key: string]: string };
+  /** Values merged into every component before its own settings apply */
+  defaults?: object;
+  /** Silence the warning about the bundled minio subchart */
+  ignoreMinioDeprecation?: boolean;
+  podDisruptionBudget?: object;
+  route?: object;
+  "rollout-operator"?: object;
   /** Loki deployment mode */
   deploymentMode?: LokiDeploymentMode;
   /** Loki application configuration */
@@ -362,10 +387,10 @@ interface LokiUpstream {
   distributor?: LokiDistributorComponent;
   compactor?: LokiIndexGateway;
   indexGateway?: LokiIndexGateway;
-  bloomCompactor?: LokiComponentBase;
   bloomGateway?: LokiIndexGateway;
   bloomBuilder?: object;
   bloomPlanner?: object;
+  ruler?: object;
   patternIngester?: object;
   overridesExporter?: object;
   rollout_operator?: object;
@@ -382,7 +407,6 @@ interface LokiUpstream {
   // MinIO sub-chart
   minio?: MinioConfig;
   /** Built-in Promtail configuration */
-  promtail?: { enabled?: boolean };
   // Auth & RBAC
   serviceAccount?: object;
   rbac?: object;
@@ -391,7 +415,6 @@ interface LokiUpstream {
   memberlist?: object;
   // Observability
   monitoring?: object;
-  ruler?: object;
   sidecar?: object;
   // Other
   tableManager?: object;
