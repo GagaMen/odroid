@@ -764,8 +764,9 @@ groups:
     execErrState: Error
     for: 15m
     annotations:
-      summary: '📦 Für microk8s liegt ein Update bereit.\nDer Snap ist bewusst gehalten — einspielen mit: microk8s stop; snap
-        refresh microk8s; microk8s start'
+      summary: '📦 Für microk8s liegt ein Update bereit.\nDer Snap ist bewusst gehalten. Nicht einfach stoppen: erst cordon
+        und drain, bis alle Longhorn-Volumes detached sind, dann microk8s stop; snap refresh microk8s; microk8s start;
+        kubectl uncordon.\nProzedur: host/README.md, Abschnitt Snap update discipline'
     labels:
       priority: '4'
     isPaused: false
