@@ -317,12 +317,21 @@ grep ^base /snap/microk8s/current/meta/snap.yaml
 ### Applying
 
 ```bash
-sudo snap refresh --hold microk8s core22
+sudo snap refresh --hold microk8s core22 snapd
 ```
 
 The hold is indefinite and blocks both automatic refreshes and a blanket `snap refresh`.
 A targeted `snap refresh microk8s` still works, which is the intended path for controlled
 updates.
+
+`snapd` is held for a narrower reason. Refreshing it restarts `snapd.service`, and an
+unattended refresh arrives in one of four daily windows -- almost certainly while volumes are
+attached. Whether that restart also reaches the microk8s services was measured on 2026-09-04:
+refreshing 2.76.2 to 2.76.3 restarted `snapd.service` alone, while all six
+`snap.microk8s.daemon-*` units kept the start timestamps they had from the last boot. A single
+observation is not a guarantee, so the drain described below stays the documented path -- but
+the exposure is narrower than it looked. The price of the hold is that snapd's own security
+fixes no longer arrive by themselves.
 
 `microk8s stop` does **not** unmount CSI volumes. There is no `umount` anywhere in the snap,
 and the stop script's first act is to stop kubelite, which kills the pod serving the iSCSI
@@ -374,8 +383,8 @@ close that gap.
 ### Verifying
 
 ```bash
-snap list --all microk8s core22     # the Notes column shows "held"
-snap refresh --time                 # hold is reflected in the schedule
+snap list --all microk8s core22 snapd   # the Notes column shows "held"
+snap refresh --time                     # hold is reflected in the schedule
 ```
 
 ## TRIM scope
