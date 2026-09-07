@@ -1,6 +1,10 @@
 # Grafana
 
-Helm chart wrapper for [grafana/grafana](https://github.com/grafana/helm-charts/tree/main/charts/grafana).
+Helm chart wrapper for [grafana-community/grafana](https://github.com/grafana-community/helm-charts/tree/main/charts/grafana).
+
+Grafana moved the open-source chart to `grafana-community`; the copy in `grafana/helm-charts`
+stopped receiving releases at 10.5.15 on 2026-01-30. This wrapper follows the community chart,
+as `charts/loki` does.
 
 Provides dashboards, visualization, and unified alerting (Grafana Alerting replaces Alertmanager).
 

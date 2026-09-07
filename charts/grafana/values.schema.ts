@@ -76,6 +76,10 @@ interface RouteMain {
   filters?: object[];
   additionalRules?: object[];
   httpsRedirect?: boolean;
+  /** Gateway API session persistence settings */
+  sessionPersistence?: object;
+  /** Gateway API request and backend timeouts */
+  timeouts?: object;
 }
 
 interface GrafanaRoute {
@@ -146,6 +150,8 @@ interface GrafanaService {
   portName?: string;
   appProtocol?: string;
   sessionAffinity?: string;
+  /** Prefer endpoints in the caller's own zone */
+  trafficDistribution?: string;
 }
 
 interface GrafanaServiceMonitor {
@@ -186,6 +192,8 @@ interface GrafanaNetworkPolicy {
   ingress?: boolean;
   allowExternal?: boolean;
   explicitNamespacesSelector?: object;
+  /** CIDR blocks allowed in addition to the namespace selector */
+  explicitIpBlocks?: object[];
   egress?: {
     enabled?: boolean;
     blockDNSResolution?: boolean;
@@ -217,6 +225,8 @@ interface GrafanaImageRenderer {
   serviceMonitor?: object;
   grafanaProtocol?: string;
   grafanaSubPath?: string;
+  /** Path the renderer's probes hit */
+  healthcheckPath?: string;
   podPortName?: string;
   /** @asType integer */
   revisionHistoryLimit?: number;
@@ -330,6 +340,8 @@ interface GrafanaUpstream {
   revisionHistoryLimit?: number;
   imageRenderer?: GrafanaImageRenderer;
   networkPolicy?: GrafanaNetworkPolicy;
+  /** VPA object for the grafana deployment */
+  verticalPodAutoscaler?: object;
   enableKubeBackwardCompatibility?: boolean;
   useStatefulSet?: boolean;
   extraObjects?: object[];

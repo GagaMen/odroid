@@ -12,6 +12,12 @@ grafana:
     size: 2Gi
     storageClassName: longhorn
 
+  # A rolling update puts a second pod on the same node, and since ReadWriteOnce
+  # is per node rather than per pod, Kubernetes allows it -- two Grafana
+  # processes then write the same SQLite file. Recreate stops the old pod first.
+  deploymentStrategy:
+    type: Recreate
+
   ingress:
     enabled: true
     ingressClassName: ""

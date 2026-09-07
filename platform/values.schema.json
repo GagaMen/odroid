@@ -2308,6 +2308,10 @@
                     "grafanaSubPath": {
                       "type": "string"
                     },
+                    "healthcheckPath": {
+                      "description": "Path the renderer's probes hit",
+                      "type": "string"
+                    },
                     "hostAliases": {
                       "items": {
                         "type": "object"
@@ -2531,6 +2535,13 @@
                     "enabled": {
                       "type": "boolean"
                     },
+                    "explicitIpBlocks": {
+                      "description": "CIDR blocks allowed in addition to the namespace selector",
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
                     "explicitNamespacesSelector": {
                       "type": "object"
                     },
@@ -2752,6 +2763,14 @@
                             "type": "object"
                           },
                           "type": "array"
+                        },
+                        "sessionPersistence": {
+                          "description": "Gateway API session persistence settings",
+                          "type": "object"
+                        },
+                        "timeouts": {
+                          "description": "Gateway API request and backend timeouts",
+                          "type": "object"
                         }
                       },
                       "type": "object"
@@ -2815,6 +2834,10 @@
                     },
                     "targetPort": {
                       "type": "integer"
+                    },
+                    "trafficDistribution": {
+                      "description": "Prefer endpoints in the caller's own zone",
+                      "type": "string"
                     },
                     "type": {
                       "type": "string"
@@ -2948,6 +2971,10 @@
                 },
                 "useStatefulSet": {
                   "type": "boolean"
+                },
+                "verticalPodAutoscaler": {
+                  "description": "VPA object for the grafana deployment",
+                  "type": "object"
                 }
               },
               "type": "object"
