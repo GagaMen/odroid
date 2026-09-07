@@ -1026,6 +1026,10 @@
               "additionalProperties": false,
               "description": "Longhorn Manager DaemonSet configuration",
               "properties": {
+                "distro": {
+                  "description": "Kubernetes distribution the manager tailors itself to",
+                  "type": "string"
+                },
                 "log": {
                   "additionalProperties": false,
                   "properties": {
@@ -1094,6 +1098,9 @@
                   },
                   "type": "object"
                 },
+                "podDisruptionBudget": {
+                  "type": "object"
+                },
                 "priorityClass": {
                   "type": "string"
                 },
@@ -1147,6 +1154,11 @@
                       },
                       "type": "array"
                     },
+                    "sampleLimit": {
+                      "description": "Cap on samples accepted per scrape; 0 means no limit",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
                     "scrapeTimeout": {
                       "type": "string"
                     }
@@ -1165,6 +1177,17 @@
               "properties": {
                 "enabled": {
                   "description": "Enable network policies",
+                  "type": "boolean"
+                },
+                "kubeAPIServerSourceCIDRs": {
+                  "description": "Source CIDRs allowed to reach the kube-apiserver",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "restrictInternalTraffic": {
+                  "description": "Restrict traffic between Longhorn's own components",
                   "type": "boolean"
                 },
                 "type": {
@@ -1208,6 +1231,13 @@
               "additionalProperties": false,
               "description": "Default StorageClass configuration",
               "properties": {
+                "annotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Annotations put on the generated StorageClass",
+                  "type": "object"
+                },
                 "backingImage": {
                   "additionalProperties": false,
                   "properties": {
@@ -1244,6 +1274,10 @@
                 "backupTargetName": {
                   "description": "Backup target name",
                   "type": "string"
+                },
+                "createStorageClass": {
+                  "description": "Create the StorageClass at all",
+                  "type": "boolean"
                 },
                 "dataEngine": {
                   "description": "Data engine version",
@@ -1341,6 +1375,32 @@
                         "type": "object"
                       },
                       "type": "array"
+                    }
+                  },
+                  "type": "object"
+                },
+                "shareManagerNodeSelector": {
+                  "additionalProperties": false,
+                  "description": "Node selector for RWX share-manager pods",
+                  "properties": {
+                    "enable": {
+                      "type": "boolean"
+                    },
+                    "selector": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "shareManagerTolerations": {
+                  "additionalProperties": false,
+                  "description": "Tolerations for RWX share-manager pods",
+                  "properties": {
+                    "enable": {
+                      "type": "boolean"
+                    },
+                    "tolerations": {
+                      "type": "string"
                     }
                   },
                   "type": "object"

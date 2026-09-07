@@ -47,11 +47,23 @@ interface NetworkPolicies {
   enabled?: boolean;
   /** Distribution type */
   type?: NetworkPolicyType;
+  /** Source CIDRs allowed to reach the kube-apiserver */
+  kubeAPIServerSourceCIDRs?: string[];
+  /** Restrict traffic between Longhorn's own components */
+  restrictInternalTraffic?: boolean;
 }
 
 interface LonghornPersistence {
   /** Use as the default StorageClass */
   defaultClass?: boolean;
+  /** Create the StorageClass at all */
+  createStorageClass?: boolean;
+  /** Annotations put on the generated StorageClass */
+  annotations?: { [key: string]: string };
+  /** Node selector for RWX share-manager pods */
+  shareManagerNodeSelector?: { enable?: boolean; selector?: string };
+  /** Tolerations for RWX share-manager pods */
+  shareManagerTolerations?: { enable?: boolean; tolerations?: string };
   /** Filesystem type */
   defaultFsType?: FsType;
   /** mkfs parameters */
@@ -242,6 +254,8 @@ interface LonghornManagerLog {
 
 interface LonghornManagerConfig {
   log?: LonghornManagerLog;
+  /** Kubernetes distribution the manager tailors itself to */
+  distro?: string;
   priorityClass?: string;
   tolerations?: object[];
   resources?: object | null;
@@ -264,6 +278,7 @@ interface LonghornUIConfig {
    * @minimum 1
    */
   replicas?: number;
+  podDisruptionBudget?: object;
   priorityClass?: string;
   affinity?: object;
   tolerations?: object[];
@@ -302,6 +317,12 @@ interface LonghornMetrics {
     scrapeTimeout?: string;
     relabelings?: object[];
     metricRelabelings?: object[];
+    /**
+     * Cap on samples accepted per scrape; 0 means no limit
+     * @asType integer
+     * @minimum 0
+     */
+    sampleLimit?: number;
   };
 }
 
