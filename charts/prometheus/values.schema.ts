@@ -67,6 +67,8 @@ interface ConfigmapReload {
 
 interface KubeStateMetrics {
   enabled?: boolean;
+  nameOverride?: string;
+  fullnameOverride?: string;
   namespaceOverride?: string;
   releaseNamespace?: boolean;
   releaseLabel?: boolean;
@@ -109,6 +111,12 @@ interface KubeStateMetrics {
   volumeMounts?: any[];
   selectorOverride?: object;
   collectors?: any[];
+  /** Collectors to drop from the default set */
+  collectorsExclude?: any[];
+  /** Collectors to enable on top of the default set */
+  collectorsExtra?: any[];
+  /** Restrict metrics to objects the scraper is authorised to see */
+  authFilter?: object;
   namespaces?: string | object;
   namespacesDenylist?: string | object;
   metricAllowlist?: any[];
@@ -167,6 +175,8 @@ interface PrometheusNodeExporter {
   extraVolumeMounts?: any[];
   extraVolumes?: any[];
   extraHostVolumeMounts?: any[];
+  /** Init container that fixes host paths the collectors cannot read as non-root */
+  permissionInitContainer?: object;
   sidecarVolumeMount?: any[];
   sidecarHostVolumeMounts?: any[];
   configmaps?: any[];
@@ -223,6 +233,8 @@ interface ServerImage {
   pullPolicy?: string;
   repository?: string;
   tag?: string;
+  /** Pull the distroless image variant instead of the default one */
+  distroless?: boolean;
 }
 
 interface ServerIngress {

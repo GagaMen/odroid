@@ -181,6 +181,10 @@
                 "annotations": {
                   "type": "object"
                 },
+                "authFilter": {
+                  "description": "Restrict metrics to objects the scraper is authorised to see",
+                  "type": "object"
+                },
                 "automountServiceAccountToken": {
                   "type": "boolean"
                 },
@@ -188,6 +192,16 @@
                   "type": "object"
                 },
                 "collectors": {
+                  "items": {},
+                  "type": "array"
+                },
+                "collectorsExclude": {
+                  "description": "Collectors to drop from the default set",
+                  "items": {},
+                  "type": "array"
+                },
+                "collectorsExtra": {
+                  "description": "Collectors to enable on top of the default set",
                   "items": {},
                   "type": "array"
                 },
@@ -224,6 +238,9 @@
                 "extraManifests": {
                   "items": {},
                   "type": "array"
+                },
+                "fullnameOverride": {
+                  "type": "string"
                 },
                 "global": {
                   "type": "object"
@@ -269,6 +286,9 @@
                 "metricLabelsAllowlist": {
                   "items": {},
                   "type": "array"
+                },
+                "nameOverride": {
+                  "type": "string"
                 },
                 "namespaceOverride": {
                   "type": "string"
@@ -513,6 +533,10 @@
                   "type": "object"
                 },
                 "nodeSelector": {
+                  "type": "object"
+                },
+                "permissionInitContainer": {
+                  "description": "Init container that fixes host paths the collectors cannot read as non-root",
                   "type": "object"
                 },
                 "podAnnotations": {
@@ -797,6 +821,10 @@
                   "properties": {
                     "digest": {
                       "type": "string"
+                    },
+                    "distroless": {
+                      "description": "Pull the distroless image variant instead of the default one",
+                      "type": "boolean"
                     },
                     "pullPolicy": {
                       "type": "string"
