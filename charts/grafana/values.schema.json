@@ -161,6 +161,10 @@
             "defaultCurlOptions": {
               "type": "string"
             },
+            "defaultShellOptions": {
+              "description": "`set` flags for the chart's shell snippets; distroless drops `x` by default",
+              "type": "string"
+            },
             "deploymentStrategy": {
               "type": "object"
             },
@@ -325,6 +329,10 @@
               },
               "type": "object"
             },
+            "goMemLimit": {
+              "description": "Derive GOMEMLIMIT from the container memory limit",
+              "type": "object"
+            },
             "gossipPortName": {
               "type": "string"
             },
@@ -420,6 +428,9 @@
                 "deploymentStrategy": {
                   "type": "object"
                 },
+                "dnsConfig": {
+                  "type": "object"
+                },
                 "enabled": {
                   "type": "boolean"
                 },
@@ -431,6 +442,10 @@
                 },
                 "envValueFrom": {
                   "type": "object"
+                },
+                "existingSecret": {
+                  "description": "Secret holding the renderer token instead of setting it inline",
+                  "type": "string"
                 },
                 "extraConfigmapMounts": {
                   "items": {
@@ -558,6 +573,10 @@
                 "serviceMonitor": {
                   "type": "object"
                 },
+                "token": {
+                  "description": "Renderer auth token; Grafana 13 requires one, the chart generates it if unset",
+                  "type": "string"
+                },
                 "tolerations": {
                   "items": {
                     "type": "object"
@@ -647,6 +666,10 @@
               "type": "object"
             },
             "lifecycleHooks": {
+              "type": "object"
+            },
+            "listenerSet": {
+              "description": "Gateway API ListenerSet objects",
               "type": "object"
             },
             "livenessProbe": {
@@ -762,6 +785,10 @@
                 "lookupVolumeName": {
                   "type": "boolean"
                 },
+                "persistentVolumeClaimRetentionPolicy": {
+                  "description": "What happens to the PVC when the workload is deleted or scaled down",
+                  "type": "object"
+                },
                 "size": {
                   "description": "Storage size",
                   "pattern": "^[0-9]+(Mi|Gi|Ti)$",
@@ -828,6 +855,13 @@
                 "namespaced": {
                   "description": "Restrict RBAC to namespace scope",
                   "type": "boolean"
+                },
+                "namespaces": {
+                  "description": "Namespaces to create the namespaced Role in",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
                 },
                 "pspEnabled": {
                   "type": "boolean"
@@ -1086,6 +1120,10 @@
               },
               "type": "object"
             },
+            "shadowBundledPlugins": {
+              "description": "Pin bundled plugin versions by shadowing them with chart-managed copies",
+              "type": "boolean"
+            },
             "shareProcessNamespace": {
               "type": "boolean"
             },
@@ -1106,6 +1144,9 @@
                   "type": "string"
                 }
               },
+              "type": "object"
+            },
+            "startupProbe": {
               "type": "object"
             },
             "testFramework": {

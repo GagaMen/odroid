@@ -17,6 +17,8 @@ interface GrafanaRbac {
   pspUseAppArmor?: boolean;
   /** Restrict RBAC to namespace scope */
   namespaced?: boolean;
+  /** Namespaces to create the namespaced Role in */
+  namespaces?: string[];
   useExistingRole?: string;
   useExistingClusterRole?: string;
   extraRoleRules?: object[];
@@ -43,6 +45,8 @@ interface GrafanaPersistence {
   extraPvcLabels?: object;
   finalizers?: string[];
   disableWarning?: boolean;
+  /** What happens to the PVC when the workload is deleted or scaled down */
+  persistentVolumeClaimRetentionPolicy?: object;
   inMemory?: { enabled?: boolean; sizeLimit?: string };
   lookupVolumeName?: boolean;
 }
@@ -227,6 +231,11 @@ interface GrafanaImageRenderer {
   grafanaSubPath?: string;
   /** Path the renderer's probes hit */
   healthcheckPath?: string;
+  dnsConfig?: object;
+  /** Secret holding the renderer token instead of setting it inline */
+  existingSecret?: string;
+  /** Renderer auth token; Grafana 13 requires one, the chart generates it if unset */
+  token?: string;
   podPortName?: string;
   /** @asType integer */
   revisionHistoryLimit?: number;
@@ -260,6 +269,7 @@ interface GrafanaUpstream {
   deploymentStrategy?: object;
   readinessProbe?: object;
   livenessProbe?: object;
+  startupProbe?: object;
   image?: GrafanaImage;
   testFramework?: object;
   dnsPolicy?: string | null;
@@ -342,6 +352,14 @@ interface GrafanaUpstream {
   networkPolicy?: GrafanaNetworkPolicy;
   /** VPA object for the grafana deployment */
   verticalPodAutoscaler?: object;
+  /** `set` flags for the chart's shell snippets; distroless drops `x` by default */
+  defaultShellOptions?: string;
+  /** Derive GOMEMLIMIT from the container memory limit */
+  goMemLimit?: object;
+  /** Gateway API ListenerSet objects */
+  listenerSet?: object;
+  /** Pin bundled plugin versions by shadowing them with chart-managed copies */
+  shadowBundledPlugins?: boolean;
   enableKubeBackwardCompatibility?: boolean;
   useStatefulSet?: boolean;
   extraObjects?: object[];
