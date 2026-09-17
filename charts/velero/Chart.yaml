@@ -1,0 +1,9 @@
+apiVersion: v2
+name: velero
+description: Velero backup and restore, moving CSI snapshots to S3 encrypted with Kopia.
+type: application
+version: 1.0.0
+dependencies:
+  - name: velero
+    version: 12.2.0
+    repository: https://vmware-tanzu.github.io/helm-charts

@@ -1,0 +1,30 @@
+{{- /*
+Rendered here instead of by the upstream chart (backupsEnabled=false): a list in
+values cannot be extended per environment, so enabling the cloud target would
+mean restating the local one in platform/values.yaml.
+*/ -}}
+{{- range $name, $target := .Values.targets }}
+{{- if $target.enabled }}
+---
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: {{ $name }}
+  labels:
+    app.kubernetes.io/name: velero
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+spec:
+  provider: aws
+  accessMode: ReadWrite
+  default: {{ $target.default | default false }}
+  objectStorage:
+    bucket: {{ required (printf "targets.%s.bucket is required" $name) $target.bucket }}
+  config:
+    region: {{ required (printf "targets.%s.region is required" $name) $target.region | quote }}
+    s3Url: {{ required (printf "targets.%s.s3Url is required" $name) $target.s3Url | quote }}
+    s3ForcePathStyle: "true"
+    # Selects the section of the credentials file rendered by the platform chart.
+    profile: {{ $name | quote }}
+{{ end }}
+{{ end }}

@@ -12,6 +12,7 @@ updates:
       - /charts/homepage
       - /charts/ntfy
       - /charts/rustfs
+      - /charts/velero
     schedule:
       interval: "monthly"
       day: "friday"
@@ -27,6 +28,7 @@ updates:
       - /charts/prometheus
       - /charts/rustfs
       - /charts/snapshot-controller
+      - /charts/velero
     schedule:
       interval: "monthly"
       day: "friday"

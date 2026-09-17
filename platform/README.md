@@ -24,6 +24,7 @@ platform/
     ├── recurring-job.yaml      # Longhorn backup jobs
     ├── secret.yaml             # DNS provider credentials
     ├── storageclass.yaml       # Longhorn storage class
+    ├── velero-credentials.yaml # S3 credentials per Velero target
     └── volumesnapshotclass.yaml # CSI snapshot class backed by Longhorn
 ```
 
@@ -35,6 +36,7 @@ platform/
 | longhorn | 1.0.0 | `longhorn.enabled` |
 | snapshot-controller | 1.0.0 | `snapshot-controller.enabled` |
 | rustfs | 1.0.0 | `rustfs.enabled` |
+| velero | 1.0.0 | `velero.enabled` |
 | homepage | 1.0.0 | `homepage.enabled` |
 | adguard | 1.1.0 | `adguard.enabled` |
 | ntfy | 1.0.0 | `ntfy.enabled` |

@@ -10,6 +10,7 @@ A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkern
 - **[Longhorn](charts/longhorn/)** - Cloud-native distributed storage
 - **[Snapshot Controller](charts/snapshot-controller/)** - CSI snapshot API, the basis for Velero backups
 - **[RustFS](charts/rustfs/)** - S3-compatible object store, local target for encrypted backups
+- **[Velero](charts/velero/)** - Encrypted PVC backups to S3, locally and off-site
 - **[cert-manager DNS Lexicon Webhook](charts/cert-manager-dns-lexicon-webhook/)** - DNS-01 ACME challenge solver
 - **[WireGuard VPN](wireguard/)** - Secure remote access to your home network
 - **[Host Configuration](host/)** - Kernel, systemd, logging and update hardening
@@ -122,6 +123,7 @@ Create a `platform/values.yaml` file with your configuration. See the individual
 - [Longhorn Configuration](charts/longhorn/README.md)
 - [Snapshot Controller Configuration](charts/snapshot-controller/README.md)
 - [RustFS Configuration](charts/rustfs/README.md)
+- [Velero Configuration](charts/velero/README.md)
 - [cert-manager DNS Lexicon Webhook Configuration](charts/cert-manager-dns-lexicon-webhook/README.md)
 - [Prometheus Configuration](charts/prometheus/README.md)
 - [Grafana Configuration](charts/grafana/README.md)
@@ -158,7 +160,8 @@ helm upgrade platform ./platform -n platform -f platform/values.yaml
 │   ├── ntfy/                               # Push notification service
 │   ├── prometheus/                         # Metrics collection & storage
 │   ├── rustfs/                             # S3 object store, local backup target
-│   └── snapshot-controller/                # CSI snapshot API for Velero
+│   ├── snapshot-controller/                # CSI snapshot API for Velero
+│   └── velero/                             # Encrypted backups to S3
 ├── platform/                               # Umbrella chart combining all services
 │   ├── Chart.yaml                          # Dependencies definition
 │   ├── templates/                          # Platform-wide resources
@@ -167,6 +170,7 @@ helm upgrade platform ./platform -n platform -f platform/values.yaml
 │   │   ├── recurring-job.yaml              # Longhorn backup jobs
 │   │   ├── secret.yaml                     # DNS provider credentials
 │   │   ├── storageclass.yaml               # Longhorn storage class
+│   │   ├── velero-credentials.yaml         # S3 credentials per Velero target
 │   │   └── volumesnapshotclass.yaml        # CSI snapshot class backed by Longhorn
 │   └── values.yaml                         # Your configuration (gitignored)
 ├── host/                                   # Host configuration below Kubernetes
@@ -202,6 +206,7 @@ npm run generate:ntfy
 npm run generate:prometheus
 npm run generate:rustfs
 npm run generate:snapshot-controller
+npm run generate:velero
 npm run generate:platform
 ```
 

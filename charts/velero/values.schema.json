@@ -1,0 +1,578 @@
+{
+  "$ref": "#/definitions/Values",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Values": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "description": "Enable/disable this chart (used by platform condition)",
+          "type": "boolean"
+        },
+        "global": {
+          "description": "Injected by Helm for sub-chart coordination",
+          "type": "object"
+        },
+        "repositoryPassword": {
+          "description": "Kopia repository password; required, and unchangeable after the first backup",
+          "type": "string"
+        },
+        "scope": {
+          "additionalProperties": false,
+          "description": "What is backed up, and for how long",
+          "properties": {
+            "label": {
+              "description": "PVC label that selects the backup tier",
+              "type": "string"
+            },
+            "namespaces": {
+              "description": "Namespaces searched for labelled PVCs",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "tiers": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "properties": {
+                  "policies": {
+                    "description": "Values of the PVC label this tier backs up",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "schedule": {
+                    "description": "Cron expression; the target's offset is added to its minute",
+                    "type": "string"
+                  },
+                  "ttl": {
+                    "description": "How long a backup of this tier is kept",
+                    "pattern": "^[0-9]+(h|m|s)$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "schedule",
+                  "policies",
+                  "ttl"
+                ],
+                "type": "object"
+              },
+              "description": "Backup tiers (GFS): one Schedule per tier and target",
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "targets": {
+          "additionalProperties": {
+            "additionalProperties": false,
+            "properties": {
+              "accessKey": {
+                "description": "Access key; read by the platform chart when building the credentials file",
+                "type": "string"
+              },
+              "bucket": {
+                "type": "string"
+              },
+              "default": {
+                "description": "Velero's default backup location",
+                "type": "boolean"
+              },
+              "enabled": {
+                "description": "Render a BackupStorageLocation and Schedules for this target",
+                "type": "boolean"
+              },
+              "region": {
+                "type": "string"
+              },
+              "s3Url": {
+                "description": "S3 endpoint URL",
+                "type": "string"
+              },
+              "scheduleOffsetMinutes": {
+                "description": "Minutes added to each tier's cron minute, to stagger the targets",
+                "type": "integer"
+              },
+              "secretKey": {
+                "description": "Secret key; read by the platform chart when building the credentials file",
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "description": "Backup storage locations, keyed by name (also the credentials profile)",
+          "type": "object"
+        },
+        "velero": {
+          "additionalProperties": false,
+          "description": "Velero upstream chart values (see https://github.com/vmware-tanzu/helm-charts/tree/main/charts/velero)",
+          "properties": {
+            "affinity": {
+              "type": "object"
+            },
+            "annotations": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "backupsEnabled": {
+              "description": "Render a default BackupStorageLocation (this wrapper renders its own)",
+              "type": "boolean"
+            },
+            "cleanUpCRDs": {
+              "type": "boolean"
+            },
+            "configMaps": {
+              "type": "object"
+            },
+            "configuration": {
+              "additionalProperties": false,
+              "properties": {
+                "backupStorageLocation": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "backupSyncPeriod": {
+                  "description": "Go duration, e.g. 168h",
+                  "pattern": "^[0-9]+(h|m|s)$",
+                  "type": "string"
+                },
+                "dataMoverPrepareTimeout": {
+                  "description": "Go duration, e.g. 168h",
+                  "pattern": "^[0-9]+(h|m|s)$",
+                  "type": "string"
+                },
+                "defaultBackupStorageLocation": {
+                  "type": "string"
+                },
+                "defaultBackupTTL": {
+                  "description": "Go duration, e.g. 168h",
+                  "pattern": "^[0-9]+(h|m|s)$",
+                  "type": "string"
+                },
+                "defaultItemOperationTimeout": {
+                  "description": "Go duration, e.g. 168h",
+                  "pattern": "^[0-9]+(h|m|s)$",
+                  "type": "string"
+                },
+                "defaultRepoMaintainFrequency": {
+                  "description": "Go duration, e.g. 168h",
+                  "pattern": "^[0-9]+(h|m|s)$",
+                  "type": "string"
+                },
+                "defaultSnapshotMoveData": {
+                  "description": "Move CSI snapshot data to object storage by default",
+                  "type": "boolean"
+                },
+                "defaultVolumesToFsBackup": {
+                  "type": "boolean"
+                },
+                "disableControllers": {
+                  "type": "string"
+                },
+                "disableInformerCache": {
+                  "type": "boolean"
+                },
+                "extraArgs": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "extraEnvVars": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "features": {
+                  "description": "Comma-separated feature flags, e.g. EnableCSI",
+                  "type": "string"
+                },
+                "fsBackupTimeout": {
+                  "description": "Go duration, e.g. 168h",
+                  "pattern": "^[0-9]+(h|m|s)$",
+                  "type": "string"
+                },
+                "garbageCollectionFrequency": {
+                  "description": "Go duration, e.g. 168h",
+                  "pattern": "^[0-9]+(h|m|s)$",
+                  "type": "string"
+                },
+                "itemBlockWorkerCount": {
+                  "type": "integer"
+                },
+                "logFormat": {
+                  "type": "string"
+                },
+                "logLevel": {
+                  "type": "string"
+                },
+                "metricsAddress": {
+                  "type": "string"
+                },
+                "repositoryMaintenanceJob": {
+                  "type": "object"
+                },
+                "restoreOnlyMode": {
+                  "type": "boolean"
+                },
+                "restoreResourcePriorities": {
+                  "type": "string"
+                },
+                "storeValidationFrequency": {
+                  "description": "Go duration, e.g. 168h",
+                  "pattern": "^[0-9]+(h|m|s)$",
+                  "type": "string"
+                },
+                "uploaderType": {
+                  "description": "Data mover: kopia or restic",
+                  "type": "string"
+                },
+                "volumeSnapshotLocation": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
+            "containerSecurityContext": {
+              "type": "object"
+            },
+            "credentials": {
+              "additionalProperties": false,
+              "properties": {
+                "existingSecret": {
+                  "description": "Use a secret that already exists instead",
+                  "type": "string"
+                },
+                "extraEnvVars": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "extraSecretRef": {
+                  "type": "string"
+                },
+                "name": {
+                  "description": "Name of the secret the chart would create",
+                  "type": "string"
+                },
+                "secretContents": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Contents of the credentials file, keyed by file name",
+                  "type": "object"
+                },
+                "useSecret": {
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            },
+            "deployNodeAgent": {
+              "type": "boolean"
+            },
+            "dnsConfig": {
+              "type": "object"
+            },
+            "dnsPolicy": {
+              "type": "string"
+            },
+            "extraObjects": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "extraVolumeMounts": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "extraVolumes": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "fullnameOverride": {
+              "type": "string"
+            },
+            "global": {
+              "description": "Injected by Helm for sub-chart coordination",
+              "type": "object"
+            },
+            "hostAliases": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "image": {
+              "type": "object"
+            },
+            "initContainers": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "description": "Plugin provider images; at least one is required"
+            },
+            "kubectl": {
+              "description": "Image of the kubectl container used by the CRD jobs",
+              "type": "object"
+            },
+            "labels": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "lifecycle": {
+              "type": "object"
+            },
+            "livenessProbe": {
+              "type": "object"
+            },
+            "metrics": {
+              "type": "object"
+            },
+            "nameOverride": {
+              "type": "string"
+            },
+            "namespace": {
+              "type": "object"
+            },
+            "nodeAgent": {
+              "additionalProperties": false,
+              "properties": {
+                "affinity": {
+                  "type": "object"
+                },
+                "annotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "containerSecurityContext": {
+                  "type": "object"
+                },
+                "disableHostPath": {
+                  "type": "boolean"
+                },
+                "dnsConfig": {
+                  "type": "object"
+                },
+                "dnsPolicy": {
+                  "type": "string"
+                },
+                "extraArgs": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "extraEnvVars": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraVolumeMounts": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraVolumes": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "hostAliases": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "labels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "lifecycle": {
+                  "type": "object"
+                },
+                "nodeSelector": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "pluginVolumePath": {
+                  "type": "string"
+                },
+                "podLabels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "podSecurityContext": {
+                  "type": "object"
+                },
+                "podVolumePath": {
+                  "type": "string"
+                },
+                "priorityClassName": {
+                  "type": "string"
+                },
+                "resizePolicy": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "resources": {
+                  "type": "object"
+                },
+                "runtimeClassName": {
+                  "type": "string"
+                },
+                "tolerations": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "updateStrategy": {
+                  "type": "object"
+                },
+                "useScratchEmptyDir": {
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            },
+            "nodeSelector": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "podAnnotations": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "podDisruptionBudget": {
+              "type": "object"
+            },
+            "podLabels": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "podSecurityContext": {
+              "type": "object"
+            },
+            "priorityClassName": {
+              "type": "string"
+            },
+            "rbac": {
+              "additionalProperties": false,
+              "properties": {
+                "clusterAdministrator": {
+                  "type": "boolean"
+                },
+                "clusterAdministratorName": {
+                  "type": "string"
+                },
+                "create": {
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            },
+            "readinessProbe": {
+              "type": "object"
+            },
+            "resizePolicy": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "resources": {
+              "type": "object"
+            },
+            "runtimeClassName": {
+              "type": "string"
+            },
+            "schedules": {
+              "description": "Schedules rendered by the upstream chart (this wrapper renders its own)",
+              "type": "object"
+            },
+            "secretAnnotations": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "serviceAccount": {
+              "type": "object"
+            },
+            "snapshotsEnabled": {
+              "description": "Render a VolumeSnapshotLocation (not needed with CSI data movement)",
+              "type": "boolean"
+            },
+            "terminationGracePeriodSeconds": {
+              "type": "integer"
+            },
+            "tolerations": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "upgradeCRDs": {
+              "type": "boolean"
+            },
+            "upgradeCRDsJob": {
+              "type": "object"
+            },
+            "upgradeJobResources": {
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  }
+}

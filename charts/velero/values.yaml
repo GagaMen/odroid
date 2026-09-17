@@ -1,0 +1,103 @@
+# yaml-language-server: $schema=values.schema.json
+# Default values for the velero chart wrapper.
+# Credentials and the cloud target go into platform/values.yaml (gitignored).
+
+# Password of the Kopia repository. Velero ships a well-known default password,
+# so this must be set before the first backup and cannot be changed afterwards.
+# Keep a copy outside the cluster: without it, no backup can be restored.
+repositoryPassword: ""
+
+# Which PVCs are backed up and how long each tier is kept.
+scope:
+  namespaces:
+    - adguard
+    - monitoring
+  # PVCs carry this label; "gfs" gets all three tiers, "weekly" only the weekly one.
+  label: odroid/backup-policy
+  tiers:
+    daily:
+      schedule: "0 4 * * 1-6"
+      policies: ["gfs"]
+      ttl: 168h
+    weekly:
+      schedule: "0 4 * * 0"
+      policies: ["gfs", "weekly"]
+      ttl: 1344h
+    monthly:
+      schedule: "0 5 1 * *"
+      policies: ["gfs"]
+      ttl: 8784h
+
+# Backup storage locations. Kopia encrypts before upload, so both targets hold
+# ciphertext only.
+targets:
+  local:
+    enabled: true
+    default: true
+    bucket: velero
+    region: us-east-1
+    s3Url: http://platform-rustfs-svc.platform.svc:9000
+    # Minutes offset added to the tier's cron minute, to stagger targets.
+    scheduleOffsetMinutes: 0
+  cloud:
+    enabled: false
+    default: false
+    bucket: ""
+    region: ""
+    s3Url: ""
+    scheduleOffsetMinutes: 30
+
+velero:
+  # The AWS plugin talks to any S3-compatible store.
+  initContainers:
+    - name: velero-plugin-for-aws
+      image: velero/velero-plugin-for-aws:v1.14.2
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - mountPath: /target
+          name: plugins
+
+  # This wrapper renders the BackupStorageLocations and Schedules itself, so the
+  # cloud target can be switched on without restating the local one.
+  backupsEnabled: false
+  # No VolumeSnapshotLocation: snapshots are CSI snapshots, and their data is
+  # moved to object storage instead of staying on the storage provider.
+  snapshotsEnabled: false
+
+  deployNodeAgent: true
+
+  configuration:
+    # EnableCSI lets Velero snapshot through the CSI driver;
+    # defaultSnapshotMoveData uploads those snapshots with Kopia.
+    features: EnableCSI
+    defaultSnapshotMoveData: true
+    uploaderType: kopia
+
+  credentials:
+    useSecret: true
+    # Rendered by the platform chart from the RustFS and cloud credentials,
+    # so the RustFS keys live in exactly one place.
+    existingSecret: velero-credentials
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+  nodeAgent:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 1Gi
+
+  kubectl:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 256Mi

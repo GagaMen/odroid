@@ -1,0 +1,41 @@
+{{- /*
+One Schedule per enabled target and tier. Only PVCs are backed up: the workloads
+come from this repository, and the data mover recreates a PV on restore.
+*/ -}}
+{{- $scope := .Values.scope -}}
+{{- range $targetName, $target := .Values.targets }}
+{{- if $target.enabled }}
+{{- range $tierName, $tier := $scope.tiers }}
+{{- $offset := $target.scheduleOffsetMinutes | default 0 -}}
+{{- $fields := splitList " " $tier.schedule -}}
+{{- $minute := add (atoi (index $fields 0)) $offset -}}
+{{- $cron := printf "%d %s %s %s %s" $minute (index $fields 1) (index $fields 2) (index $fields 3) (index $fields 4) -}}
+---
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: {{ printf "%s-%s" $targetName $tierName }}
+  labels:
+    app.kubernetes.io/name: velero
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+spec:
+  schedule: {{ $cron | quote }}
+  template:
+    ttl: {{ $tier.ttl }}
+    storageLocation: {{ $targetName }}
+    includedNamespaces:
+      {{- toYaml $scope.namespaces | nindent 6 }}
+    includedResources:
+      - persistentvolumeclaims
+    labelSelector:
+      matchExpressions:
+        - key: {{ $scope.label }}
+          operator: In
+          values:
+            {{- toYaml $tier.policies | nindent 12 }}
+    snapshotVolumes: true
+    snapshotMoveData: true
+{{ end }}
+{{ end }}
+{{ end }}

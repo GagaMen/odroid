@@ -9,6 +9,7 @@ import type { Values as NtfyValues } from "../charts/ntfy/values.schema";
 import type { Values as PrometheusValues } from "../charts/prometheus/values.schema";
 import type { Values as RustfsValues } from "../charts/rustfs/values.schema";
 import type { Values as SnapshotControllerValues } from "../charts/snapshot-controller/values.schema";
+import type { Values as VeleroValues } from "../charts/velero/values.schema";
 
 interface ClusterIssuer {
   /** Enable ClusterIssuer creation */
@@ -61,6 +62,8 @@ export interface PlatformValues {
   "snapshot-controller"?: SnapshotControllerValues;
   /** rustfs chart values (wrapper: upstream values go under rustfs) */
   rustfs?: RustfsValues;
+  /** velero chart values (wrapper: upstream values go under velero) */
+  velero?: VeleroValues;
   /** homepage chart values */
   homepage?: HomepageValues;
   /** adguard chart values */

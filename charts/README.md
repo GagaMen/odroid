@@ -12,6 +12,7 @@ This directory contains custom Helm charts for the Odroid home server platform. 
 | [longhorn](longhorn/) | Cloud-native distributed block storage | 1.0.0 |
 | [ntfy](ntfy/) | Self-hosted push notification service | 1.0.0 |
 | [rustfs](rustfs/) | S3-compatible object store, local Velero backup target | 1.0.0 |
+| [velero](velero/) | Encrypted PVC backups to S3 (CSI snapshots + Kopia) | 1.0.0 |
 | [snapshot-controller](snapshot-controller/) | CSI snapshot API (VolumeSnapshot CRDs + controller) | 1.0.0 |
 
 ## Namespace Configuration
@@ -31,6 +32,7 @@ adguard:
 | longhorn | `longhorn-system` (built-in) |
 | ntfy | `default` |
 | rustfs | release namespace (no override upstream) |
+| velero | release namespace (no override upstream) |
 | snapshot-controller | release namespace (no override upstream) |
 
 > **Note:** Longhorn brings its own namespace `longhorn-system` by default. All other charts deploy to the namespace of the Helm release unless `namespaceOverride` is specified. The upstream snapshot-controller chart has no override at all, which is why the platform release lives in its own `platform` namespace instead of `default`.
