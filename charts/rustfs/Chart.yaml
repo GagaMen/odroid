@@ -1,0 +1,9 @@
+apiVersion: v2
+name: rustfs
+description: RustFS, an S3-compatible object store used as the local Velero backup target.
+type: application
+version: 1.0.0
+dependencies:
+  - name: rustfs
+    version: 1.0.0
+    repository: https://charts.rustfs.com

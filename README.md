@@ -8,6 +8,8 @@ A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkern
 - **[Homepage](charts/homepage/)** - Modern, customizable application dashboard
 - **[ntfy](charts/ntfy/)** - Self-hosted push notification service
 - **[Longhorn](charts/longhorn/)** - Cloud-native distributed storage
+- **[Snapshot Controller](charts/snapshot-controller/)** - CSI snapshot API, the basis for Velero backups
+- **[RustFS](charts/rustfs/)** - S3-compatible object store, local target for encrypted backups
 - **[cert-manager DNS Lexicon Webhook](charts/cert-manager-dns-lexicon-webhook/)** - DNS-01 ACME challenge solver
 - **[WireGuard VPN](wireguard/)** - Secure remote access to your home network
 - **[Host Configuration](host/)** - Kernel, systemd, logging and update hardening
@@ -118,6 +120,8 @@ Create a `platform/values.yaml` file with your configuration. See the individual
 - [Homepage Configuration](charts/homepage/README.md)
 - [ntfy Configuration](charts/ntfy/README.md)
 - [Longhorn Configuration](charts/longhorn/README.md)
+- [Snapshot Controller Configuration](charts/snapshot-controller/README.md)
+- [RustFS Configuration](charts/rustfs/README.md)
 - [cert-manager DNS Lexicon Webhook Configuration](charts/cert-manager-dns-lexicon-webhook/README.md)
 - [Prometheus Configuration](charts/prometheus/README.md)
 - [Grafana Configuration](charts/grafana/README.md)
@@ -153,6 +157,7 @@ helm upgrade platform ./platform -n platform -f platform/values.yaml
 │   ├── longhorn/                           # Distributed storage
 │   ├── ntfy/                               # Push notification service
 │   ├── prometheus/                         # Metrics collection & storage
+│   ├── rustfs/                             # S3 object store, local backup target
 │   └── snapshot-controller/                # CSI snapshot API for Velero
 ├── platform/                               # Umbrella chart combining all services
 │   ├── Chart.yaml                          # Dependencies definition
@@ -195,6 +200,8 @@ npm run generate:loki
 npm run generate:longhorn
 npm run generate:ntfy
 npm run generate:prometheus
+npm run generate:rustfs
+npm run generate:snapshot-controller
 npm run generate:platform
 ```
 

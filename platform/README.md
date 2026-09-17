@@ -33,6 +33,8 @@ platform/
 |-------|---------|-----------|
 | cert-manager-dns-lexicon-webhook | 1.0.0 | `cert-manager-dns-lexicon-webhook.enabled` |
 | longhorn | 1.0.0 | `longhorn.enabled` |
+| snapshot-controller | 1.0.0 | `snapshot-controller.enabled` |
+| rustfs | 1.0.0 | `rustfs.enabled` |
 | homepage | 1.0.0 | `homepage.enabled` |
 | adguard | 1.1.0 | `adguard.enabled` |
 | ntfy | 1.0.0 | `ntfy.enabled` |
@@ -468,6 +470,17 @@ kubectl logs -n homepage deployment/homepage
 # ntfy
 kubectl logs -n ntfy deployment/ntfy
 ```
+
+## Backups
+
+Two layers exist side by side while the switch to Velero is being verified:
+
+1. **Longhorn RecurringJobs** (`templates/recurring-job.yaml`) back up to the Longhorn
+   backup target. This is the older layer and will be removed.
+2. **Velero** snapshots the PVCs through the `longhorn-snapshot`
+   `VolumeSnapshotClass` (`templates/volumesnapshotclass.yaml`) and uploads them with
+   Kopia, encrypted, to [RustFS](../charts/rustfs/README.md) and later to an external
+   S3 bucket.
 
 ## Schema
 

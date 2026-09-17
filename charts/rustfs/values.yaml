@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=values.schema.json
+# Default values for the rustfs chart wrapper.
+# Credentials go into platform/values.yaml (gitignored).
+
+# Bucket created after install by a Helm hook; the upstream chart creates none.
+bucket:
+  name: velero
+  image:
+    repository: rclone/rclone
+    tag: "1.75.1"
+    pullPolicy: IfNotPresent
+
+rustfs:
+  # Single node: one pod, one volume. Distributed mode needs at least two
+  # nodes for erasure coding and has nothing to spread across here.
+  mode:
+    standalone:
+      enabled: true
+    distributed:
+      enabled: false
+  replicaCount: 1
+
+  # Backup target: reachable in-cluster only, no ingress. Whoever can reach it
+  # can delete the local backups.
+  ingress:
+    enabled: false
+  service:
+    type: ClusterIP
+
+  storageclass:
+    name: longhorn-retain
+    dataStorageSize: 20Gi
+
+  config:
+    rustfs:
+      # Empty means log to stdout, so Alloy ships the logs to Loki instead of
+      # filling a second PVC.
+      obs_log_directory: ""
+      log_level: "info"
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+  # Set in platform/values.yaml; rendering fails while they are empty.
+  secret:
+    rustfs:
+      access_key: ""
+      secret_key: ""

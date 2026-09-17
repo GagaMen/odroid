@@ -1,0 +1,516 @@
+{
+  "$ref": "#/definitions/Values",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Values": {
+      "additionalProperties": false,
+      "properties": {
+        "bucket": {
+          "additionalProperties": false,
+          "description": "Bucket created by this wrapper after install",
+          "properties": {
+            "image": {
+              "additionalProperties": false,
+              "description": "Image of the S3 client that creates the bucket",
+              "properties": {
+                "pullPolicy": {
+                  "type": "string"
+                },
+                "repository": {
+                  "type": "string"
+                },
+                "tag": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "name": {
+              "description": "Bucket created by the post-install hook (Velero's target)",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "enabled": {
+          "description": "Enable/disable this chart (used by platform condition)",
+          "type": "boolean"
+        },
+        "global": {
+          "description": "Injected by Helm for sub-chart coordination",
+          "type": "object"
+        },
+        "rustfs": {
+          "additionalProperties": false,
+          "description": "RustFS upstream chart values (see https://charts.rustfs.com)",
+          "properties": {
+            "affinity": {
+              "type": "object"
+            },
+            "clusterDomain": {
+              "type": "string"
+            },
+            "commonLabels": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "config": {
+              "additionalProperties": false,
+              "properties": {
+                "rustfs": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "address": {
+                      "description": "S3 API listen address",
+                      "type": "string"
+                    },
+                    "console_address": {
+                      "type": "string"
+                    },
+                    "console_enable": {
+                      "type": "string"
+                    },
+                    "domains": {
+                      "description": "Domains for virtual-hosted-style requests",
+                      "type": "string"
+                    },
+                    "ec": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "storage_class_standard": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "kms": {
+                      "type": "object"
+                    },
+                    "log_level": {
+                      "type": "string"
+                    },
+                    "log_rotation": {
+                      "anyOf": [
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "obs_endpoint": {
+                      "type": "object"
+                    },
+                    "obs_environment": {
+                      "type": "string"
+                    },
+                    "obs_log_directory": {
+                      "description": "Log directory; empty logs to stdout and creates no logs PVC",
+                      "type": "string"
+                    },
+                    "region": {
+                      "type": "string"
+                    },
+                    "scanner": {
+                      "type": "object"
+                    },
+                    "timeout_profile": {
+                      "type": "string"
+                    },
+                    "volumes": {
+                      "description": "Data directories; empty lets the chart derive them from the topology",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "containerSecurityContext": {
+              "type": "object"
+            },
+            "drivesPerNode": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Data drives per pod; null lets the chart infer it"
+            },
+            "enableServiceLinks": {
+              "type": "boolean"
+            },
+            "extraEnv": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "extraManifests": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "extraVolumeMounts": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "extraVolumes": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "fullnameOverride": {
+              "type": "string"
+            },
+            "gatewayApi": {
+              "type": "object"
+            },
+            "global": {
+              "description": "Injected by Helm for sub-chart coordination",
+              "type": "object"
+            },
+            "image": {
+              "additionalProperties": false,
+              "properties": {
+                "initImage": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "pullPolicy": {
+                      "type": "string"
+                    },
+                    "repository": {
+                      "type": "string"
+                    },
+                    "tag": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "rustfs": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "pullPolicy": {
+                      "type": "string"
+                    },
+                    "repository": {
+                      "type": "string"
+                    },
+                    "tag": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "imagePullSecrets": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "imageRegistryCredentials": {
+              "type": "object"
+            },
+            "ingress": {
+              "type": "object"
+            },
+            "livenessProbe": {
+              "type": "object"
+            },
+            "localEndpointHost": {
+              "additionalProperties": false,
+              "properties": {
+                "autoInject": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                }
+              },
+              "type": "object"
+            },
+            "mode": {
+              "additionalProperties": false,
+              "properties": {
+                "distributed": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                },
+                "standalone": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "existingClaim": {
+                      "additionalProperties": false,
+                      "description": "Use PVCs that already exist instead of the chart's own",
+                      "properties": {
+                        "dataClaim": {
+                          "type": "string"
+                        },
+                        "logsClaim": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "strategy": {
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "mtls": {
+              "type": "object"
+            },
+            "nameOverride": {
+              "type": "string"
+            },
+            "nodeSelector": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "pdb": {
+              "type": "object"
+            },
+            "podAnnotations": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "podLabels": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "podSecurityContext": {
+              "type": "object"
+            },
+            "pools": {
+              "additionalProperties": false,
+              "description": "Additional server pools (distributed mode only)",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "list": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
+            "priorityClassName": {
+              "type": "string"
+            },
+            "readinessProbe": {
+              "type": "object"
+            },
+            "replicaCount": {
+              "type": "integer"
+            },
+            "resources": {
+              "type": "object"
+            },
+            "secret": {
+              "additionalProperties": false,
+              "properties": {
+                "allowInsecureDefaults": {
+                  "description": "Allow the well-known default credentials (development only)",
+                  "type": "boolean"
+                },
+                "existingSecret": {
+                  "description": "Name of a Secret holding the credentials instead of the values below",
+                  "type": "string"
+                },
+                "rustfs": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "access_key": {
+                      "type": "string"
+                    },
+                    "secret_key": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "service": {
+              "additionalProperties": false,
+              "properties": {
+                "annotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "console": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "nodePort": {
+                      "type": "integer"
+                    },
+                    "port": {
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "endpoint": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "nodePort": {
+                      "type": "integer"
+                    },
+                    "port": {
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "externalIPs": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "headlessAnnotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "labels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "loadBalancerClass": {
+                  "type": "string"
+                },
+                "loadBalancerIP": {
+                  "type": "string"
+                },
+                "loadBalancerSourceRanges": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "traefikAnnotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "type": {
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer"
+                  ],
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "serviceAccount": {
+              "type": "object"
+            },
+            "startupWaitTimeoutSeconds": {
+              "description": "Deprecated upstream, kept so existing values still render",
+              "type": "integer"
+            },
+            "storageclass": {
+              "additionalProperties": false,
+              "properties": {
+                "dataStorageSize": {
+                  "description": "Storage size",
+                  "pattern": "^[0-9]+(Mi|Gi|Ti)$",
+                  "type": "string"
+                },
+                "logStorageSize": {
+                  "description": "Storage size",
+                  "pattern": "^[0-9]+(Mi|Gi|Ti)$",
+                  "type": "string"
+                },
+                "name": {
+                  "description": "StorageClass for the data (and log) PVCs",
+                  "type": "string"
+                },
+                "pvcAnnotations": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "type": "object"
+                    },
+                    "logs": {
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "tolerations": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "topologySpreadConstraints": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "object"
+                }
+              ]
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  }
+}

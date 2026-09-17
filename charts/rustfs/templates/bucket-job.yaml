@@ -1,0 +1,66 @@
+{{- $name := printf "%s-rustfs" .Release.Name -}}
+# The upstream chart creates no buckets, and Velero needs one to exist before
+# its first backup. rclone mkdir is idempotent, so this runs on every upgrade.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $name }}-create-bucket
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      name: {{ $name }}-create-bucket
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: create-bucket
+          image: "{{ .Values.bucket.image.repository }}:{{ .Values.bucket.image.tag }}"
+          imagePullPolicy: {{ .Values.bucket.image.pullPolicy }}
+          env:
+            - name: RCLONE_CONFIG_RUSTFS_TYPE
+              value: s3
+            - name: RCLONE_CONFIG_RUSTFS_PROVIDER
+              value: Other
+            - name: RCLONE_CONFIG_RUSTFS_ENDPOINT
+              value: http://{{ $name }}-svc:{{ .Values.rustfs.service.endpoint.port | default 9000 }}
+            - name: RCLONE_CONFIG_RUSTFS_FORCE_PATH_STYLE
+              value: "true"
+            - name: RCLONE_CONFIG_RUSTFS_REGION
+              value: {{ .Values.rustfs.config.rustfs.region | default "us-east-1" | quote }}
+            - name: RCLONE_CONFIG_RUSTFS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $name }}-secret
+                  key: RUSTFS_ACCESS_KEY
+            - name: RCLONE_CONFIG_RUSTFS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $name }}-secret
+                  key: RUSTFS_SECRET_KEY
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              # The hook may start before RustFS is serving.
+              for i in $(seq 1 60); do
+                if rclone mkdir "rustfs:{{ .Values.bucket.name }}"; then
+                  echo "bucket {{ .Values.bucket.name }} present"
+                  exit 0
+                fi
+                echo "rustfs not ready yet, retry $i"
+                sleep 5
+              done
+              echo "giving up waiting for rustfs"
+              exit 1
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi

@@ -11,6 +11,7 @@ updates:
       - /charts/cert-manager-dns-lexicon-webhook
       - /charts/homepage
       - /charts/ntfy
+      - /charts/rustfs
     schedule:
       interval: "monthly"
       day: "friday"
@@ -24,6 +25,7 @@ updates:
       - /charts/loki
       - /charts/longhorn
       - /charts/prometheus
+      - /charts/rustfs
       - /charts/snapshot-controller
     schedule:
       interval: "monthly"
