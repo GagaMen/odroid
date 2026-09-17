@@ -1,0 +1,427 @@
+{
+  "$ref": "#/definitions/Values",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Values": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "description": "Enable/disable this chart (used by platform condition)",
+          "type": "boolean"
+        },
+        "global": {
+          "description": "Injected by Helm for sub-chart coordination",
+          "type": "object"
+        },
+        "snapshot-controller": {
+          "additionalProperties": false,
+          "description": "snapshot-controller upstream chart values (see https://github.com/piraeusdatastore/helm-charts/tree/main/charts/snapshot-controller)",
+          "properties": {
+            "controller": {
+              "additionalProperties": false,
+              "properties": {
+                "affinity": {
+                  "type": "object"
+                },
+                "args": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "featureGates": {
+                      "description": "Comma-separated feature gates, e.g. CSIVolumeGroupSnapshot=true",
+                      "type": "string"
+                    },
+                    "httpEndpoint": {
+                      "type": "string"
+                    },
+                    "leaderElection": {
+                      "type": "boolean"
+                    },
+                    "leaderElectionNamespace": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "dnsConfig": {
+                  "type": "object"
+                },
+                "dnsPolicy": {
+                  "type": "string"
+                },
+                "enabled": {
+                  "description": "Deploy this component at all",
+                  "type": "boolean"
+                },
+                "fullnameOverride": {
+                  "type": "string"
+                },
+                "hostNetwork": {
+                  "type": "boolean"
+                },
+                "image": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "pullPolicy": {
+                      "type": "string"
+                    },
+                    "repository": {
+                      "type": "string"
+                    },
+                    "tag": {
+                      "description": "Overrides the image tag whose default is the chart appVersion",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "imagePullSecrets": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "nodeSelector": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "pdb": {
+                  "description": "PodDisruptionBudget spec",
+                  "type": "object"
+                },
+                "podAnnotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "podLabels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "podSecurityContext": {
+                  "type": "object"
+                },
+                "priorityClassName": {
+                  "type": "string"
+                },
+                "rbac": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "create": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                },
+                "replicaCount": {
+                  "type": "integer"
+                },
+                "resources": {
+                  "type": "object"
+                },
+                "revisionHistoryLimit": {
+                  "type": "integer"
+                },
+                "securityContext": {
+                  "type": "object"
+                },
+                "serviceAccount": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "create": {
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "serviceMonitor": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "create": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                },
+                "tolerations": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "topologySpreadConstraints": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
+            "global": {
+              "description": "Injected by Helm for sub-chart coordination",
+              "type": "object"
+            },
+            "installCRDs": {
+              "description": "Render the VolumeSnapshot CRDs (templates, not crds/)",
+              "type": "boolean"
+            },
+            "volumeGroupSnapshotClasses": {
+              "description": "VolumeGroupSnapshotClasses rendered by the chart",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "annotations": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  },
+                  "deletionPolicy": {
+                    "enum": [
+                      "Delete",
+                      "Retain"
+                    ],
+                    "type": "string"
+                  },
+                  "driver": {
+                    "type": "string"
+                  },
+                  "labels": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "parameters": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "name",
+                  "driver"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "volumeSnapshotClasses": {
+              "description": "VolumeSnapshotClasses rendered by the chart",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "annotations": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  },
+                  "deletionPolicy": {
+                    "enum": [
+                      "Delete",
+                      "Retain"
+                    ],
+                    "type": "string"
+                  },
+                  "driver": {
+                    "type": "string"
+                  },
+                  "labels": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "parameters": {
+                    "additionalProperties": {
+                      "type": "string"
+                    },
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "name",
+                  "driver"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "webhook": {
+              "additionalProperties": false,
+              "description": "Conversion webhook for VolumeGroupSnapshots in old beta API versions",
+              "properties": {
+                "affinity": {
+                  "type": "object"
+                },
+                "args": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "port": {
+                      "type": "integer"
+                    },
+                    "tlsCertFile": {
+                      "type": "string"
+                    },
+                    "tlsPrivateKeyFile": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "dnsConfig": {
+                  "type": "object"
+                },
+                "dnsPolicy": {
+                  "type": "string"
+                },
+                "enabled": {
+                  "description": "Deploy this component at all",
+                  "type": "boolean"
+                },
+                "fullnameOverride": {
+                  "type": "string"
+                },
+                "hostNetwork": {
+                  "type": "boolean"
+                },
+                "image": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "pullPolicy": {
+                      "type": "string"
+                    },
+                    "repository": {
+                      "type": "string"
+                    },
+                    "tag": {
+                      "description": "Overrides the image tag whose default is the chart appVersion",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "imagePullSecrets": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "nodeSelector": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "pdb": {
+                  "description": "PodDisruptionBudget spec",
+                  "type": "object"
+                },
+                "podAnnotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "podLabels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "podSecurityContext": {
+                  "type": "object"
+                },
+                "priorityClassName": {
+                  "type": "string"
+                },
+                "replicaCount": {
+                  "type": "integer"
+                },
+                "resources": {
+                  "type": "object"
+                },
+                "revisionHistoryLimit": {
+                  "type": "integer"
+                },
+                "securityContext": {
+                  "type": "object"
+                },
+                "serviceAccount": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "create": {
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "tls": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "autogenerate": {
+                      "type": "boolean"
+                    },
+                    "caBundle": {
+                      "type": "string"
+                    },
+                    "certManagerIssuerRef": {
+                      "type": "object"
+                    },
+                    "certificate": {
+                      "type": "string"
+                    },
+                    "certificateSecret": {
+                      "type": "string"
+                    },
+                    "key": {
+                      "type": "string"
+                    },
+                    "renew": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                },
+                "tolerations": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "topologySpreadConstraints": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  }
+}

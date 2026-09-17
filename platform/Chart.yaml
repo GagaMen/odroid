@@ -10,6 +10,10 @@ dependencies:
     version: 1.0.0
     repository: file://../charts/longhorn
     condition: longhorn.enabled
+  - name: snapshot-controller
+    version: 1.0.0
+    repository: file://../charts/snapshot-controller
+    condition: snapshot-controller.enabled
   - name: homepage
     version: 1.0.0
     repository: file://../charts/homepage

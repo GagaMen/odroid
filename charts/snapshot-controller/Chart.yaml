@@ -1,0 +1,9 @@
+apiVersion: v2
+name: snapshot-controller
+description: Kubernetes CSI snapshot controller and VolumeSnapshot CRDs, the generic snapshot API Velero uses to snapshot Longhorn volumes.
+type: application
+version: 1.0.0
+dependencies:
+  - name: snapshot-controller
+    version: 5.2.0
+    repository: https://piraeus.io/helm-charts/

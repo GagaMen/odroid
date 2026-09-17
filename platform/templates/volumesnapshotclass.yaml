@@ -1,0 +1,21 @@
+{{- if dig "snapshot-controller" "enabled" true .Values.AsMap }}
+# Installed as a hook: the VolumeSnapshotClass CRD arrives in this same release
+# through the snapshot-controller chart, and Helm cannot map a kind whose CRD
+# does not exist yet when it builds the release.
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: longhorn-snapshot
+  labels:
+    # Velero picks the class for a CSI driver by this label.
+    velero.io/csi-volumesnapshot-class: "true"
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
+driver: driver.longhorn.io
+deletionPolicy: Delete
+parameters:
+  # "snap" takes an in-cluster Longhorn snapshot. "bak" would instead create a
+  # Longhorn backup on the Longhorn backup target.
+  type: snap
+{{- end }}

@@ -126,14 +126,18 @@ Create a `platform/values.yaml` file with your configuration. See the individual
 
 ### 3. Install the Platform
 
+The release lives in its own `platform` namespace, because components whose upstream
+chart has no namespace override deploy into the namespace of the release.
+
 ```bash
-helm install platform ./platform -f platform/values.yaml
+kubectl create namespace platform
+helm install platform ./platform -n platform -f platform/values.yaml
 ```
 
 ### 4. Upgrade the Platform
 
 ```bash
-helm upgrade platform ./platform -f platform/values.yaml
+helm upgrade platform ./platform -n platform -f platform/values.yaml
 ```
 
 ## 📁 Repository Structure
@@ -148,7 +152,8 @@ helm upgrade platform ./platform -f platform/values.yaml
 │   ├── loki/                               # Log aggregation
 │   ├── longhorn/                           # Distributed storage
 │   ├── ntfy/                               # Push notification service
-│   └── prometheus/                         # Metrics collection & storage
+│   ├── prometheus/                         # Metrics collection & storage
+│   └── snapshot-controller/                # CSI snapshot API for Velero
 ├── platform/                               # Umbrella chart combining all services
 │   ├── Chart.yaml                          # Dependencies definition
 │   ├── templates/                          # Platform-wide resources
@@ -156,7 +161,8 @@ helm upgrade platform ./platform -f platform/values.yaml
 │   │   ├── namespace.yaml                  # Namespace definitions
 │   │   ├── recurring-job.yaml              # Longhorn backup jobs
 │   │   ├── secret.yaml                     # DNS provider credentials
-│   │   └── storageclass.yaml               # Longhorn storage class
+│   │   ├── storageclass.yaml               # Longhorn storage class
+│   │   └── volumesnapshotclass.yaml        # CSI snapshot class backed by Longhorn
 │   └── values.yaml                         # Your configuration (gitignored)
 ├── host/                                   # Host configuration below Kubernetes
 │   ├── README.md                           # What each file does and how to apply it

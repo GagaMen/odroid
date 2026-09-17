@@ -16,8 +16,9 @@
     "generate:longhorn": "ts-json-schema-generator --path './charts/longhorn/values.schema.ts' --type 'Values' --out './charts/longhorn/values.schema.json'",
     "generate:ntfy": "ts-json-schema-generator --path './charts/ntfy/values.schema.ts' --type 'Values' --out './charts/ntfy/values.schema.json'",
     "generate:prometheus": "ts-json-schema-generator --path './charts/prometheus/values.schema.ts' --type 'Values' --out './charts/prometheus/values.schema.json'",
+    "generate:snapshot-controller": "ts-json-schema-generator --path './charts/snapshot-controller/values.schema.ts' --type 'Values' --out './charts/snapshot-controller/values.schema.json'",
     "generate:platform": "ts-json-schema-generator --path './platform/values.schema.ts' --type 'PlatformValues' --expose none --out './platform/values.schema.json'",
-    "generate:all": "npm run generate:adguard && npm run generate:alloy && npm run generate:cert-manager-dns-lexicon-webhook && npm run generate:grafana && npm run generate:homepage && npm run generate:loki && npm run generate:longhorn && npm run generate:ntfy && npm run generate:prometheus && npm run generate:platform"
+    "generate:all": "npm run generate:adguard && npm run generate:alloy && npm run generate:cert-manager-dns-lexicon-webhook && npm run generate:grafana && npm run generate:homepage && npm run generate:loki && npm run generate:longhorn && npm run generate:ntfy && npm run generate:prometheus && npm run generate:snapshot-controller && npm run generate:platform"
   },
   "devDependencies": {
     "ts-json-schema-generator": "2.9.0",

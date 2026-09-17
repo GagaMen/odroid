@@ -23,7 +23,8 @@ platform/
     ├── pre-delete-hook.yaml    # Cleanup hook
     ├── recurring-job.yaml      # Longhorn backup jobs
     ├── secret.yaml             # DNS provider credentials
-    └── storageclass.yaml       # Longhorn storage class
+    ├── storageclass.yaml       # Longhorn storage class
+    └── volumesnapshotclass.yaml # CSI snapshot class backed by Longhorn
 ```
 
 ## Dependencies
@@ -80,20 +81,28 @@ clusterIssuer:
 
 ### 3. Install
 
+The release lives in its own `platform` namespace. Components whose upstream chart has
+no `namespaceOverride` (the snapshot controller, later Velero and RustFS) deploy into the
+release namespace, which is why it must not be `default`.
+
 ```bash
-helm install platform ./platform -f platform/values.yaml
+kubectl create namespace platform
+helm install platform ./platform -n platform -f platform/values.yaml
 ```
+
+The namespace is created outside the chart on purpose: `templates/namespace.yaml` must not
+own the namespace that holds the release history.
 
 ### 4. Upgrade
 
 ```bash
-helm upgrade platform ./platform -f platform/values.yaml
+helm upgrade platform ./platform -n platform -f platform/values.yaml
 ```
 
 ### 5. Uninstall
 
 ```bash
-helm uninstall platform
+helm uninstall platform -n platform
 ```
 
 ## Configuration
@@ -104,13 +113,14 @@ The platform chart creates dedicated namespaces for each service in `templates/n
 
 | Namespace | Service |
 |-----------|--------|
+| `platform` | Release namespace: snapshot controller and every component without a namespace override (created outside the chart) |
 | `longhorn` | Distributed storage |
 | `homepage` | Dashboard |
 | `adguard` | DNS ad-blocker |
 | `ntfy` | Push notifications |
 | `monitoring` | Prometheus, Grafana, Loki, Alloy |
 
-> **Important:** Each sub-chart requires `namespaceOverride` to be set in your `values.yaml` to deploy into these namespaces. Without it, charts deploy to the `default` namespace (except Longhorn, which defaults to `longhorn-system`).
+> **Important:** Each sub-chart requires `namespaceOverride` to be set in your `values.yaml` to deploy into these namespaces. Without it, charts deploy into the release namespace `platform` (except Longhorn, which defaults to `longhorn-system`).
 
 ```yaml
 adguard:
@@ -425,10 +435,10 @@ longhorn:
 
 ```bash
 # Dry run
-helm install --dry-run --debug platform ./platform -f platform/values.yaml
+helm install --dry-run --debug platform ./platform -n platform -f platform/values.yaml
 
 # Template rendering
-helm template platform ./platform -f platform/values.yaml
+helm template platform ./platform -n platform -f platform/values.yaml
 ```
 
 ## Troubleshooting
@@ -436,8 +446,8 @@ helm template platform ./platform -f platform/values.yaml
 ### Check Deployment Status
 
 ```bash
-helm status platform
-helm get all platform
+helm status platform -n platform
+helm get all platform -n platform
 ```
 
 ### View All Resources

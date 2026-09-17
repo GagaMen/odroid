@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=values.schema.json
+# Default values for the snapshot-controller chart wrapper.
+
+snapshot-controller:
+  # The chart ships the VolumeSnapshot CRDs as templates, not under crds/, so
+  # they are upgraded with the chart. Removing the chart removes the CRDs and
+  # with them every VolumeSnapshot in the cluster.
+  installCRDs: true
+
+  controller:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 10m
+        memory: 20Mi
+      limits:
+        memory: 64Mi
+
+  # Only needed for VolumeGroupSnapshots stored in the old beta API versions.
+  webhook:
+    enabled: false

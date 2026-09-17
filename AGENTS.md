@@ -182,7 +182,7 @@ Read [`host/README.md`](host/README.md) before changing anything below Kubernete
 - **Kubernetes:** MicroK8s on ARM64 (ODROID-M2)
 - **Package Manager:** Helm 3
 - **Charts:** Custom charts + dependencies
-- **Storage:** Longhorn (cloud-native distributed storage)
+- **Storage:** Longhorn (cloud-native distributed storage); CSI snapshots via snapshot-controller
 - **Ingress:** MicroK8s Ingress Controller
 - **TLS:** cert-manager with DNS-01 challenge (Lexicon Webhook)
 
@@ -193,7 +193,7 @@ Read [`host/README.md`](host/README.md) before changing anything below Kubernete
 helm dependency update platform/
 
 # Install/upgrade chart
-helm upgrade --install platform platform/ -f platform/values.yaml
+helm upgrade --install platform platform/ -n platform -f platform/values.yaml
 
 # Show all resources in namespace
 kubectl get all -n <namespace>

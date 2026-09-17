@@ -7,6 +7,7 @@ import type { Values as LokiValues } from "../charts/loki/values.schema";
 import type { Values as LonghornValues } from "../charts/longhorn/values.schema";
 import type { Values as NtfyValues } from "../charts/ntfy/values.schema";
 import type { Values as PrometheusValues } from "../charts/prometheus/values.schema";
+import type { Values as SnapshotControllerValues } from "../charts/snapshot-controller/values.schema";
 
 interface ClusterIssuer {
   /** Enable ClusterIssuer creation */
@@ -55,6 +56,8 @@ export interface PlatformValues {
   clusterIssuer?: ClusterIssuer;
   /** longhorn chart values (wrapper: chart values go under config) */
   longhorn?: LonghornValues;
+  /** snapshot-controller chart values (wrapper: upstream values go under snapshot-controller) */
+  "snapshot-controller"?: SnapshotControllerValues;
   /** homepage chart values */
   homepage?: HomepageValues;
   /** adguard chart values */
