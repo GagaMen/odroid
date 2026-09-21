@@ -6,9 +6,13 @@ prometheus:
   # -- Prometheus server retention period
   server:
     retention: 15d
+    # Deletes the oldest blocks before the volume fills up. A full volume stops
+    # Prometheus from writing anything at all, which is far worse than losing
+    # the oldest days early.
+    retentionSize: 16GB
     persistentVolume:
       enabled: true
-      size: 10Gi
+      size: 20Gi
       storageClass: longhorn
 
   # -- Disable Alertmanager (we use Grafana Alerting instead)

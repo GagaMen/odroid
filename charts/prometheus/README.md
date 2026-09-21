@@ -13,8 +13,9 @@ Alertmanager is disabled in favour of Grafana Alerting.
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `config.server.retention` | `15d` | How long metrics are kept |
-| `config.server.persistentVolume.size` | `10Gi` | PVC size (Longhorn) |
+| `prometheus.server.retention` | `15d` | How long metrics are kept |
+| `prometheus.server.retentionSize` | `16GB` | Upper bound for TSDB size; oldest blocks are dropped first |
+| `prometheus.server.persistentVolume.size` | `20Gi` | PVC size (Longhorn) |
 
 Override values in `platform/values.yaml` (gitignored).
 

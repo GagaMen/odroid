@@ -490,6 +490,112 @@ groups:
     isPaused: false
     notification_settings:
       receiver: Ntfy
+  - uid: ryqpr1cse0xbed
+    title: Prometheus | Speichert keine Messwerte
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: count(up == 1)
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 1
+            type: lt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: Alerting
+    execErrState: Alerting
+    for: 5m
+    annotations:
+      summary: '🚨 Prometheus liefert keine aktuellen Messwerte mehr.\nAlle anderen Regeln sind damit blind. Erste Prüfung: df -h /data im Prometheus-Pod und kubectl logs -n monitoring deploy/platform-prometheus-server'
+    labels:
+      priority: '5'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: fm6v3wnhkmjuiu
+    title: Prometheus | TSDB-Wartung schlägt fehl
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: sum(increase(prometheus_tsdb_compactions_failed_total[3h])) + sum(increase(prometheus_tsdb_wal_truncations_failed_total[3h])) + sum(increase(prometheus_tsdb_checkpoint_creations_failed_total[3h])) + sum(increase(prometheus_tsdb_wal_corruptions_total[3h]))
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 0m
+    annotations:
+      summary: '⚠️ Prometheus kann seine TSDB nicht mehr kompaktieren oder das WAL nicht kürzen.\nUnbehoben läuft das Volume voll. Details im Log: kubectl logs -n monitoring deploy/platform-prometheus-server -c prometheus-server, nach compaction, checkpoint oder corruption suchen'
+    labels:
+      priority: '4'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
 - orgId: 1
   name: Every 5 minutes
   folder: Services
