@@ -5,8 +5,7 @@
 ## Features
 
 - Distributed block storage with replication
-- Automatic backup to S3-compatible storage or NFS
-- Snapshot and backup management
+- Snapshots (used by Velero for backups, see below)
 - Volume cloning
 - Disaster recovery
 - Built-in UI for management
@@ -54,8 +53,6 @@ longhorn:
   config:
     # Longhorn settings - see official docs for full list
     defaultSettings:
-      backupTarget: s3://bucket-name@region/
-      backupTargetCredentialSecret: longhorn-backup-secret
       createDefaultDiskLabeledNodes: true
       defaultDataPath: /var/lib/longhorn/
       defaultReplicaCount: 1  # Set to 1 for single-node setup
@@ -81,23 +78,29 @@ parameters:
   fsType: "ext4"
 ```
 
-### Backup Configuration
+### Backups
 
-The platform chart includes pre-configured recurring backup jobs following the GFS (Grandfather-Father-Son) backup strategy:
+Longhorn's own backup target and recurring jobs are **not used**. Backups are made by
+[Velero](../velero/README.md): it takes a Longhorn snapshot through the CSI snapshot API
+(`VolumeSnapshotClass` `longhorn-snapshot`, `type: snap`), uploads the data encrypted with
+Kopia and removes the snapshot again. A Longhorn backup target would only duplicate that,
+unencrypted.
 
-| Job | Schedule | Retention | Description | Full Backup |
-|-----|----------|-----------|-------------|-------------|
-| `backup-daily` | Mon-Sat 2:00 AM | 6 backups | Daily incremental backups | No |
-| `backup-weekly` | Sunday 2:00 AM | 4 backups | Weekly backups | No |
-| `backup-monthly-full` | 1st of month 3:00 AM | 3 backups | Monthly full backups | Yes |
+Removing `backupTarget` from the values does **not** clear it: since Longhorn 1.8 the target
+lives in the `BackupTarget` resource `default`, which the chart creates but never empties.
+Clear it by hand, or Longhorn keeps polling the old location:
 
-To use these backup jobs, add the `gfs-backup` group to your volumes:
+```bash
+kubectl -n longhorn patch backuptargets.longhorn.io default --type merge \
+  -p '{"spec":{"backupTargetURL":"","credentialSecret":""}}'
+```
+
+To back up a volume, label its PVC:
 
 ```yaml
 persistence:
-  storageClass: longhorn-retain
-  annotations:
-    recurring-job-group.longhorn.io/gfs-backup: enabled
+  labels:
+    odroid/backup-policy: gfs   # or: weekly
 ```
 
 ## Example Configuration
@@ -107,8 +110,6 @@ longhorn:
   enabled: true
   config:
     defaultSettings:
-      backupTarget: "s3://my-backup-bucket@eu-central-1/"
-      backupTargetCredentialSecret: longhorn-backup-secret
       defaultDataPath: /var/lib/longhorn/
       defaultReplicaCount: 1
       storageMinimalAvailablePercentage: 15

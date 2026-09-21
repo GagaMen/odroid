@@ -167,7 +167,6 @@ helm upgrade platform ./platform -n platform -f platform/values.yaml
 │   ├── templates/                          # Platform-wide resources
 │   │   ├── clusterissuer.yaml              # Let's Encrypt configuration
 │   │   ├── namespace.yaml                  # Namespace definitions
-│   │   ├── recurring-job.yaml              # Longhorn backup jobs
 │   │   ├── secret.yaml                     # DNS provider credentials
 │   │   ├── storageclass.yaml               # Longhorn storage class
 │   │   ├── velero-credentials.yaml         # S3 credentials per Velero target

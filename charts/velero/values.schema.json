@@ -62,6 +62,10 @@
               },
               "description": "Backup tiers (GFS): one Schedule per tier and target",
               "type": "object"
+            },
+            "timezone": {
+              "description": "IANA time zone the tier cron expressions are meant in (Velero defaults to UTC)",
+              "type": "string"
             }
           },
           "type": "object"

@@ -14,6 +14,9 @@ scope:
     - monitoring
   # PVCs carry this label; "gfs" gets all three tiers, "weekly" only the weekly one.
   label: odroid/backup-policy
+  # Velero evaluates cron in UTC unless told otherwise; the tier times below are
+  # meant as local time.
+  timezone: Europe/Berlin
   tiers:
     daily:
       schedule: "0 4 * * 1-6"

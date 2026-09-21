@@ -24,6 +24,9 @@ itself is not part of the backup.
 | `gfs` | ✅ | ✅ | ✅ |
 | `weekly` | – | ✅ | – |
 
+Cron times are local time (`scope.timezone`, default `Europe/Berlin`); without it Velero
+would read them as UTC.
+
 | Tier | Cron (local target) | Retention |
 |------|---------------------|-----------|
 | daily | `0 4 * * 1-6` | 7 days |

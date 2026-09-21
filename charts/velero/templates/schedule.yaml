@@ -10,6 +10,7 @@ come from this repository, and the data mover recreates a PV on restore.
 {{- $fields := splitList " " $tier.schedule -}}
 {{- $minute := add (atoi (index $fields 0)) $offset -}}
 {{- $cron := printf "%d %s %s %s %s" $minute (index $fields 1) (index $fields 2) (index $fields 3) (index $fields 4) -}}
+{{- with $scope.timezone }}{{ $cron = printf "CRON_TZ=%s %s" . $cron }}{{ end -}}
 ---
 apiVersion: velero.io/v1
 kind: Schedule

@@ -234,7 +234,7 @@ After setup, configure your router to use the Odroid's IP as the primary DNS ser
 
 ### Backup Configuration
 
-The configuration is stored in the persistent volume. When using the [Platform Chart](../../platform/) with Longhorn enabled, you can leverage automatic backups by using the `longhorn-retain` storage class and adding the `gfs-backup` group:
+The configuration is stored in the persistent volume. When using the [Platform Chart](../../platform/), label the PVCs so that [Velero](../velero/README.md) backs them up:
 
 ```yaml
 adguard:
@@ -242,14 +242,12 @@ adguard:
     conf:
       storageClass: longhorn-retain
       labels:
-        recurring-job-group.longhorn.io/gfs-backup: enabled
+        odroid/backup-policy: gfs      # daily, weekly and monthly
     work:
       storageClass: longhorn-retain
       labels:
-        recurring-job-group.longhorn.io/gfs-backup: enabled
+        odroid/backup-policy: weekly   # query log and statistics, weekly is enough
 ```
-
-This enables the pre-configured GFS (Grandfather-Father-Son) backup strategy with daily, weekly, and monthly backups. See the [Longhorn Chart documentation](../longhorn/README.md) for details.
 
 ### Custom Filtering
 

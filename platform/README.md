@@ -8,7 +8,7 @@ The `platform` chart is an umbrella Helm chart that combines all individual char
 - Centralized configuration
 - Shared resources (namespaces, storage classes, cluster issuers)
 - Conditional service deployment
-- GFS backup strategy for Longhorn
+- Encrypted GFS backups with Velero
 
 ## Structure
 
@@ -21,7 +21,6 @@ platform/
     ├── clusterissuer.yaml      # Let's Encrypt configuration
     ├── namespace.yaml          # Namespace definitions
     ├── pre-delete-hook.yaml    # Cleanup hook
-    ├── recurring-job.yaml      # Longhorn backup jobs
     ├── secret.yaml             # DNS provider credentials
     ├── storageclass.yaml       # Longhorn storage class
     ├── velero-credentials.yaml # S3 credentials per Velero target
@@ -229,17 +228,10 @@ A `longhorn-retain` storage class is created with:
 - Single replica (suitable for single-node setup)
 - Volume expansion enabled
 
-### Backup Jobs
+### Backups
 
-Three recurring Longhorn backup jobs are created:
-
-| Job | Schedule | Retention | Full Backup |
-|-----|----------|-----------|-------------|
-| Daily | Mon-Sat 2:00 AM | 6 days | No |
-| Weekly | Sunday 2:00 AM | 4 weeks | No |
-| Monthly | 1st of month 3:00 AM | 3 months | Yes |
-
-Volumes must be labeled with `gfs-backup` group to use these jobs.
+Velero backs up every PVC labelled `odroid/backup-policy` (`gfs` or `weekly`). See
+[Backups](#backups-1) below and the [Velero chart](../charts/velero/README.md).
 
 ## Example values.yaml
 
@@ -276,8 +268,6 @@ longhorn:
   enabled: true
   config:
     defaultSettings:
-      backupTarget: "s3://backup-bucket@eu-central-1/"
-      backupTargetCredentialSecret: longhorn-backup-secret
       defaultReplicaCount: 1
     ingress:
       enabled: true
@@ -475,14 +465,14 @@ kubectl logs -n ntfy deployment/ntfy
 
 ## Backups
 
-Two layers exist side by side while the switch to Velero is being verified:
+**Velero** snapshots the labelled PVCs through the `longhorn-snapshot`
+`VolumeSnapshotClass` (`templates/volumesnapshotclass.yaml`) and uploads them with Kopia,
+encrypted, to [RustFS](../charts/rustfs/README.md). An external S3 target is prepared in
+the [Velero chart](../charts/velero/README.md) and switched off until needed.
 
-1. **Longhorn RecurringJobs** (`templates/recurring-job.yaml`) back up to the Longhorn
-   backup target. This is the older layer and will be removed.
-2. **Velero** snapshots the PVCs through the `longhorn-snapshot`
-   `VolumeSnapshotClass` (`templates/volumesnapshotclass.yaml`) and uploads them with
-   Kopia, encrypted, to [RustFS](../charts/rustfs/README.md) and later to an external
-   S3 bucket.
+Longhorn's own backup target and recurring jobs were retired in favour of Velero:
+Longhorn backups are unencrypted, and the NFS share they went to lived on the same NVMe
+as the volumes.
 
 ## Schema
 

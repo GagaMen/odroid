@@ -21,6 +21,8 @@ interface Scope {
   namespaces?: string[];
   /** PVC label that selects the backup tier */
   label?: string;
+  /** IANA time zone the tier cron expressions are meant in (Velero defaults to UTC) */
+  timezone?: string;
   /** Backup tiers (GFS): one Schedule per tier and target */
   tiers?: { [name: string]: Tier };
 }
