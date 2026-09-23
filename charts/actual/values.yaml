@@ -1,0 +1,98 @@
+# yaml-language-server: $schema=values.schema.json
+# Default values for actual.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: actualbudget/actual-server
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "26.9.0"
+
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# Actual keeps the budget in a SQLite file on a ReadWriteOnce volume. A rolling
+# update would start the new pod while the old one still holds that file, so two
+# processes would write the same database. Recreate stops the old pod first.
+strategy:
+  type: Recreate
+
+# Server settings, handed to the container as ACTUAL_* environment variables.
+config:
+  # Networks whose forwarded X-Forwarded-For the server trusts, which is what the
+  # rate limiter uses to tell clients apart. Leave empty: the server already trusts
+  # every private range by default, which covers the pod network. Setting a value
+  # here replaces that list rather than extending it.
+  trustedProxies: ""
+  # Largest budget file the server accepts, in MB.
+  uploadFileSizeLimitMb: 20
+
+# Additional environment variables, passed to the container verbatim.
+env: []
+  # - name: ACTUAL_LOGIN_METHOD
+  #   value: password
+
+# Persistent Volume Claim for the budget data (server-files and user-files).
+persistence:
+  data:
+    enabled: true
+    size: 2Gi
+    accessMode: ReadWriteOnce
+    labels: {}
+    # storageClass: ""
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+  # The container is told to listen on this port as well (ACTUAL_PORT).
+  port: 5006
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+    # cert-manager.io/cluster-issuer: lets-encrypt
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.0.0/24,10.8.0.0/24
+  hosts:
+    - host: actual.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: actual-tls
+  #    hosts:
+  #      - actual.example.com
+
+# The server answers /health with {"status":"UP"} once it can serve requests.
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 30
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    memory: 512Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

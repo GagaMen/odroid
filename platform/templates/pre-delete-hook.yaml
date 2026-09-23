@@ -87,7 +87,7 @@ spec:
           echo ""
           
           # Define namespaces to delete which contains persistent volume claims
-          NAMESPACES_TO_DELETE="adguard"
+          NAMESPACES_TO_DELETE="adguard actual"
           
           echo "Namespaces to delete: $NAMESPACES_TO_DELETE"
           echo ""

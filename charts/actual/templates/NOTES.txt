@@ -1,0 +1,39 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+{{- if .Values.ingress.enabled }}
+
+Actual Budget is available at:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- else }}
+
+No ingress is enabled. Reach the server with a port-forward:
+
+  $ kubectl port-forward -n {{ include "actual.namespace" . }} deployment/{{ include "actual.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+{{- end }}
+
+================================================================================
+IMPORTANT: Initial Setup
+================================================================================
+
+The server has no password until you set one. Open it in a browser and do this
+before anything else -- until then, anyone who can reach the ingress can create
+the first password themselves.
+
+  1. Set the server password
+  2. Create a budget file
+  3. Import the first account statement (More -> Import)
+
+{{- if not .Values.persistence.data.enabled }}
+
+WARNING: persistence is disabled. The budget lives in the container's writable
+layer and is lost when the pod restarts.
+{{- end }}

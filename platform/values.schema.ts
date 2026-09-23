@@ -1,3 +1,4 @@
+import type { Values as ActualValues } from "../charts/actual/values.schema";
 import type { Values as AdguardValues } from "../charts/adguard/values.schema";
 import type { Values as AlloyValues } from "../charts/alloy/values.schema";
 import type { Values as CertManagerDnsLexiconWebhookValues } from "../charts/cert-manager-dns-lexicon-webhook/values.schema";
@@ -68,6 +69,8 @@ export interface PlatformValues {
   homepage?: HomepageValues;
   /** adguard chart values */
   adguard?: AdguardValues;
+  /** actual chart values */
+  actual?: ActualValues;
   /** ntfy chart values */
   ntfy?: NtfyValues;
   /** prometheus chart values (wrapper: upstream values go under prometheus) */

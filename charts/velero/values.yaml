@@ -10,6 +10,7 @@ repositoryPassword: ""
 # Which PVCs are backed up and how long each tier is kept.
 scope:
   namespaces:
+    - actual
     - adguard
     - monitoring
   # PVCs carry this label; "gfs" gets all three tiers, "weekly" only the weekly one.

@@ -34,6 +34,10 @@ dependencies:
     version: 1.0.0
     repository: file://../charts/ntfy
     condition: ntfy.enabled
+  - name: actual
+    version: 1.0.0
+    repository: file://../charts/actual
+    condition: actual.enabled
   - name: prometheus
     version: 1.0.0
     repository: file://../charts/prometheus

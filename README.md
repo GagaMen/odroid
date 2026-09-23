@@ -5,6 +5,7 @@ A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkern
 ## 🚀 Features
 
 - **[AdGuard Home](charts/adguard/)** - Network-wide ad & tracker blocking DNS server
+- **[Actual Budget](charts/actual/)** - Personal finance manager with envelope budgeting
 - **[Homepage](charts/homepage/)** - Modern, customizable application dashboard
 - **[ntfy](charts/ntfy/)** - Self-hosted push notification service
 - **[Longhorn](charts/longhorn/)** - Cloud-native distributed storage
@@ -118,6 +119,7 @@ helm dependency update
 Create a `platform/values.yaml` file with your configuration. See the individual chart READMEs for available options:
 
 - [AdGuard Configuration](charts/adguard/README.md)
+- [Actual Budget Configuration](charts/actual/README.md)
 - [Homepage Configuration](charts/homepage/README.md)
 - [ntfy Configuration](charts/ntfy/README.md)
 - [Longhorn Configuration](charts/longhorn/README.md)
@@ -150,6 +152,7 @@ helm upgrade platform ./platform -n platform -f platform/values.yaml
 
 ```
 ├── charts/                                 # Individual Helm charts
+│   ├── actual/                             # Actual Budget personal finance manager
 │   ├── adguard/                            # AdGuard Home DNS ad-blocker
 │   ├── alloy/                              # Grafana Alloy log shipper
 │   ├── cert-manager-dns-lexicon-webhook/   # DNS-01 ACME solver
@@ -194,6 +197,7 @@ npm install
 #### Generate a Single Schema
 
 ```bash
+npm run generate:actual
 npm run generate:adguard
 npm run generate:alloy
 npm run generate:cert-manager-dns-lexicon-webhook

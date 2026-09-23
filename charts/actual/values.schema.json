@@ -1,0 +1,372 @@
+{
+  "$ref": "#/definitions/Values",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Values": {
+      "additionalProperties": false,
+      "properties": {
+        "affinity": {
+          "description": "Affinity rules for pod assignment",
+          "type": "object"
+        },
+        "config": {
+          "additionalProperties": false,
+          "description": "Server settings, handed to the container as ACTUAL_* environment variables",
+          "properties": {
+            "trustedProxies": {
+              "description": "Networks whose X-Forwarded-For is trusted (ACTUAL_TRUSTED_PROXIES). Empty means the server's own default: every private range plus loopback. Only set this to narrow that list.",
+              "type": "string"
+            },
+            "uploadFileSizeLimitMb": {
+              "description": "Largest budget file the server accepts, in MB (ACTUAL_UPLOAD_FILE_SIZE_LIMIT_MB)",
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "enabled": {
+          "description": "Enable/disable this chart (used by platform condition)",
+          "type": "boolean"
+        },
+        "env": {
+          "description": "Additional environment variables for the container",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "fullnameOverride": {
+          "description": "Override the full release name",
+          "type": "string"
+        },
+        "global": {
+          "description": "Injected by Helm for sub-chart coordination",
+          "type": "object"
+        },
+        "image": {
+          "additionalProperties": false,
+          "description": "Container image configuration",
+          "properties": {
+            "pullPolicy": {
+              "description": "Image pull policy",
+              "enum": [
+                "Always",
+                "IfNotPresent",
+                "Never"
+              ],
+              "type": "string"
+            },
+            "repository": {
+              "description": "Container image repository",
+              "type": "string"
+            },
+            "tag": {
+              "description": "Overrides the image tag whose default is the chart appVersion",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "ingress": {
+          "additionalProperties": false,
+          "description": "Ingress configuration",
+          "properties": {
+            "annotations": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Ingress annotations",
+              "type": "object"
+            },
+            "className": {
+              "description": "Ingress class name",
+              "type": "string"
+            },
+            "enabled": {
+              "description": "Enable ingress",
+              "type": "boolean"
+            },
+            "hosts": {
+              "description": "Ingress host rules",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "host": {
+                    "type": "string"
+                  },
+                  "paths": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "pathType": {
+                          "enum": [
+                            "Prefix",
+                            "Exact",
+                            "ImplementationSpecific"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "tls": {
+              "description": "Ingress TLS configuration",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "hosts": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "secretName": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "livenessProbe": {
+          "additionalProperties": false,
+          "description": "Liveness probe configuration",
+          "properties": {
+            "failureThreshold": {
+              "type": "integer"
+            },
+            "httpGet": {
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "port": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              },
+              "type": "object"
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "nameOverride": {
+          "description": "Override the chart name",
+          "type": "string"
+        },
+        "namespaceOverride": {
+          "description": "Override the deployment namespace",
+          "type": "string"
+        },
+        "nodeSelector": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Node selector for pod assignment",
+          "type": "object"
+        },
+        "persistence": {
+          "additionalProperties": false,
+          "description": "Persistent Volume Claim for the budget data",
+          "properties": {
+            "data": {
+              "additionalProperties": false,
+              "description": "PVC for server-files and user-files",
+              "properties": {
+                "accessMode": {
+                  "description": "PVC access mode",
+                  "enum": [
+                    "ReadWriteOnce",
+                    "ReadOnlyMany",
+                    "ReadWriteMany"
+                  ],
+                  "type": "string"
+                },
+                "enabled": {
+                  "description": "Enable persistent volume",
+                  "type": "boolean"
+                },
+                "labels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Labels for the PVC",
+                  "type": "object"
+                },
+                "size": {
+                  "description": "Volume size (e.g. 500Mi, 2Gi)",
+                  "pattern": "^[0-9]+(Mi|Gi|Ti)$",
+                  "type": "string"
+                },
+                "storageClass": {
+                  "description": "Storage class name",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "readinessProbe": {
+          "additionalProperties": false,
+          "description": "Readiness probe configuration",
+          "properties": {
+            "failureThreshold": {
+              "type": "integer"
+            },
+            "httpGet": {
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "port": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              },
+              "type": "object"
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "resources": {
+          "additionalProperties": false,
+          "description": "CPU/memory resource requests and limits",
+          "properties": {
+            "limits": {
+              "additionalProperties": false,
+              "description": "CPU/memory resource limits",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "requests": {
+              "additionalProperties": false,
+              "description": "CPU/memory resource requests",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "service": {
+          "additionalProperties": false,
+          "description": "Service configuration",
+          "properties": {
+            "port": {
+              "description": "Service port number; the container is told to listen on it as well",
+              "type": "integer"
+            },
+            "type": {
+              "description": "Service type",
+              "enum": [
+                "ClusterIP",
+                "NodePort",
+                "LoadBalancer",
+                "ExternalName"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "strategy": {
+          "additionalProperties": false,
+          "description": "Deployment update strategy -- Recreate, because two pods would write the same SQLite file",
+          "properties": {
+            "rollingUpdate": {
+              "type": "object"
+            },
+            "type": {
+              "enum": [
+                "Recreate",
+                "RollingUpdate"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "tolerations": {
+          "description": "Tolerations for pod assignment",
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    }
+  }
+}
