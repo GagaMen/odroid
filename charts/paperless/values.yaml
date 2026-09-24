@@ -1,0 +1,197 @@
+# yaml-language-server: $schema=values.schema.json
+# Default values for paperless.
+# Secrets go into platform/values.yaml (gitignored).
+
+image:
+  repository: ghcr.io/paperless-ngx/paperless-ngx
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "3.2.1"
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Paperless keeps its database in a SQLite file on a ReadWriteOnce volume. A
+# rolling update would start the new pod while the old one still holds that
+# file, so two processes would write the same database. Recreate stops the old
+# pod first.
+strategy:
+  type: Recreate
+
+# Settings handed to the container as PAPERLESS_* environment variables.
+config:
+  # Public URL without a trailing slash; sets ALLOWED_HOSTS, CORS and CSRF.
+  # Empty means it is derived from the first ingress host.
+  url: ""
+  # Tesseract languages, joined with "+". The image ships eng, deu, fra, ita
+  # and spa; every extra language costs OCR time.
+  ocrLanguage: deu+eng
+  timeZone: Europe/Berlin
+  # Background tasks run in parallel, and OCR threads per task. Their product
+  # should stay well below the core count, or OCR starves everything else.
+  taskWorkers: 1
+  threadsPerWorker: 2
+  # Each webserver worker loads the whole application into memory.
+  webserverWorkers: 1
+  # Proxy hops in X-Forwarded-For: the ingress controller. The login rate
+  # limiter uses this to tell clients apart instead of counting every login
+  # against the ingress address.
+  trustedProxyCount: 1
+
+# Required secrets, rendered into a Secret. Set them in platform/values.yaml.
+secret:
+  # Signs sessions and tokens; paperless refuses to start without it. Generate
+  # with: python3 -c "import secrets; print(secrets.token_urlsafe(64))"
+  secretKey: ""
+  # Superuser created on first start if it does not exist yet. Changing the
+  # password here later does not change it in paperless.
+  adminUser: ""
+  adminPassword: ""
+
+# Additional environment variables, passed to the paperless container verbatim.
+env: []
+  # - name: PAPERLESS_OCR_PAGES
+  #   value: "1"
+
+# Task queue broker, run as a sidecar and reachable only on localhost. It holds
+# nothing that has to survive a restart, so it has no volume.
+broker:
+  image:
+    repository: valkey/valkey
+    tag: "9.1.2-alpine"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 10m
+      memory: 16Mi
+    limits:
+      memory: 128Mi
+
+# SMB share onto the consume directory, for scanners that "scan to network".
+# Runs as a sidecar because it writes into the same ReadWriteOnce volume, and
+# gets a LAN address of its own through a LoadBalancer service (MetalLB).
+scanShare:
+  enabled: false
+  image:
+    repository: ghcr.io/servercontainers/samba
+    # smbd only: no avahi or wsdd2, since the scanner is given the address.
+    tag: "smbd-only-a3.24.2-s4.23.8-r0"
+    pullPolicy: IfNotPresent
+  # Share name as the scanner sees it: \\<address>\consume
+  shareName: consume
+  user: scanner
+  # Set in platform/values.yaml; no spaces (the image's entrypoint splits on them).
+  password: ""
+  # Files are written with this uid/gid so paperless (uid 1000 in the image)
+  # can move them away after consuming.
+  uid: 1000
+  # Client networks allowed to connect, as CIDRs. Enforced twice: by the
+  # service (loadBalancerSourceRanges) and by Samba (hosts allow).
+  allowedNetworks: []
+  service:
+    type: LoadBalancer
+    # Address requested from MetalLB (metallb.io/loadBalancerIPs).
+    address: ""
+    annotations: {}
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 256Mi
+
+persistence:
+  # SQLite database, search index and classifier model.
+  data:
+    enabled: true
+    size: 2Gi
+    accessMode: ReadWriteOnce
+    labels: {}
+    # storageClass: ""
+  # Originals, archived PDF/A copies and thumbnails. Grows with the archive.
+  media:
+    enabled: true
+    size: 20Gi
+    accessMode: ReadWriteOnce
+    labels: {}
+    # storageClass: ""
+  # Inbox: files wait here until they are consumed, then disappear. A volume
+  # rather than an emptyDir, so a file that arrives shortly before an upgrade
+  # is not lost with the old pod.
+  consume:
+    enabled: true
+    size: 1Gi
+    accessMode: ReadWriteOnce
+    labels: {}
+    # storageClass: ""
+
+service:
+  type: ClusterIP
+  # The webserver inside the container always listens on 8000.
+  port: 8000
+
+ingress:
+  enabled: true
+  className: ""
+  annotations:
+    # nginx rejects request bodies above 1m by default, which turns every
+    # larger upload into a "413 Request Entity Too Large".
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    # cert-manager.io/cluster-issuer: lets-encrypt
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.0.0/24,10.8.0.0/24
+  hosts:
+    - host: paperless.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: paperless-tls
+  #    hosts:
+  #      - paperless.example.com
+
+# Probes send "Host: localhost". Once config.url is set, Django only accepts
+# that host and localhost, and answers a probe addressed to the pod IP with 400.
+# The first start migrates the database and builds the search index, which
+# takes minutes on ARM; the startup probe allows ten.
+startupProbe:
+  httpGet:
+    path: /
+    port: http
+    httpHeaders:
+      - name: Host
+        value: localhost
+  periodSeconds: 10
+  failureThreshold: 60
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+    httpHeaders:
+      - name: Host
+        value: localhost
+  periodSeconds: 30
+  timeoutSeconds: 5
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+    httpHeaders:
+      - name: Host
+        value: localhost
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+# OCR of a multi-page scan is the memory peak.
+resources:
+  requests:
+    cpu: 250m
+    memory: 1Gi
+  limits:
+    memory: 3Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

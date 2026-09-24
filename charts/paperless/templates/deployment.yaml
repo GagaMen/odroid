@@ -1,0 +1,178 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "paperless.fullname" . }}
+  namespace: {{ include "paperless.namespace" . }}
+  labels:
+    {{- include "paperless.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  {{- with .Values.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "paperless.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "paperless.labels" . | nindent 8 }}
+      annotations:
+        # The secret is read as environment variables, which a running
+        # container does not pick up; restart the pod when it changes.
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: PAPERLESS_REDIS
+              # 127.0.0.1, not localhost: the broker listens on IPv4 only.
+              value: redis://127.0.0.1:6379
+            - name: PAPERLESS_DBENGINE
+              value: sqlite
+            {{- with (include "paperless.url" .) }}
+            - name: PAPERLESS_URL
+              value: {{ . | quote }}
+            {{- end }}
+            - name: PAPERLESS_OCR_LANGUAGE
+              value: {{ .Values.config.ocrLanguage | quote }}
+            - name: PAPERLESS_TIME_ZONE
+              value: {{ .Values.config.timeZone | quote }}
+            - name: PAPERLESS_TASK_WORKERS
+              value: {{ .Values.config.taskWorkers | quote }}
+            - name: PAPERLESS_THREADS_PER_WORKER
+              value: {{ .Values.config.threadsPerWorker | quote }}
+            - name: PAPERLESS_WEBSERVER_WORKERS
+              value: {{ .Values.config.webserverWorkers | quote }}
+            - name: PAPERLESS_ALLAUTH_TRUSTED_PROXY_COUNT
+              value: {{ .Values.config.trustedProxyCount | quote }}
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "paperless.fullname" . }}
+                  key: PAPERLESS_SECRET_KEY
+            {{- if .Values.secret.adminUser }}
+            {{- range $key := list "PAPERLESS_ADMIN_USER" "PAPERLESS_ADMIN_PASSWORD" }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "paperless.fullname" $ }}
+                  key: {{ $key }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- range $name := list "data" "media" "consume" }}
+            {{- if (index $.Values.persistence $name).enabled }}
+            - name: {{ $name }}
+              mountPath: /usr/src/paperless/{{ $name }}
+            {{- end }}
+            {{- end }}
+        - name: broker
+          image: "{{ .Values.broker.image.repository }}:{{ .Values.broker.image.tag }}"
+          imagePullPolicy: {{ .Values.broker.image.pullPolicy }}
+          # Queue only: no snapshots, no append-only file, and not reachable
+          # from outside the pod.
+          args:
+            - --bind
+            - 127.0.0.1
+            - --save
+            - ""
+            - --appendonly
+            - "no"
+          {{- with .Values.broker.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- if .Values.scanShare.enabled }}
+        - name: samba
+          image: "{{ .Values.scanShare.image.repository }}:{{ .Values.scanShare.image.tag }}"
+          imagePullPolicy: {{ .Values.scanShare.image.pullPolicy }}
+          ports:
+            - name: smb
+              containerPort: 445
+              protocol: TCP
+          env:
+            # The image's entrypoint splits these on whitespace: no spaces in
+            # values, and "_SPACE_" for the spaces in a key.
+            - name: ACCOUNT_{{ .Values.scanShare.user }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "paperless.fullname" . }}
+                  key: ACCOUNT_{{ .Values.scanShare.user }}
+            - name: UID_{{ .Values.scanShare.user }}
+              value: {{ .Values.scanShare.uid | quote }}
+            - name: SAMBA_GLOBAL_CONFIG_server_SPACE_min_SPACE_protocol
+              value: SMB2
+            {{- with .Values.scanShare.allowedNetworks }}
+            - name: SAMBA_GLOBAL_CONFIG_hosts_SPACE_allow
+              value: {{ join "," . | quote }}
+            {{- end }}
+            - name: SAMBA_VOLUME_CONFIG_{{ .Values.scanShare.shareName }}
+              value: "[{{ .Values.scanShare.shareName }}]; path = /shares/consume; valid users = {{ .Values.scanShare.user }}; guest ok = no; read only = no; browseable = yes"
+            - name: NETBIOS_DISABLE
+              value: "true"
+          readinessProbe:
+            tcpSocket:
+              port: smb
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: smb
+            periodSeconds: 30
+          {{- with .Values.scanShare.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: consume
+              mountPath: /shares/consume
+        {{- end }}
+      volumes:
+        {{- range $name := list "data" "media" "consume" }}
+        {{- if (index $.Values.persistence $name).enabled }}
+        - name: {{ $name }}
+          persistentVolumeClaim:
+            claimName: {{ include "paperless.fullname" $ }}-{{ $name }}
+        {{- else if and (eq $name "consume") $.Values.scanShare.enabled }}
+        - name: consume
+          emptyDir: {}
+        {{- end }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

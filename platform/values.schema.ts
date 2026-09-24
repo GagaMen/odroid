@@ -8,6 +8,7 @@ import type { Values as LokiValues } from "../charts/loki/values.schema";
 import type { Values as LonghornValues } from "../charts/longhorn/values.schema";
 import type { Values as MetallbValues } from "../charts/metallb/values.schema";
 import type { Values as NtfyValues } from "../charts/ntfy/values.schema";
+import type { Values as PaperlessValues } from "../charts/paperless/values.schema";
 import type { Values as PrometheusValues } from "../charts/prometheus/values.schema";
 import type { Values as RustfsValues } from "../charts/rustfs/values.schema";
 import type { Values as SnapshotControllerValues } from "../charts/snapshot-controller/values.schema";
@@ -76,6 +77,8 @@ export interface PlatformValues {
   actual?: ActualValues;
   /** ntfy chart values */
   ntfy?: NtfyValues;
+  /** paperless chart values */
+  paperless?: PaperlessValues;
   /** prometheus chart values (wrapper: upstream values go under prometheus) */
   prometheus?: PrometheusValues;
   /** grafana chart values (wrapper: upstream values go under grafana) */

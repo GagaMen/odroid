@@ -41,6 +41,7 @@ platform/
 | adguard | 1.1.0 | `adguard.enabled` |
 | ntfy | 1.0.0 | `ntfy.enabled` |
 | actual | 1.0.0 | `actual.enabled` |
+| paperless | 1.0.0 | `paperless.enabled` |
 | prometheus | 1.0.0 | `prometheus.enabled` |
 | grafana | 1.0.0 | `grafana.enabled` |
 | loki | 1.0.0 | `loki.enabled` |
@@ -127,6 +128,7 @@ The platform chart creates dedicated namespaces for each service in `templates/n
 | `adguard` | DNS ad-blocker |
 | `ntfy` | Push notifications |
 | `actual` | Personal finance manager |
+| `paperless` | Document archive |
 | `monitoring` | Prometheus, Grafana, Loki, Alloy |
 
 > **Important:** Each sub-chart requires `namespaceOverride` to be set in your `values.yaml` to deploy into these namespaces. Without it, charts deploy into the release namespace `platform` (except Longhorn, which defaults to `longhorn-system`).
@@ -147,6 +149,10 @@ ntfy:
 actual:
   enabled: true
   namespaceOverride: actual
+
+paperless:
+  enabled: true
+  namespaceOverride: paperless
 
 # ... more config
 ```

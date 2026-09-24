@@ -1,0 +1,751 @@
+{
+  "$ref": "#/definitions/Values",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Values": {
+      "additionalProperties": false,
+      "properties": {
+        "affinity": {
+          "description": "Affinity rules for pod assignment",
+          "type": "object"
+        },
+        "broker": {
+          "additionalProperties": false,
+          "description": "Task queue broker sidecar",
+          "properties": {
+            "image": {
+              "additionalProperties": false,
+              "description": "Valkey image used as the task queue broker",
+              "properties": {
+                "pullPolicy": {
+                  "enum": [
+                    "Always",
+                    "IfNotPresent",
+                    "Never"
+                  ],
+                  "type": "string"
+                },
+                "repository": {
+                  "type": "string"
+                },
+                "tag": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "resources": {
+              "additionalProperties": false,
+              "properties": {
+                "limits": {
+                  "additionalProperties": false,
+                  "description": "CPU/memory resource limits",
+                  "properties": {
+                    "cpu": {
+                      "type": "string"
+                    },
+                    "memory": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "requests": {
+                  "additionalProperties": false,
+                  "description": "CPU/memory resource requests",
+                  "properties": {
+                    "cpu": {
+                      "type": "string"
+                    },
+                    "memory": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "config": {
+          "additionalProperties": false,
+          "description": "Settings handed to the container as PAPERLESS_* environment variables",
+          "properties": {
+            "ocrLanguage": {
+              "description": "Tesseract languages joined with \"+\" (PAPERLESS_OCR_LANGUAGE)",
+              "type": "string"
+            },
+            "taskWorkers": {
+              "description": "Background tasks in parallel (PAPERLESS_TASK_WORKERS)",
+              "type": "integer"
+            },
+            "threadsPerWorker": {
+              "description": "OCR threads per task (PAPERLESS_THREADS_PER_WORKER)",
+              "type": "integer"
+            },
+            "timeZone": {
+              "description": "IANA time zone (PAPERLESS_TIME_ZONE)",
+              "type": "string"
+            },
+            "trustedProxyCount": {
+              "description": "Proxy hops in X-Forwarded-For, for the login rate limiter (PAPERLESS_ALLAUTH_TRUSTED_PROXY_COUNT)",
+              "type": "integer"
+            },
+            "url": {
+              "description": "Public URL without trailing slash (PAPERLESS_URL); empty means derived from the first ingress host",
+              "type": "string"
+            },
+            "webserverWorkers": {
+              "description": "Webserver processes, each with its own copy of the app in memory (PAPERLESS_WEBSERVER_WORKERS)",
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "enabled": {
+          "description": "Enable/disable this chart (used by platform condition)",
+          "type": "boolean"
+        },
+        "env": {
+          "description": "Additional environment variables for the paperless container",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "fullnameOverride": {
+          "description": "Override the full release name",
+          "type": "string"
+        },
+        "global": {
+          "description": "Injected by Helm for sub-chart coordination",
+          "type": "object"
+        },
+        "image": {
+          "additionalProperties": false,
+          "description": "Container image configuration",
+          "properties": {
+            "pullPolicy": {
+              "description": "Image pull policy",
+              "enum": [
+                "Always",
+                "IfNotPresent",
+                "Never"
+              ],
+              "type": "string"
+            },
+            "repository": {
+              "description": "Container image repository",
+              "type": "string"
+            },
+            "tag": {
+              "description": "Overrides the image tag whose default is the chart appVersion",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "ingress": {
+          "additionalProperties": false,
+          "description": "Ingress configuration",
+          "properties": {
+            "annotations": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Ingress annotations",
+              "type": "object"
+            },
+            "className": {
+              "description": "Ingress class name",
+              "type": "string"
+            },
+            "enabled": {
+              "description": "Enable ingress",
+              "type": "boolean"
+            },
+            "hosts": {
+              "description": "Ingress host rules",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "host": {
+                    "type": "string"
+                  },
+                  "paths": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "pathType": {
+                          "enum": [
+                            "Prefix",
+                            "Exact",
+                            "ImplementationSpecific"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "tls": {
+              "description": "Ingress TLS configuration",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "hosts": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "secretName": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "livenessProbe": {
+          "additionalProperties": false,
+          "description": "Liveness probe configuration",
+          "properties": {
+            "failureThreshold": {
+              "type": "integer"
+            },
+            "httpGet": {
+              "additionalProperties": false,
+              "properties": {
+                "httpHeaders": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "value"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "port": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              },
+              "type": "object"
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "nameOverride": {
+          "description": "Override the chart name",
+          "type": "string"
+        },
+        "namespaceOverride": {
+          "description": "Override the deployment namespace",
+          "type": "string"
+        },
+        "nodeSelector": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Node selector for pod assignment",
+          "type": "object"
+        },
+        "persistence": {
+          "additionalProperties": false,
+          "description": "Persistent Volume Claims",
+          "properties": {
+            "consume": {
+              "additionalProperties": false,
+              "description": "Inbox for new documents",
+              "properties": {
+                "accessMode": {
+                  "description": "PVC access mode",
+                  "enum": [
+                    "ReadWriteOnce",
+                    "ReadOnlyMany",
+                    "ReadWriteMany"
+                  ],
+                  "type": "string"
+                },
+                "enabled": {
+                  "description": "Enable persistent volume",
+                  "type": "boolean"
+                },
+                "labels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Labels for the PVC",
+                  "type": "object"
+                },
+                "size": {
+                  "description": "Volume size (e.g. 500Mi, 2Gi)",
+                  "pattern": "^[0-9]+(Mi|Gi|Ti)$",
+                  "type": "string"
+                },
+                "storageClass": {
+                  "description": "Storage class name",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "data": {
+              "additionalProperties": false,
+              "description": "SQLite database, search index, classifier",
+              "properties": {
+                "accessMode": {
+                  "description": "PVC access mode",
+                  "enum": [
+                    "ReadWriteOnce",
+                    "ReadOnlyMany",
+                    "ReadWriteMany"
+                  ],
+                  "type": "string"
+                },
+                "enabled": {
+                  "description": "Enable persistent volume",
+                  "type": "boolean"
+                },
+                "labels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Labels for the PVC",
+                  "type": "object"
+                },
+                "size": {
+                  "description": "Volume size (e.g. 500Mi, 2Gi)",
+                  "pattern": "^[0-9]+(Mi|Gi|Ti)$",
+                  "type": "string"
+                },
+                "storageClass": {
+                  "description": "Storage class name",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "media": {
+              "additionalProperties": false,
+              "description": "Originals, archive copies, thumbnails",
+              "properties": {
+                "accessMode": {
+                  "description": "PVC access mode",
+                  "enum": [
+                    "ReadWriteOnce",
+                    "ReadOnlyMany",
+                    "ReadWriteMany"
+                  ],
+                  "type": "string"
+                },
+                "enabled": {
+                  "description": "Enable persistent volume",
+                  "type": "boolean"
+                },
+                "labels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Labels for the PVC",
+                  "type": "object"
+                },
+                "size": {
+                  "description": "Volume size (e.g. 500Mi, 2Gi)",
+                  "pattern": "^[0-9]+(Mi|Gi|Ti)$",
+                  "type": "string"
+                },
+                "storageClass": {
+                  "description": "Storage class name",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "readinessProbe": {
+          "additionalProperties": false,
+          "description": "Readiness probe configuration",
+          "properties": {
+            "failureThreshold": {
+              "type": "integer"
+            },
+            "httpGet": {
+              "additionalProperties": false,
+              "properties": {
+                "httpHeaders": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "value"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "port": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              },
+              "type": "object"
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "resources": {
+          "additionalProperties": false,
+          "description": "CPU/memory resource requests and limits",
+          "properties": {
+            "limits": {
+              "additionalProperties": false,
+              "description": "CPU/memory resource limits",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "requests": {
+              "additionalProperties": false,
+              "description": "CPU/memory resource requests",
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
+        "scanShare": {
+          "additionalProperties": false,
+          "description": "SMB share onto the consume directory, for network scanners",
+          "properties": {
+            "allowedNetworks": {
+              "description": "Client networks (CIDR) allowed to connect",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "enabled": {
+              "description": "Run a Samba sidecar that shares the consume directory",
+              "type": "boolean"
+            },
+            "image": {
+              "additionalProperties": false,
+              "properties": {
+                "pullPolicy": {
+                  "enum": [
+                    "Always",
+                    "IfNotPresent",
+                    "Never"
+                  ],
+                  "type": "string"
+                },
+                "repository": {
+                  "type": "string"
+                },
+                "tag": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "password": {
+              "description": "Password of that account; no spaces",
+              "type": "string"
+            },
+            "resources": {
+              "additionalProperties": false,
+              "properties": {
+                "limits": {
+                  "additionalProperties": false,
+                  "description": "CPU/memory resource limits",
+                  "properties": {
+                    "cpu": {
+                      "type": "string"
+                    },
+                    "memory": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "requests": {
+                  "additionalProperties": false,
+                  "description": "CPU/memory resource requests",
+                  "properties": {
+                    "cpu": {
+                      "type": "string"
+                    },
+                    "memory": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "service": {
+              "additionalProperties": false,
+              "properties": {
+                "address": {
+                  "description": "Address requested from MetalLB (metallb.io/loadBalancerIPs)",
+                  "type": "string"
+                },
+                "annotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Additional service annotations",
+                  "type": "object"
+                },
+                "type": {
+                  "description": "Service type; LoadBalancer gives the share its own address",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer",
+                    "ExternalName"
+                  ],
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "shareName": {
+              "description": "Share name as clients see it",
+              "type": "string"
+            },
+            "uid": {
+              "description": "uid (and gid) files are written with; must be paperless's uid",
+              "type": "integer"
+            },
+            "user": {
+              "description": "Samba account the scanner logs in with",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "secret": {
+          "additionalProperties": false,
+          "description": "Values rendered into the chart's Secret",
+          "properties": {
+            "adminPassword": {
+              "description": "Password of that superuser, only used when it is created (PAPERLESS_ADMIN_PASSWORD)",
+              "type": "string"
+            },
+            "adminUser": {
+              "description": "Superuser created on first start (PAPERLESS_ADMIN_USER)",
+              "type": "string"
+            },
+            "secretKey": {
+              "description": "Signs sessions and tokens (PAPERLESS_SECRET_KEY); required",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "service": {
+          "additionalProperties": false,
+          "description": "Service configuration",
+          "properties": {
+            "port": {
+              "description": "Service port number (the container always listens on 8000)",
+              "type": "integer"
+            },
+            "type": {
+              "description": "Service type",
+              "enum": [
+                "ClusterIP",
+                "NodePort",
+                "LoadBalancer",
+                "ExternalName"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "startupProbe": {
+          "additionalProperties": false,
+          "description": "Startup probe configuration",
+          "properties": {
+            "failureThreshold": {
+              "type": "integer"
+            },
+            "httpGet": {
+              "additionalProperties": false,
+              "properties": {
+                "httpHeaders": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "value"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "port": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              },
+              "type": "object"
+            },
+            "initialDelaySeconds": {
+              "type": "integer"
+            },
+            "periodSeconds": {
+              "type": "integer"
+            },
+            "timeoutSeconds": {
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "strategy": {
+          "additionalProperties": false,
+          "description": "Deployment update strategy -- Recreate, because two pods would write the same SQLite file",
+          "properties": {
+            "rollingUpdate": {
+              "type": "object"
+            },
+            "type": {
+              "enum": [
+                "Recreate",
+                "RollingUpdate"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "tolerations": {
+          "description": "Tolerations for pod assignment",
+          "items": {
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    }
+  }
+}

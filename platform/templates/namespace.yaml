@@ -46,6 +46,15 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
+  name: paperless
+  labels:
+    app.kubernetes.io/name: paperless
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
   name: monitoring
   labels:
     app.kubernetes.io/name: monitoring

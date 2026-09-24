@@ -6,6 +6,7 @@ A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkern
 
 - **[AdGuard Home](charts/adguard/)** - Network-wide ad & tracker blocking DNS server
 - **[Actual Budget](charts/actual/)** - Personal finance manager with envelope budgeting
+- **[Paperless-ngx](charts/paperless/)** - Document archive with OCR, full-text search and a scanner share
 - **[Homepage](charts/homepage/)** - Modern, customizable application dashboard
 - **[ntfy](charts/ntfy/)** - Self-hosted push notification service
 - **[Longhorn](charts/longhorn/)** - Cloud-native distributed storage
@@ -121,6 +122,7 @@ Create a `platform/values.yaml` file with your configuration. See the individual
 
 - [AdGuard Configuration](charts/adguard/README.md)
 - [Actual Budget Configuration](charts/actual/README.md)
+- [Paperless-ngx Configuration](charts/paperless/README.md)
 - [Homepage Configuration](charts/homepage/README.md)
 - [ntfy Configuration](charts/ntfy/README.md)
 - [Longhorn Configuration](charts/longhorn/README.md)
@@ -164,6 +166,7 @@ helm upgrade platform ./platform -n platform -f platform/values.yaml
 │   ├── longhorn/                           # Distributed storage
 │   ├── metallb/                            # LAN addresses for LoadBalancer services
 │   ├── ntfy/                               # Push notification service
+│   ├── paperless/                          # Paperless-ngx document archive
 │   ├── prometheus/                         # Metrics collection & storage
 │   ├── rustfs/                             # S3 object store, local backup target
 │   ├── snapshot-controller/                # CSI snapshot API for Velero
@@ -210,6 +213,7 @@ npm run generate:loki
 npm run generate:longhorn
 npm run generate:metallb
 npm run generate:ntfy
+npm run generate:paperless
 npm run generate:prometheus
 npm run generate:rustfs
 npm run generate:snapshot-controller

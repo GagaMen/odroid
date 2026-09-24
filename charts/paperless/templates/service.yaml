@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "paperless.fullname" . }}
+  namespace: {{ include "paperless.namespace" . }}
+  labels:
+    {{- include "paperless.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "paperless.selectorLabels" . | nindent 4 }}
+{{- if .Values.scanShare.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "paperless.fullname" . }}-scan
+  namespace: {{ include "paperless.namespace" . }}
+  labels:
+    {{- include "paperless.labels" . | nindent 4 }}
+  {{- if or .Values.scanShare.service.address .Values.scanShare.service.annotations }}
+  annotations:
+    {{- with .Values.scanShare.service.address }}
+    metallb.io/loadBalancerIPs: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.scanShare.service.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+spec:
+  type: {{ .Values.scanShare.service.type }}
+  {{- if ne .Values.scanShare.service.type "ClusterIP" }}
+  # Keeps the scanner's own address as the source, so Samba's hosts allow and
+  # the source ranges below see the client and not the node.
+  externalTrafficPolicy: Local
+  {{- with .Values.scanShare.allowedNetworks }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- end }}
+  ports:
+    - name: smb
+      port: 445
+      targetPort: smb
+      protocol: TCP
+  selector:
+    {{- include "paperless.selectorLabels" . | nindent 4 }}
+{{- end }}

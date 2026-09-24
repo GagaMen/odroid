@@ -1,0 +1,25 @@
+{{- range $name := list "data" "media" "consume" }}
+{{- $pvc := index $.Values.persistence $name }}
+{{- if $pvc.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "paperless.fullname" $ }}-{{ $name }}
+  namespace: {{ include "paperless.namespace" $ }}
+  labels:
+    {{- include "paperless.labels" $ | nindent 4 }}
+    {{- with $pvc.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  accessModes:
+    - {{ $pvc.accessMode }}
+  resources:
+    requests:
+      storage: {{ $pvc.size }}
+  {{- with $pvc.storageClass }}
+  storageClassName: {{ . }}
+  {{- end }}
+{{- end }}
+{{- end }}

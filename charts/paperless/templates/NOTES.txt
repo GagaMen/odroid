@@ -1,0 +1,43 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+{{- if .Values.ingress.enabled }}
+
+Paperless-ngx is available at:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- else }}
+
+No ingress is enabled. Reach the server with a port-forward:
+
+  $ kubectl port-forward -n {{ include "paperless.namespace" . }} deployment/{{ include "paperless.fullname" . }} 8000:8000
+{{- end }}
+
+The first start migrates the database and can take several minutes.
+{{- if .Values.secret.adminUser }}
+Log in as "{{ .Values.secret.adminUser }}" with the password from secret.adminPassword.
+{{- else }}
+
+No secret.adminUser is set, so no account exists yet. Create one with:
+
+  $ kubectl exec -it -n {{ include "paperless.namespace" . }} deployment/{{ include "paperless.fullname" . }} -c {{ .Chart.Name }} -- createsuperuser
+{{- end }}
+{{- if .Values.scanShare.enabled }}
+
+Scan share: \\<address>\{{ .Values.scanShare.shareName }}, user "{{ .Values.scanShare.user }}", SMB2 or newer.
+Find the address with:
+
+  $ kubectl get service -n {{ include "paperless.namespace" . }} {{ include "paperless.fullname" . }}-scan
+{{- end }}
+{{- if not .Values.persistence.media.enabled }}
+
+WARNING: persistence.media is disabled. Every document lives in the container's
+writable layer and is lost when the pod restarts.
+{{- end }}

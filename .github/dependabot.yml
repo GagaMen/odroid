@@ -12,6 +12,7 @@ updates:
       - /charts/cert-manager-dns-lexicon-webhook
       - /charts/homepage
       - /charts/ntfy
+      - /charts/paperless
       - /charts/rustfs
       - /charts/velero
     schedule:
