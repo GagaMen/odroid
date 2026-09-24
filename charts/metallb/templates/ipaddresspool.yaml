@@ -1,0 +1,28 @@
+{{- /*
+The IPAddressPool CRD arrives with this same chart. Helm cannot map a kind
+whose CRD does not exist yet when it builds the release, so on the release
+that first installs MetalLB the pools are skipped, and the next upgrade
+creates them -- as ordinary resources that are updated in place, unlike a
+hook, which is deleted and recreated on every upgrade and would withdraw the
+addresses each time.
+*/ -}}
+{{- if .Capabilities.APIVersions.Has "metallb.io/v1beta1/IPAddressPool" }}
+{{- range $name, $pool := .Values.pools }}
+{{- if $pool.addresses }}
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: metallb
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+spec:
+  addresses:
+    {{- toYaml $pool.addresses | nindent 4 }}
+  autoAssign: {{ $pool.autoAssign | default false }}
+{{- end }}
+{{- end }}
+{{- end }}

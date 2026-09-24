@@ -6,6 +6,7 @@ import type { Values as GrafanaValues } from "../charts/grafana/values.schema";
 import type { Values as HomepageValues } from "../charts/homepage/values.schema";
 import type { Values as LokiValues } from "../charts/loki/values.schema";
 import type { Values as LonghornValues } from "../charts/longhorn/values.schema";
+import type { Values as MetallbValues } from "../charts/metallb/values.schema";
 import type { Values as NtfyValues } from "../charts/ntfy/values.schema";
 import type { Values as PrometheusValues } from "../charts/prometheus/values.schema";
 import type { Values as RustfsValues } from "../charts/rustfs/values.schema";
@@ -59,6 +60,8 @@ export interface PlatformValues {
   clusterIssuer?: ClusterIssuer;
   /** longhorn chart values (wrapper: chart values go under config) */
   longhorn?: LonghornValues;
+  /** metallb chart values (wrapper: upstream values go under metallb) */
+  metallb?: MetallbValues;
   /** snapshot-controller chart values (wrapper: upstream values go under snapshot-controller) */
   "snapshot-controller"?: SnapshotControllerValues;
   /** rustfs chart values (wrapper: upstream values go under rustfs) */

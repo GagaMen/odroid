@@ -9,6 +9,7 @@ A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkern
 - **[Homepage](charts/homepage/)** - Modern, customizable application dashboard
 - **[ntfy](charts/ntfy/)** - Self-hosted push notification service
 - **[Longhorn](charts/longhorn/)** - Cloud-native distributed storage
+- **[MetalLB](charts/metallb/)** - Own LAN addresses for selected LoadBalancer services
 - **[Snapshot Controller](charts/snapshot-controller/)** - CSI snapshot API, the basis for Velero backups
 - **[RustFS](charts/rustfs/)** - S3-compatible object store, local target for encrypted backups
 - **[Velero](charts/velero/)** - Encrypted PVC backups to S3, locally and off-site
@@ -123,6 +124,7 @@ Create a `platform/values.yaml` file with your configuration. See the individual
 - [Homepage Configuration](charts/homepage/README.md)
 - [ntfy Configuration](charts/ntfy/README.md)
 - [Longhorn Configuration](charts/longhorn/README.md)
+- [MetalLB Configuration](charts/metallb/README.md)
 - [Snapshot Controller Configuration](charts/snapshot-controller/README.md)
 - [RustFS Configuration](charts/rustfs/README.md)
 - [Velero Configuration](charts/velero/README.md)
@@ -160,6 +162,7 @@ helm upgrade platform ./platform -n platform -f platform/values.yaml
 │   ├── homepage/                           # Application dashboard
 │   ├── loki/                               # Log aggregation
 │   ├── longhorn/                           # Distributed storage
+│   ├── metallb/                            # LAN addresses for LoadBalancer services
 │   ├── ntfy/                               # Push notification service
 │   ├── prometheus/                         # Metrics collection & storage
 │   ├── rustfs/                             # S3 object store, local backup target
@@ -205,6 +208,7 @@ npm run generate:grafana
 npm run generate:homepage
 npm run generate:loki
 npm run generate:longhorn
+npm run generate:metallb
 npm run generate:ntfy
 npm run generate:prometheus
 npm run generate:rustfs

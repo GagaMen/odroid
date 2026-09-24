@@ -33,6 +33,7 @@ platform/
 |-------|---------|-----------|
 | cert-manager-dns-lexicon-webhook | 1.0.0 | `cert-manager-dns-lexicon-webhook.enabled` |
 | longhorn | 1.0.0 | `longhorn.enabled` |
+| metallb | 1.0.0 | `metallb.enabled` |
 | snapshot-controller | 1.0.0 | `snapshot-controller.enabled` |
 | rustfs | 1.0.0 | `rustfs.enabled` |
 | velero | 1.0.0 | `velero.enabled` |

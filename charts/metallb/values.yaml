@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=values.schema.json
+# Default values for the metallb chart wrapper.
+# The real address range goes into platform/values.yaml (gitignored).
+
+# Address pools, keyed by name. A pool without addresses is not rendered.
+pools:
+  lan:
+    # Ranges ("192.168.0.240-192.168.0.250") or CIDRs. They must lie outside
+    # every DHCP pool in the network, or two devices end up with one address.
+    addresses: []
+    # false: only services that ask for an address by annotation
+    # (metallb.io/loadBalancerIPs) get one. With true, every LoadBalancer
+    # service in the cluster would be handed an address from this pool.
+    autoAssign: false
+
+# Layer 2 announcement of all rendered pools: the speaker answers ARP for the
+# service addresses on the node's interfaces.
+l2Advertisement:
+  # Restrict the announcement to these interfaces; empty means all of them.
+  interfaces: []
+
+metallb:
+  # frr-k8s is the BGP stack. Layer 2 does not use it, and it would add a
+  # routing daemon on the host network for nothing.
+  frrk8s:
+    enabled: false
+
+  controller:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
+
+  speaker:
+    # Memberlist lets speakers on several nodes agree who announces an address.
+    # With one node there is nobody to agree with, and it would open another
+    # port on the host network.
+    memberlist:
+      enabled: false
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi

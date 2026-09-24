@@ -1,0 +1,25 @@
+{{- /* Skipped until the CRD exists; see ipaddresspool.yaml. */ -}}
+{{- if .Capabilities.APIVersions.Has "metallb.io/v1beta1/L2Advertisement" }}
+{{- $pools := list }}
+{{- range $name, $pool := .Values.pools }}
+{{- if $pool.addresses }}{{ $pools = append $pools $name }}{{ end }}
+{{- end }}
+{{- if $pools }}
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: {{ .Release.Name }}-l2
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: metallb
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  ipAddressPools:
+    {{- toYaml $pools | nindent 4 }}
+  {{- with .Values.l2Advertisement.interfaces }}
+  interfaces:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

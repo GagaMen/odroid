@@ -26,6 +26,7 @@ updates:
       - /charts/grafana
       - /charts/loki
       - /charts/longhorn
+      - /charts/metallb
       - /charts/prometheus
       - /charts/rustfs
       - /charts/snapshot-controller

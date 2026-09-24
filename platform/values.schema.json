@@ -9986,6 +9986,343 @@
           },
           "type": "object"
         },
+        "metallb": {
+          "additionalProperties": false,
+          "description": "metallb chart values (wrapper: upstream values go under metallb)",
+          "properties": {
+            "enabled": {
+              "description": "Enable/disable this chart (used by platform condition)",
+              "type": "boolean"
+            },
+            "global": {
+              "description": "Injected by Helm for sub-chart coordination",
+              "type": "object"
+            },
+            "l2Advertisement": {
+              "additionalProperties": false,
+              "description": "Layer 2 announcement of all rendered pools",
+              "properties": {
+                "interfaces": {
+                  "description": "Interfaces the addresses are announced on; empty means all",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
+            "metallb": {
+              "additionalProperties": false,
+              "description": "MetalLB upstream chart values (see https://github.com/metallb/metallb/tree/main/charts/metallb)",
+              "properties": {
+                "controller": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "affinity": {
+                      "type": "object"
+                    },
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "extraContainers": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "image": {
+                      "type": "object"
+                    },
+                    "labels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "livenessProbe": {
+                      "type": "object"
+                    },
+                    "logLevel": {
+                      "type": "string"
+                    },
+                    "nodeSelector": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "podAnnotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "priorityClassName": {
+                      "type": "string"
+                    },
+                    "readinessProbe": {
+                      "type": "object"
+                    },
+                    "resources": {
+                      "type": "object"
+                    },
+                    "runtimeClassName": {
+                      "type": "string"
+                    },
+                    "securityContext": {
+                      "type": "object"
+                    },
+                    "serviceAccount": {
+                      "type": "object"
+                    },
+                    "strategy": {
+                      "type": "object"
+                    },
+                    "tolerations": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "webhookMode": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "crds": {
+                  "additionalProperties": false,
+                  "description": "CRDs subchart; validationFailurePolicy applies to the admission webhooks",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "global": {
+                      "description": "Injected by Helm into the CRDs subchart",
+                      "type": "object"
+                    },
+                    "validationFailurePolicy": {
+                      "enum": [
+                        "Fail",
+                        "Ignore"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "frr-k8s": {
+                  "type": "object"
+                },
+                "frrk8s": {
+                  "additionalProperties": false,
+                  "description": "frr-k8s BGP stack (not used in layer 2 mode)",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "external": {
+                      "type": "boolean"
+                    },
+                    "namespace": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "fullnameOverride": {
+                  "type": "string"
+                },
+                "global": {
+                  "description": "Injected by Helm for sub-chart coordination",
+                  "type": "object"
+                },
+                "imagePullSecrets": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "loadBalancerClass": {
+                  "type": "string"
+                },
+                "nameOverride": {
+                  "type": "string"
+                },
+                "networkpolicies": {
+                  "type": "object"
+                },
+                "prometheus": {
+                  "type": "object"
+                },
+                "rbac": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "create": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                },
+                "speaker": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "affinity": {
+                      "type": "object"
+                    },
+                    "bgpDebounceTimeout": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "excludeInterfaces": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "extraContainers": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "frr": {
+                      "description": "FRR sidecar for BGP (not used in layer 2 mode)",
+                      "type": "object"
+                    },
+                    "frrMetrics": {
+                      "type": "object"
+                    },
+                    "ignoreExcludeLB": {
+                      "type": "boolean"
+                    },
+                    "image": {
+                      "type": "object"
+                    },
+                    "initContainers": {
+                      "type": "object"
+                    },
+                    "labels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "livenessProbe": {
+                      "type": "object"
+                    },
+                    "logLevel": {
+                      "type": "string"
+                    },
+                    "memberlist": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "enabled": {
+                          "description": "Speakers agree on the announcing node through memberlist (useless on one node)",
+                          "type": "boolean"
+                        },
+                        "mlBindAddrOverride": {
+                          "type": "string"
+                        },
+                        "mlBindPort": {
+                          "type": "number"
+                        },
+                        "mlSecretKeyPath": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "nodeSelector": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "podAnnotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "priorityClassName": {
+                      "type": "string"
+                    },
+                    "readinessProbe": {
+                      "type": "object"
+                    },
+                    "reloader": {
+                      "type": "object"
+                    },
+                    "resources": {
+                      "type": "object"
+                    },
+                    "runtimeClassName": {
+                      "type": "string"
+                    },
+                    "securityContext": {
+                      "type": "object"
+                    },
+                    "serviceAccount": {
+                      "type": "object"
+                    },
+                    "startupProbe": {
+                      "type": "object"
+                    },
+                    "tolerateMaster": {
+                      "type": "boolean"
+                    },
+                    "tolerations": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "updateStrategy": {
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                },
+                "tls": {
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "pools": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "properties": {
+                  "addresses": {
+                    "description": "Address ranges (\"192.168.0.240-192.168.0.250\") or CIDRs; must lie outside every DHCP pool",
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "autoAssign": {
+                    "description": "Hand out addresses to any LoadBalancer service, not only to those that request one by annotation",
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              },
+              "description": "Address pools, keyed by name; a pool without addresses is not rendered",
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
         "ntfy": {
           "additionalProperties": false,
           "description": "ntfy chart values",

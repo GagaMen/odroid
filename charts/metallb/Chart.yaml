@@ -1,0 +1,9 @@
+apiVersion: v2
+name: metallb
+description: MetalLB in layer 2 mode, giving selected LoadBalancer services their own address in the home network.
+type: application
+version: 1.0.0
+dependencies:
+  - name: metallb
+    version: 0.16.1
+    repository: https://metallb.github.io/metallb
