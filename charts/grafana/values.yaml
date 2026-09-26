@@ -53,6 +53,14 @@ grafana:
       enabled: false  # legacy alerting off; use unified alerting
     unified_alerting:
       enabled: true
+    # Grafana 13 ships its datasource plugins (prometheus, loki, ...) in the
+    # image and, on startup, updates them in place when grafana.com has a newer
+    # release. The distroless image mounts that directory read-only: the update
+    # unregisters the running plugin, fails to replace it, and every query and
+    # alert rule then fails with "plugin not registered" until the next restart.
+    # Bundled plugins move with the image version instead.
+    plugins:
+      preinstall_auto_update: false
 
   # -- Mount the alerting provisioning files built by templates/alerting-configmap.yaml
   extraConfigmapMounts:
