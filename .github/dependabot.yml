@@ -4,6 +4,19 @@
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
 version: 2
+
+# Dependabot's network proxy lets update jobs reach only an allowlist of hosts:
+# well-known public registries, ghcr.io among them. A Helm chart repository
+# outside that list answers 403, the version lookup comes back empty, and
+# Dependabot closes open pull requests as "update no longer possible" without
+# reporting an error. Charts are therefore pulled from ghcr.io wherever the
+# project publishes there.
+#
+# Longhorn, MetalLB, RustFS and Velero publish only to classic HTTP
+# repositories that are not on the allowlist, so Dependabot does not detect
+# their updates. Declaring them under `registries` would add
+# them to the allowlist, but GitHub rejects a helm-registry without
+# credentials, even for a public repository.
 updates:
   - package-ecosystem: "docker"
     directories:
