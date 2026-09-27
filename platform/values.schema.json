@@ -1908,6 +1908,10 @@
                     "nodePort": {
                       "type": "integer"
                     },
+                    "trafficDistribution": {
+                      "description": "'PreferSameNode' or 'PreferSameZone' (Kubernetes >= 1.34)",
+                      "type": "string"
+                    },
                     "type": {
                       "type": "string"
                     }

@@ -290,6 +290,8 @@ interface ServiceConfig {
   clusterIP?: string;
   internalTrafficPolicy?: string;
   externalTrafficPolicy?: string;
+  /** 'PreferSameNode' or 'PreferSameZone' (Kubernetes >= 1.34) */
+  trafficDistribution?: string;
   annotations?: { [key: string]: string };
 }
 
