@@ -3,9 +3,11 @@
 
 snapshot-controller:
   # The chart ships the VolumeSnapshot CRDs as templates, not under crds/, so
-  # they are upgraded with the chart. Removing the chart removes the CRDs and
-  # with them every VolumeSnapshot in the cluster.
+  # they are upgraded with the chart. Without keepCRDs, removing the chart
+  # would remove the CRDs and with them every VolumeSnapshot in the cluster;
+  # the helm.sh/resource-policy: keep annotation makes helm leave them behind.
   installCRDs: true
+  keepCRDs: true
 
   controller:
     replicaCount: 1

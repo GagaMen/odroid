@@ -22,14 +22,17 @@ The matching `VolumeSnapshotClass` lives in the platform chart
 | Key | Default | Description |
 |-----|---------|-------------|
 | `snapshot-controller.installCRDs` | `true` | Render the snapshot CRDs |
+| `snapshot-controller.keepCRDs` | `true` | Annotate the CRDs with `helm.sh/resource-policy: keep` |
 | `snapshot-controller.controller.replicaCount` | `1` | Single node, one replica |
 | `snapshot-controller.webhook.enabled` | `false` | Only needed for old VolumeGroupSnapshot API versions |
 
 The upstream chart has no namespace override, so the controller runs in the
 namespace of the Helm release (`default` for the platform release).
 
-> **Warning:** The CRDs are rendered as regular templates. Disabling or uninstalling
-> this chart deletes the CRDs and every `VolumeSnapshot` in the cluster.
+> **Warning:** The CRDs are rendered as regular templates. Without `keepCRDs`,
+> disabling or uninstalling this chart deletes the CRDs and every `VolumeSnapshot`
+> in the cluster. With it, Helm leaves the CRDs behind; they then have to be
+> removed by hand if that is really intended.
 
 ## Schema
 

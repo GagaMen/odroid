@@ -87,6 +87,8 @@ interface SnapshotControllerUpstream {
   global?: object;
   /** Render the VolumeSnapshot CRDs (templates, not crds/) */
   installCRDs?: boolean;
+  /** Annotate the CRDs with helm.sh/resource-policy: keep, so helm uninstall leaves them in place */
+  keepCRDs?: boolean;
   controller?: Controller;
   /** Conversion webhook for VolumeGroupSnapshots in old beta API versions */
   webhook?: Webhook;
