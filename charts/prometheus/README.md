@@ -9,6 +9,16 @@ Collects metrics from Kubernetes nodes and workloads. Includes:
 
 Alertmanager is disabled in favour of Grafana Alerting.
 
+## Chart Source
+
+The upstream chart is pulled from the OCI registry (`oci://ghcr.io/prometheus-community/charts`),
+not from the classic `https://prometheus-community.github.io/helm-charts` repository. Dependabot
+looks up versions in a classic repository with `helm search repo`, which matches every chart whose
+name starts with `prometheus` and then takes the highest version among all of them. That proposed
+`prometheus-operator-crds` releases as updates for this chart
+([dependabot-core#13789](https://github.com/dependabot/dependabot-core/issues/13789)). For an OCI
+source Dependabot lists the tags of exactly this chart instead.
+
 ## Configuration
 
 | Key | Default | Description |
