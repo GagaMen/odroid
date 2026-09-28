@@ -56,7 +56,11 @@ service:
 ingress:
   enabled: true
   className: ""
-  annotations: {}
+  annotations:
+    # nginx rejects request bodies above 1m by default, which turns a sync or budget
+    # upload larger than that into "413 Request Entity Too Large". Keep this in line
+    # with config.uploadFileSizeLimitMb.
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
     # cert-manager.io/cluster-issuer: lets-encrypt
     # nginx.ingress.kubernetes.io/ssl-redirect: "true"
     # nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.0.0/24,10.8.0.0/24
