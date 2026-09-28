@@ -26,7 +26,10 @@ configMap:
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-  type: LoadBalancer
+  # Reached through the ingress only. With behind-proxy enabled, ntfy trusts
+  # X-Forwarded-For, so a node port bypassing the ingress would let clients
+  # choose the address ntfy rate-limits them by.
+  type: ClusterIP
   port: 80
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/

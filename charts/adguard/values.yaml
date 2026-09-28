@@ -43,7 +43,10 @@ persistence:
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-  type: LoadBalancer
+  # DNS and DHCP are served on the node itself through hostNetwork; the service
+  # only backs the ingress for the web UI. LoadBalancer or NodePort would add
+  # node ports that bypass the ingress.
+  type: ClusterIP
   ports:
     # Plain DNS (required)
     dns-tcp:
