@@ -88,7 +88,7 @@ has exactly one suspect.
    server-side dry run, compares with the deployed revision). The change must match the
    assessment: typically the image, chart labels, and whatever the release notes announced.
    Anything unexplained stops the rollout until it is explained.
-5. **Deploy** without `--wait`:
+5. **Deploy**:
    `microk8s.helm3 upgrade --install platform platform/ -n platform -f platform/values.yaml`
    Then `kubectl rollout status` for each changed Deployment/StatefulSet/DaemonSet.
 6. **Verify** per [`verification.md`](verification.md). Done when that service's checks pass
