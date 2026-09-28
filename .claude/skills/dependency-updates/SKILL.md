@@ -29,6 +29,12 @@ Collect every candidate. Three sources, because Dependabot alone misses updates:
    `.github/dependabot.yml`. Check each by hand with `scripts/chart_compare.py <repo> <chart> <current>`,
    which prints the latest published version.
 
+   First check whether that list is still accurate: GitHub adds public hosts to the proxy's
+   allowlist over time. Look up each chart's repository host (from its `Chart.yaml`) in
+   https://raw.githubusercontent.com/dependabot/proxy/main/internal/handlers/egress_allowlist_defaults.yaml.
+   A host that appears there is reachable again: remove its chart from the comment in
+   `.github/dependabot.yml` in a separate commit, and leave that chart to Dependabot from then on.
+
 Done when every Helm dependency in `charts/*/Chart.yaml` and every image Dependabot tracks is
 either on a candidate list or confirmed current.
 
