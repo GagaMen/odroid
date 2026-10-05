@@ -10,6 +10,8 @@ This repository contains Helm charts and Kubernetes configurations for a self-ho
 
 - `charts/` - Individual Helm charts for various services
 - `platform/` - Umbrella chart for orchestrating all charts
+- `ansible/` - Playbooks that rebuild the machine from a fresh Ubuntu install
+- `host/` - Prose explaining the host configuration `ansible/roles/host` applies
 - `wireguard/` - WireGuard VPN configuration
 
 ## ⚠️ CRITICAL: File Access and Security
@@ -40,6 +42,21 @@ platform/values.yaml
 - Passwords and credentials
 - Private keys
 - Personal configurations
+
+### The Ansible Vault
+
+`ansible/` reads its configuration from a vault **outside this repository**
+(`~/.odroid-secrets/vault.yml` by default, `ODROID_VAULT` overrides it). It holds
+`platform/values.yaml` verbatim, the WireGuard configuration, and the versions the host
+is pinned to.
+
+- **Never read it.** It is the same content as `platform/values.yaml`, which is already
+  off limits, plus the tunnel's private key.
+- **Never commit it**, encrypted or not, and never move it into the repository. Its
+  living outside the tree is a deliberate choice, not an oversight.
+- `ansible/capture.yml` writes it in the clear for a moment before encrypting. If you
+  touch that playbook, keep the file at mode `0600` and keep the encryption step
+  visible — never make it look like it happened when it did not.
 
 ### When in Doubt: Check Git Status
 
@@ -175,7 +192,9 @@ the rest of userspace. Consequences that matter when touching services:
 - Several distribution services cannot start at all and are deliberately masked.
 - `microk8s stop` does not unmount CSI volumes and strands them on dead devices.
 
-Read [`host/README.md`](host/README.md) before changing anything below Kubernetes.
+Read [`host/README.md`](host/README.md) before changing anything below Kubernetes. It
+explains the settings; [`ansible/roles/host`](ansible/roles/host) is what applies them,
+and the two have to stay in step.
 
 ## 🛠️ Technology Stack
 

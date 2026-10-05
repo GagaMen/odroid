@@ -21,3 +21,9 @@ crash_report.md
 
 # Local Claude Code settings (personal, not shared)
 .claude/settings.local.json
+
+# ansible
+ansible/*.retry
+# The vault lives outside this repository on purpose (~/.odroid-secrets by
+# default). This entry only catches a copy accidentally dropped in the tree.
+ansible/**/vault.yml

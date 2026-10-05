@@ -15,6 +15,7 @@ A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkern
 - **[cert-manager DNS Lexicon Webhook](charts/cert-manager-dns-lexicon-webhook/)** - DNS-01 ACME challenge solver
 - **[WireGuard VPN](wireguard/)** - Secure remote access to your home network
 - **[Host Configuration](host/)** - Kernel, systemd, logging and update hardening
+- **[Ansible](ansible/)** - Rebuilds the whole machine from a fresh Ubuntu install
 - **[Prometheus](charts/prometheus/)** - Metrics collection and storage (incl. node-exporter & kube-state-metrics)
 - **[Grafana](charts/grafana/)** - Dashboards, visualization, and alerting (with ntfy integration)
 - **[Loki](charts/loki/)** - Log aggregation
@@ -27,6 +28,27 @@ A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkern
 - Basic knowledge of Kubernetes and Helm
 
 ## 🛠️ Installation
+
+### The short version
+
+The manual steps below are reproduced by an Ansible playbook, which is the
+intended way to rebuild this machine:
+
+```bash
+sudo apt install ansible
+git clone <this repo> ~/odroid && cd ~/odroid/ansible
+ansible-galaxy install -r requirements.yml
+ansible-playbook site.yml --ask-vault-pass -K
+```
+
+That needs the vault — the encrypted file, kept outside this repository, that
+holds `platform/values.yaml` and the rest of what makes this machine *this*
+machine. Read [ansible/README.md](ansible/README.md) first; it also says plainly
+what the playbook does **not** restore.
+
+The steps that follow remain the record of what is being set up and why. Follow
+them by hand when building a new machine that has no vault to restore from, or
+when debugging a single piece.
 
 ### 1. Install MicroK8s
 
@@ -176,8 +198,14 @@ helm upgrade platform ./platform -n platform -f platform/values.yaml
 │   │   └── volumesnapshotclass.yaml        # CSI snapshot class backed by Longhorn
 │   └── values.yaml                         # Your configuration (gitignored)
 ├── host/                                   # Host configuration below Kubernetes
-│   ├── README.md                           # What each file does and how to apply it
-│   └── files/                              # Target-faithful paths (Ansible-role layout)
+│   └── README.md                           # What each setting does and why
+├── ansible/                                # Rebuilds the machine from a fresh install
+│   ├── README.md                           # How to run it, and what it cannot restore
+│   ├── site.yml                            # Restore and converge
+│   ├── capture.yml                         # Record a working machine into the vault
+│   ├── maintenance/                        # Procedures that are not convergence
+│   └── roles/
+│       └── host/files/                     # The host files, at target-faithful paths
 └── wireguard/                              # WireGuard VPN setup guide
 ```
 
