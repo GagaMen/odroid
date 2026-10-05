@@ -1,0 +1,139 @@
+---
+# Measures what this host actually is, and refuses to continue when an
+# assumption baked into the other roles does not hold. Everything here reads;
+# nothing writes.
+
+- name: Preflight | Assert the hardware and distribution are what the roles assume
+  ansible.builtin.assert:
+    that:
+      - ansible_architecture == "aarch64"
+      - ansible_distribution == "Ubuntu"
+    fail_msg: >-
+      This playbook configures an ODROID-M2 running Ubuntu on arm64, and several
+      roles depend on that (the device tree overlay, the vendor kernel paths, the
+      arm64 syscall numbers in the logging workaround). Found
+      {{ ansible_distribution }} on {{ ansible_architecture }}.
+    success_msg: "{{ ansible_distribution }} {{ ansible_distribution_version }} on {{ ansible_architecture }}"
+
+# ---------------------------------------------------------------------------
+# The pinned systemd
+# ---------------------------------------------------------------------------
+# systemd 245 predates faccessat2 (439 on arm64) and omits it from
+# @system-service, while glibc 2.39 from Ubuntu 24.04 uses it -- so every unit
+# carrying a SystemCallFilter is killed by seccomp with SIGSYS.
+#
+# This is measured rather than assumed. A board image whose systemd matches its
+# userspace needs no workaround, and on such a host the drop-ins are removed
+# again instead of being carried around as cargo.
+#
+# The systemd group definition is the right thing to inspect, not the effective
+# filter of a live unit: once the drop-in is applied, the unit would report the
+# syscall as present and the check would confirm its own work.
+
+- name: Preflight | Ask systemd whether @system-service knows faccessat2
+  ansible.builtin.command:
+    cmd: systemd-analyze syscall-filter @system-service
+  register: preflight_syscall_filter
+  changed_when: false
+  failed_when: false
+
+- name: Preflight | Record whether the faccessat2 workaround is needed
+  ansible.builtin.set_fact:
+    host_needs_faccessat2_workaround: >-
+      {{ 'faccessat2' not in (preflight_syscall_filter.stdout | default('') | regex_findall('[a-z0-9_]+')) }}
+
+- name: Preflight | Fail when systemd could not be questioned at all
+  ansible.builtin.fail:
+    msg: >-
+      `systemd-analyze syscall-filter @system-service` failed
+      ({{ preflight_syscall_filter.stderr | default('no output') }}). Without its
+      answer there is no way to tell whether the seccomp workaround for rsyslog
+      and fstrim is needed, and guessing either way breaks something: applying it
+      where it is unnecessary leaves dead configuration behind, skipping it where
+      it is necessary leaves the host without syslog and without TRIM.
+  when: preflight_syscall_filter.rc != 0
+
+- name: Preflight | Report the systemd situation
+  ansible.builtin.debug:
+    msg: >-
+      systemd reports faccessat2 as
+      {{ host_needs_faccessat2_workaround | bool | ternary('MISSING from', 'present in') }}
+      @system-service -- the seccomp drop-ins will be
+      {{ host_needs_faccessat2_workaround | bool | ternary('applied', 'removed if present') }}.
+
+# ---------------------------------------------------------------------------
+# The data disk
+# ---------------------------------------------------------------------------
+# 20-scope.conf trims /mnt/data by name. If the mount is missing the unit would
+# fail on every run, and -- worse -- the machine is not the machine this
+# configuration describes, so nothing below should be trusted either.
+
+- name: Preflight | Assert the data disk is mounted
+  ansible.builtin.assert:
+    that:
+      - ansible_mounts | selectattr('mount', 'equalto', '/mnt/data') | list | length > 0
+    fail_msg: >-
+      /mnt/data is not mounted. It is a separate disk, partitioned and mounted by
+      hand, and this playbook deliberately does not create it -- guessing at
+      partition layout on someone else's disk is how data disappears. Mount it
+      by UUID via /etc/fstab, not by device name: booting from removable media
+      can renumber mmcblk0 and mmcblk1. Then run again.
+    success_msg: "/mnt/data is mounted"
+
+# ---------------------------------------------------------------------------
+# The watchdog
+# ---------------------------------------------------------------------------
+
+- name: Preflight | Look for the watchdog node in the device tree
+  ansible.builtin.stat:
+    path: "/proc/device-tree/{{ host_watchdog_dt_node }}/status"
+  register: preflight_watchdog_node
+
+- name: Preflight | Record whether the watchdog overlay applies to this board
+  ansible.builtin.set_fact:
+    host_has_watchdog_node: "{{ preflight_watchdog_node.stat.exists }}"
+
+- name: Preflight | Check the boot configuration exists
+  ansible.builtin.stat:
+    path: /boot/config.ini
+  register: preflight_boot_config
+
+# /boot/config.ini is read, never written. It carries two `overlays=` lines that
+# look identical, and only the one under [generic] is the right target; a regex
+# that hits the other one produces a board that has to be rescued from an SD
+# card. So the playbook checks and reports, and the one-line edit stays a
+# deliberate human act. See the watchdog section of host/README.md.
+- name: Preflight | Read the overlays line from the [generic] section
+  ansible.builtin.command:
+    cmd: >-
+      awk '/^\[generic\]/{f=1;next} /^\[/{f=0} f && /^[[:space:]]*overlays[[:space:]]*=/{print}' /boot/config.ini
+  register: preflight_overlays_line
+  changed_when: false
+  when: preflight_boot_config.stat.exists
+
+- name: Preflight | Assert the watchdog overlay is enabled in the boot configuration
+  ansible.builtin.assert:
+    that:
+      - host_watchdog_overlay_name in (preflight_overlays_line.stdout | default(''))
+    fail_msg: |-
+      The watchdog overlay is not listed in /boot/config.ini.
+
+      Found under [generic]: {{ preflight_overlays_line.stdout | default('(no overlays= line)') }}
+
+      This playbook builds and installs the .dtbo -- which is the part a kernel
+      update silently removes -- but it does not edit config.ini. That file has a
+      second overlays= line further down that looks exactly like the first, and
+      editing the wrong one costs a boot.
+
+      Do it by hand, once:
+        sudo cp -n /boot/config.ini /boot/config.ini.bak
+        sudo nano /boot/config.ini     # append "{{ host_watchdog_overlay_name }}" to the
+                                       # overlays= line under [generic]
+
+      Then run this playbook again. Without the overlay there is no /dev/watchdog,
+      and this kernel has no other lockup detector at all: CONFIG_DETECT_HUNG_TASK,
+      CONFIG_SOFTLOCKUP_DETECTOR and PSI are all disabled.
+    success_msg: "watchdog overlay is enabled in /boot/config.ini"
+  when:
+    - host_has_watchdog_node | bool
+    - preflight_boot_config.stat.exists
