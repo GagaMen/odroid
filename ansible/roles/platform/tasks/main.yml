@@ -1,0 +1,100 @@
+---
+# The Helm side. Everything here is deliberately ordered around one trap: Helm
+# renders from the vendored archives under platform/charts/*.tgz, never from the
+# working tree. A restore that skips the dependency build deploys whatever was
+# last packaged -- or nothing at all.
+
+- name: Platform | Write the platform values
+  become: false
+  ansible.builtin.copy:
+    content: "{{ vault_platform_values }}"
+    dest: "{{ platform_values_file }}"
+    mode: "0600"
+  no_log: true
+
+# Discovered rather than listed, so a chart that gains a dependency later is
+# picked up without anyone remembering to edit this file.
+- name: Platform | Find the subcharts that have their own dependencies
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      grep -l '^dependencies:' {{ odroid_repo_dir }}/charts/*/Chart.yaml | xargs -n1 dirname
+    executable: /bin/bash
+  register: platform_subcharts
+  changed_when: false
+
+# One level down matters as much as the top: a subchart packaged without its own
+# vendored archive arrives at the umbrella incomplete, and a mismatch between a
+# dependency's declared version and its vendored archive makes Helm silently
+# drop that dependency's alias -- so values addressed through the alias never
+# arrive, with no error anywhere.
+#
+# changed_when is false on purpose. The archives are build output, not host
+# state; reporting a change on every run would drown the one signal that
+# matters, which is whether the host itself drifted.
+- name: Platform | Build each subchart's dependencies
+  ansible.builtin.command:
+    cmd: "{{ microk8s_helm_binary }} dependency update {{ item }}"
+  loop: "{{ platform_subcharts.stdout_lines }}"
+  changed_when: false
+
+- name: Platform | Build the umbrella's dependencies
+  ansible.builtin.command:
+    cmd: "{{ microk8s_helm_binary }} dependency update {{ platform_chart_dir }}"
+  changed_when: false
+
+- name: Platform | Read the dependency status of every chart
+  ansible.builtin.command:
+    cmd: "{{ microk8s_helm_binary }} dependency list {{ item }}"
+  loop: "{{ [platform_chart_dir] + platform_subcharts.stdout_lines }}"
+  register: platform_dep_status
+  changed_when: false
+
+- name: Platform | Assert every dependency resolved
+  ansible.builtin.assert:
+    that:
+      - "'wrong version' not in item.stdout"
+      - "'missing' not in item.stdout"
+    fail_msg: |-
+      Unresolved dependencies in {{ item.item }}:
+
+      {{ item.stdout }}
+
+      Every row must read "ok". A "wrong version" row means the vendored archive
+      does not match the version declared in Chart.yaml, and Helm responds by
+      silently dropping that dependency's alias -- values addressed through it
+      never arrive, and nothing reports an error. Deploying now would produce a
+      cluster that looks healthy and is not configured.
+    success_msg: "{{ item.item }}: all dependencies ok"
+  loop: "{{ platform_dep_status.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Platform | Check whether the release namespace exists
+  become: true
+  ansible.builtin.command:
+    cmd: "{{ microk8s_kubectl_binary }} get namespace {{ platform_namespace }}"
+  register: platform_ns
+  changed_when: false
+  failed_when: false
+
+# The release lives in its own namespace because components whose upstream chart
+# has no namespace override deploy into the release's namespace.
+- name: Platform | Create the release namespace
+  become: true
+  ansible.builtin.command:
+    cmd: "{{ microk8s_kubectl_binary }} create namespace {{ platform_namespace }}"
+  when: platform_ns.rc != 0
+
+- name: Platform | Deploy the platform
+  become: true
+  kubernetes.core.helm:
+    name: "{{ platform_release_name }}"
+    chart_ref: "{{ platform_chart_dir }}"
+    release_namespace: "{{ platform_namespace }}"
+    values_files:
+      - "{{ platform_values_file }}"
+    binary_path: "{{ microk8s_helm_binary }}"
+    kubeconfig: "{{ microk8s_kubeconfig }}"
+    wait: true
+    wait_timeout: 15m
