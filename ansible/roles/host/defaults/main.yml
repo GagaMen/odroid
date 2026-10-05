@@ -1,0 +1,12 @@
+---
+# Drop-ins that only make sense on a host whose systemd predates faccessat2.
+# Installed or removed depending on what preflight measured.
+host_faccessat2_dropins:
+  - etc/systemd/system/rsyslog.service.d/10-faccessat2.conf
+  - etc/systemd/system/fstrim.service.d/10-faccessat2.conf
+
+host_packages:
+  # node-exporter-apt imports the `apt` module
+  - python3-apt
+  # dtc, to build the watchdog overlay
+  - device-tree-compiler

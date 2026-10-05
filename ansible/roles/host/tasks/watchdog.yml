@@ -1,0 +1,107 @@
+---
+# This kernel ships without CONFIG_DETECT_HUNG_TASK, CONFIG_SOFTLOCKUP_DETECTOR
+# and PSI, so a machine deadlocked in uninterruptible sleep stays up, answers
+# pings, and serves nothing -- indefinitely, with nothing to notice or end it.
+#
+# panic_on_rcu_stall is the only detector left in software, and it is partial:
+# tasks blocked on dead storage yield the CPU and pass through quiescent states.
+# The hardware watchdog does not depend on the kernel noticing anything.
+
+- name: Host | Install the lockup recovery sysctls
+  become: true
+  ansible.builtin.copy:
+    src: etc/sysctl.d/99-lockup-recovery.conf
+    dest: /etc/sysctl.d/99-lockup-recovery.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Apply sysctl settings
+
+- name: Host | Tell systemd to feed the hardware watchdog
+  become: true
+  ansible.builtin.copy:
+    src: etc/systemd/system.conf.d/10-watchdog.conf
+    dest: /etc/systemd/system.conf.d/10-watchdog.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Re-execute systemd
+
+# ---------------------------------------------------------------------------
+# The device tree overlay
+# ---------------------------------------------------------------------------
+# /boot/overlays points into a version-specific directory that a kernel update
+# replaces, and .dtbo files belong to no package -- so an update removes the
+# overlay silently, taking the only self-heal mechanism with it. Rebuilding and
+# reinstalling it on every run is the point of automating this at all.
+#
+# config.ini is not touched here; preflight asserts the overlay is listed there.
+
+- name: Host | Watchdog overlay
+  when: host_has_watchdog_node | bool
+  block:
+    - name: Host | Stage the overlay source
+      ansible.builtin.copy:
+        src: boot/overlays/watchdog.dts
+        dest: /tmp/odroid-watchdog.dts
+        mode: "0644"
+      changed_when: false
+
+    - name: Host | Compile the overlay
+      ansible.builtin.command:
+        cmd: dtc -I dts -O dtb -o /tmp/odroid-watchdog.dtbo /tmp/odroid-watchdog.dts
+      changed_when: false
+
+    # Verifying offline costs nothing and turns a failed boot into a caught
+    # mistake. A board that does not come up has to be rescued from an SD card.
+    - name: Host | Merge the overlay against the live device tree
+      ansible.builtin.shell:
+        cmd: >-
+          fdtoverlay -i "$(readlink -f /boot/dtb)" -o /tmp/odroid-merged.dtb /tmp/odroid-watchdog.dtbo
+          && fdtget /tmp/odroid-merged.dtb /{{ host_watchdog_dt_node }} status
+      register: host_watchdog_merged
+      changed_when: false
+
+    - name: Host | Assert the merged device tree enables the watchdog
+      ansible.builtin.assert:
+        that:
+          - "'okay' in host_watchdog_merged.stdout"
+        fail_msg: >-
+          The overlay does not enable /{{ host_watchdog_dt_node }} when merged
+          against the running device tree -- it reported
+          '{{ host_watchdog_merged.stdout | trim }}'. Installing it would at best
+          do nothing and at worst produce a board that does not boot. Refusing.
+        success_msg: "overlay merges cleanly; {{ host_watchdog_dt_node }} reads okay"
+
+    - name: Host | Ensure the overlay directory for the running kernel exists
+      become: true
+      ansible.builtin.file:
+        path: "{{ host_watchdog_overlay_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    # copy with remote_src compares checksums, so this reports changed only when
+    # a kernel update has actually taken the overlay away.
+    - name: Host | Install the overlay for the running kernel
+      become: true
+      ansible.builtin.copy:
+        src: /tmp/odroid-watchdog.dtbo
+        dest: "{{ host_watchdog_overlay_dir }}/{{ host_watchdog_overlay_name }}.dtbo"
+        remote_src: true
+        owner: root
+        group: root
+        mode: "0644"
+      register: host_watchdog_installed
+
+    - name: Host | Note that the overlay was reinstalled
+      ansible.builtin.debug:
+        msg: >-
+          The watchdog overlay was (re)installed into {{ host_watchdog_overlay_dir }}.
+          A kernel update removes it silently, so this is expected after one --
+          but it only takes effect after a reboot. Until then /dev/watchdog is
+          whatever the last boot gave you.
+      when: host_watchdog_installed.changed

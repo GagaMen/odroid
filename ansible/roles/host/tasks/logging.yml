@@ -1,0 +1,66 @@
+---
+# Two independent defects, both of which end with no logs when it matters.
+#
+# 1. systemd 245 omits faccessat2 from @system-service; glibc 2.39 uses it. Any
+#    unit with a SystemCallFilter dies of SIGSYS -- in practice rsyslog and
+#    fstrim, on every boot, leaving /var/log/syslog and /var/log/kern.log empty
+#    and TRIM never running.
+# 2. journald's default Storage=auto falls back to volatile storage in /run when
+#    it cannot write persistently, so the logs vanish on the next reboot.
+#
+# The drop-ins are per-unit on purpose. A global drop-in in
+# /etc/systemd/system/service.d/ would, for units carrying no filter at all,
+# create an allowlist permitting only faccessat2 -- breaking nearly every
+# service on the system.
+
+- name: Host | Install the faccessat2 drop-ins
+  become: true
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ host_faccessat2_dropins }}"
+  when: host_needs_faccessat2_workaround | bool
+  notify:
+    - Reload systemd
+    - Clear failed logging units
+    - Restart rsyslog
+
+# On a host whose systemd matches its userspace the workaround is not merely
+# unnecessary, it is misleading -- so it is removed rather than left lying about.
+- name: Host | Remove the faccessat2 drop-ins where systemd does not need them
+  become: true
+  ansible.builtin.file:
+    path: "/{{ item }}"
+    state: absent
+  loop: "{{ host_faccessat2_dropins }}"
+  when: not (host_needs_faccessat2_workaround | bool)
+  notify:
+    - Reload systemd
+
+- name: Host | Configure journald for persistent, bounded storage
+  become: true
+  ansible.builtin.copy:
+    src: etc/systemd/journald.conf.d/10-limits.conf
+    dest: /etc/systemd/journald.conf.d/10-limits.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart journald
+
+# The handlers have to run before rsyslog is started, not at the end of the
+# play. On a host where seccomp has been killing it on every boot, the unit is
+# in the failed state and systemd has not seen the new drop-in yet -- starting
+# it now would simply fail again, for the reason that was just fixed.
+- name: Host | Apply the unit changes before touching the units
+  ansible.builtin.meta: flush_handlers
+
+- name: Host | Ensure rsyslog is enabled and running
+  become: true
+  ansible.builtin.systemd_service:
+    name: rsyslog.service
+    enabled: true
+    state: started

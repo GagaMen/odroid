@@ -1,0 +1,21 @@
+---
+- ansible.builtin.import_tasks: packages.yml
+  tags: [host, packages]
+
+- ansible.builtin.import_tasks: logging.yml
+  tags: [host, logging]
+
+- ansible.builtin.import_tasks: masked-units.yml
+  tags: [host, masked-units]
+
+- ansible.builtin.import_tasks: watchdog.yml
+  tags: [host, watchdog]
+
+- ansible.builtin.import_tasks: fstrim.yml
+  tags: [host, fstrim]
+
+# snap-holds.yml is deliberately NOT imported here. It has to run after the
+# MicroK8s role installs the snap, so site.yml calls it separately.
+
+- ansible.builtin.import_tasks: textfile-collector.yml
+  tags: [host, metrics]

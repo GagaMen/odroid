@@ -1,0 +1,17 @@
+---
+# The stock unit reads its targets from /proc/self/mountinfo, so it trims
+# everything mounted -- including CSI volumes served over iSCSI, which advertise
+# discard support. That sends discards down the iSCSI path into the storage
+# engine: redundant at best, a stall in the storage path at worst. The storage
+# layer trims its own volumes through its own tooling.
+
+- name: Host | Restrict fstrim to the host's own devices
+  become: true
+  ansible.builtin.copy:
+    src: etc/systemd/system/fstrim.service.d/20-scope.conf
+    dest: /etc/systemd/system/fstrim.service.d/20-scope.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload systemd

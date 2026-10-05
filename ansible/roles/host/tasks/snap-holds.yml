@@ -1,0 +1,35 @@
+---
+# snapd refreshes snaps automatically up to four times a day. A microk8s refresh
+# restarts containerd and kubelite without warning; if a CSI driver is serving
+# volumes over iSCSI at that moment, its instance manager is killed while the
+# filesystems are still mounted. The block devices vanish underneath them, ext4
+# aborts its journal and remounts read-only, and every pod holding a persistent
+# volume loses its data until the node is repaired.
+#
+# core22 is microk8s's base -- refreshing a base restarts the snaps using it --
+# and snapd's own refresh restarts snapd.service in one of those four windows.
+#
+# The hold is indefinite and blocks both automatic refreshes and a blanket
+# `snap refresh`. A targeted `snap refresh microk8s` still works, which is the
+# intended path: maintenance/microk8s-update.yml drains first.
+#
+# The price is that nothing reminds you updates exist. That gap is closed by the
+# textfile collector below, and by the alerts that read its metrics.
+
+- name: Host | Read the current snap hold state
+  ansible.builtin.command:
+    cmd: snap list --all --unicode=never
+  register: host_snap_list
+  changed_when: false
+
+- name: Host | Hold the snaps whose automatic refresh would strand volumes
+  become: true
+  ansible.builtin.command:
+    cmd: "snap refresh --hold {{ item }}"
+  loop: "{{ host_snap_holds }}"
+  when: >-
+    host_snap_list.stdout_lines
+    | select('match', '^' ~ item ~ '\\s')
+    | select('search', 'held')
+    | list | length == 0
+  changed_when: true

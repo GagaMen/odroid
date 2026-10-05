@@ -1,0 +1,27 @@
+---
+# Seven units that cannot work on this host: four are collateral damage from the
+# pinned vendor systemd (polkit and udisks2 cannot resolve the symbol versions
+# they were linked against; fwupd's MemoryDenyWriteExecute=yes is rejected by
+# the older seccomp filter), systemd-binfmt wants CONFIG_BINFMT_MISC which this
+# kernel lacks, and ModemManager follows from polkit via Requires=.
+#
+# mask, not disable: disable only stops a unit starting on its own, while these
+# genuinely cannot run, so the stronger statement is the accurate one. Both are
+# reversible with `systemctl unmask`.
+#
+# The point is not tidiness. A permanently red "failed units" alert is an alert
+# nobody reads.
+
+- name: Host | Find out which of these units exist on this system
+  ansible.builtin.command:
+    cmd: systemctl list-unit-files --no-legend --no-pager
+  register: host_unit_files
+  changed_when: false
+
+- name: Host | Mask the units that cannot run on this host
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    masked: true
+  loop: "{{ host_masked_units }}"
+  when: item in host_unit_files.stdout

@@ -1,0 +1,15 @@
+---
+- ansible.builtin.import_tasks: fstrim-scope.yml
+
+# The timer is masked during the initial rollout, because Persistent=true means
+# a run missed while the service was broken fires as soon as it is enabled --
+# and the first pass after a long gap has the most work to do. That pass is run
+# by hand under observation via maintenance/fstrim-initial.yml; here the timer
+# simply ends up active.
+- name: Host | Enable the fstrim timer
+  become: true
+  ansible.builtin.systemd_service:
+    name: fstrim.timer
+    masked: false
+    enabled: true
+    state: started

@@ -1,0 +1,54 @@
+---
+# Held snaps and unattended-upgrades leave the same gap from opposite sides:
+# nothing reports what is outstanding. Both are filled by writing metrics into
+# the node_exporter textfile collector, so update state sits beside every other
+# host metric and can be alerted on.
+#
+# node_exporter's side of this -- the textfile directory and the D-Bus socket
+# mount -- is configured through the prometheus chart values, which come from
+# the vault. See host/README.md.
+
+- name: Host | Install the metric collectors
+  become: true
+  ansible.builtin.copy:
+    src: "usr/local/bin/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - node-exporter-apt
+    - node-exporter-snap
+
+- name: Host | Install the collector service and timer
+  become: true
+  ansible.builtin.copy:
+    src: "etc/systemd/system/{{ item }}"
+    dest: "/etc/systemd/system/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - node-exporter-textfile.service
+    - node-exporter-textfile.timer
+  notify:
+    - Reload systemd
+
+# The timer runs hourly with Persistent=true; StateDirectory= in the unit
+# creates the output directory on first start.
+- name: Host | Enable the collector timer
+  become: true
+  ansible.builtin.systemd_service:
+    name: node-exporter-textfile.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+
+# Run once now rather than waiting up to an hour, so the metrics exist by the
+# time the monitoring stack comes up looking for them.
+- name: Host | Collect the metrics once
+  become: true
+  ansible.builtin.systemd_service:
+    name: node-exporter-textfile.service
+    state: started
+  changed_when: false

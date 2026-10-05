@@ -1,0 +1,8 @@
+---
+- name: Host | Install the packages the host configuration depends on
+  become: true
+  ansible.builtin.apt:
+    name: "{{ host_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
