@@ -1,0 +1,9 @@
+alias kubectl="microk8s.kubectl"
+alias k="kubectl"
+source <(kubectl completion zsh | sed "s/kubectl/microk8s.kubectl/g")
+source <(k completion zsh | sed "s/k/microk8s.kubectl/g")
+
+alias helm="microk8s.helm3"
+source <(helm completion zsh | sed "s/helm/microk8s.helm3/g")
+
+export KUBECONFIG={{ microk8s_kubeconfig }}

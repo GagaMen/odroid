@@ -1,0 +1,44 @@
+---
+# The shell environment and the terminal UI. Not load-bearing for the cluster,
+# but the difference between a restored machine and a usable one.
+
+- name: Tooling | Install the kubectl wrapper
+  become: true
+  ansible.builtin.template:
+    src: kubectl-wrapper.j2
+    dest: /usr/local/bin/kubectl
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Tooling | Read the installed k9s version
+  ansible.builtin.command:
+    cmd: /usr/local/bin/k9s version --short
+  register: tooling_k9s_installed
+  changed_when: false
+  failed_when: false
+
+# `include` keeps the tarball's README.md and LICENSE out of /usr/local/bin.
+- name: Tooling | Install k9s
+  become: true
+  ansible.builtin.unarchive:
+    src: "https://github.com/derailed/k9s/releases/download/{{ vault_k9s_version }}/k9s_Linux_arm64.tar.gz"
+    dest: /usr/local/bin
+    remote_src: true
+    include:
+      - k9s
+    owner: root
+    group: root
+    mode: "0755"
+  when: vault_k9s_version not in (tooling_k9s_installed.stdout | default(''))
+
+# Written as the operating user, not as root: this is their shell, and a
+# root-owned .zshrc is a small disaster of its own.
+- name: Tooling | Configure the shell
+  become: false
+  ansible.builtin.blockinfile:
+    path: "{{ lookup('env', 'HOME') }}/.zshrc"
+    create: true
+    mode: "0644"
+    marker: "# {mark} ANSIBLE MANAGED: microk8s"
+    block: "{{ lookup('template', 'zshrc-block.j2') }}"

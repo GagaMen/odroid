@@ -1,0 +1,49 @@
+---
+# wg0.conf is stored and restored verbatim, the same way platform/values.yaml
+# is. Re-deriving it from structured peer data would be prettier and would risk
+# losing whatever the file carries that the schema did not anticipate -- and a
+# tunnel configuration is not something to discover a gap in after the machine
+# is already remote.
+
+- name: WireGuard | Install the packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - wireguard
+      # qrencode renders a client configuration as a QR code, which is how a
+      # phone gets one without a file transfer.
+      - qrencode
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: WireGuard | Check whether the interface is already up
+  become: true
+  ansible.builtin.command:
+    cmd: wg show wg0
+  register: wireguard_show
+  changed_when: false
+  failed_when: false
+
+- name: WireGuard | Record the interface state for the reload handler
+  ansible.builtin.set_fact:
+    wireguard_interface_up: "{{ wireguard_show.rc == 0 }}"
+
+- name: WireGuard | Restore the server configuration
+  become: true
+  ansible.builtin.copy:
+    content: "{{ vault_wireguard_conf }}"
+    dest: /etc/wireguard/wg0.conf
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  notify:
+    - Reload WireGuard
+
+- name: WireGuard | Enable the tunnel
+  become: true
+  ansible.builtin.systemd_service:
+    name: wg-quick@wg0.service
+    enabled: true
+    state: started

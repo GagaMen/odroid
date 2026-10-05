@@ -1,0 +1,10 @@
+---
+# Reload rather than restart: `wg syncconf` applies the new peer set without
+# tearing down the interface, so established tunnels survive a configuration
+# change. Restarting wg-quick@wg0 would drop every connected client.
+- name: Reload WireGuard
+  become: true
+  ansible.builtin.shell:
+    cmd: wg syncconf wg0 <(wg-quick strip wg0)
+    executable: /bin/bash
+  when: wireguard_interface_up | default(false) | bool

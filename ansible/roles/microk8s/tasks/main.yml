@@ -1,0 +1,75 @@
+---
+- name: MicroK8s | Install the host packages the storage layer needs
+  become: true
+  ansible.builtin.apt:
+    name: "{{ microk8s_host_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: MicroK8s | Ensure the iSCSI initiator runs
+  become: true
+  ansible.builtin.systemd_service:
+    name: iscsid.service
+    enabled: true
+    state: started
+
+# The channel comes from what the working machine actually ran, captured into
+# the vault -- not from "latest". A restore that silently lands on a newer
+# MicroK8s is not a restore.
+- name: MicroK8s | Install the snap
+  become: true
+  community.general.snap:
+    name: microk8s
+    classic: true
+    channel: "{{ vault_microk8s_channel }}"
+    state: present
+
+- name: MicroK8s | Put the operating user in the microk8s group
+  become: true
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+    groups: microk8s
+    append: true
+  register: microk8s_group
+
+- name: MicroK8s | Note that the group change needs a new login
+  ansible.builtin.debug:
+    msg: >-
+      {{ ansible_user_id }} was added to the microk8s group. Group membership is
+      established at login, so the current shell does not have it yet -- log out
+      and back in before running microk8s commands by hand. This playbook calls
+      the binaries directly and is unaffected.
+  when: microk8s_group.changed
+
+- name: MicroK8s | Wait for the cluster to become ready
+  become: true
+  ansible.builtin.command:
+    cmd: microk8s status --wait-ready --timeout 300
+  changed_when: false
+
+# `--format short` lists one "core/<addon>: enabled" line per addon. Preferred
+# over --format yaml, whose structure has changed between MicroK8s releases.
+- name: MicroK8s | Read which addons are enabled
+  become: true
+  ansible.builtin.command:
+    cmd: microk8s status --format short
+  register: microk8s_status
+  changed_when: false
+
+- name: MicroK8s | Enable the addons this platform expects
+  become: true
+  ansible.builtin.command:
+    cmd: "microk8s enable {{ item }}"
+  loop: "{{ microk8s_addons }}"
+  when: >-
+    microk8s_status.stdout_lines
+    | select('search', '(^|/)' ~ item ~ ':\\s*enabled\\s*$')
+    | list | length == 0
+  changed_when: true
+
+- name: MicroK8s | Wait for the cluster to settle after enabling addons
+  become: true
+  ansible.builtin.command:
+    cmd: microk8s status --wait-ready --timeout 300
+  changed_when: false

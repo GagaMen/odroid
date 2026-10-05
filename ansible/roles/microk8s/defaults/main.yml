@@ -1,0 +1,6 @@
+---
+# Longhorn attaches its volumes over iSCSI, which needs the initiator on the
+# host; without it volumes stay stuck in "attaching" with no obvious cause.
+microk8s_host_packages:
+  - open-iscsi
+  - nfs-common

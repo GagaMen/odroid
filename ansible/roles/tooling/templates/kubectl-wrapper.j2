@@ -1,0 +1,5 @@
+#!/bin/bash
+# Managed by Ansible (roles/tooling). k9s shells into pods by executing
+# `kubectl` from PATH, and a symlink to the snap wrapper does not work here --
+# it has to be a real script.
+exec {{ microk8s_kubectl_binary }} "$@"
