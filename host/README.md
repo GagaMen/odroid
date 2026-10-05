@@ -6,15 +6,34 @@ machine itself.
 
 ## Layout
 
-Every file under `files/` sits at its **target-faithful path**. Installing means copying:
+The files live in `ansible/roles/host/files/`, each at its **target-faithful path**:
 
 ```
-files/etc/systemd/system/rsyslog.service.d/10-faccessat2.conf
+ansible/roles/host/files/etc/systemd/system/rsyslog.service.d/10-faccessat2.conf
   -> /etc/systemd/system/rsyslog.service.d/10-faccessat2.conf
 ```
 
-This mirrors the `files/` directory of an Ansible role. If the setup is automated later, the
-directory moves to `ansible/roles/host/files/` without a single file needing to change.
+## This document explains; the playbook applies
+
+Every "Applying" section below is reproduced by `ansible/roles/host`, and that is what
+should actually be run:
+
+```bash
+cd ansible
+ansible-playbook site.yml --ask-vault-pass -K --tags host
+```
+
+The commands are kept here anyway, because they are the record of *what* is applied and
+*why*. A task that reads `copy: src: ... dest: ...` says nothing about `faccessat2`, or
+about what a global drop-in would break. Run them by hand only when debugging a single
+piece.
+
+Three procedures below are deliberately **not** part of `site.yml`, because they are
+one-time repairs or update rituals rather than a description of how the machine should
+look: the journal cleanup, the first `fstrim` pass
+(`ansible/maintenance/fstrim-initial.yml`), and the drain-before-refresh dance
+(`ansible/maintenance/microk8s-update.yml`). The watchdog bite test stays manual
+entirely — it hard-resets the board.
 
 ## Logging
 
@@ -64,11 +83,11 @@ reboot — precisely when they matter most. `Storage=persistent` fails visibly i
 ### Applying
 
 ```bash
-sudo install -Dm644 host/files/etc/systemd/system/rsyslog.service.d/10-faccessat2.conf \
+sudo install -Dm644 ansible/roles/host/files/etc/systemd/system/rsyslog.service.d/10-faccessat2.conf \
   /etc/systemd/system/rsyslog.service.d/10-faccessat2.conf
-sudo install -Dm644 host/files/etc/systemd/system/fstrim.service.d/10-faccessat2.conf \
+sudo install -Dm644 ansible/roles/host/files/etc/systemd/system/fstrim.service.d/10-faccessat2.conf \
   /etc/systemd/system/fstrim.service.d/10-faccessat2.conf
-sudo install -Dm644 host/files/etc/systemd/journald.conf.d/10-limits.conf \
+sudo install -Dm644 ansible/roles/host/files/etc/systemd/journald.conf.d/10-limits.conf \
   /etc/systemd/journald.conf.d/10-limits.conf
 
 sudo systemctl daemon-reload
@@ -209,12 +228,12 @@ grep -E "CONFIG_(WATCHDOG|DW_WATCHDOG)=" /boot/config-$(uname -r)
 ```
 
 A node reading `disabled` next to a compiled-in driver means only the node needs enabling, which
-a device tree overlay does. See `files/boot/overlays/watchdog.dts`.
+a device tree overlay does. See `ansible/roles/host/files/boot/overlays/watchdog.dts`.
 
 ### Applying
 
 ```bash
-sudo install -Dm644 host/files/etc/sysctl.d/99-lockup-recovery.conf \
+sudo install -Dm644 ansible/roles/host/files/etc/sysctl.d/99-lockup-recovery.conf \
   /etc/sysctl.d/99-lockup-recovery.conf
 sudo sysctl --system
 
@@ -222,14 +241,14 @@ sudo sysctl --system
 # removable media to repair it.
 sudo cp -n /boot/config.ini /boot/config.ini.bak
 
-dtc -I dts -O dtb -o /tmp/watchdog.dtbo host/files/boot/overlays/watchdog.dts
+dtc -I dts -O dtb -o /tmp/watchdog.dtbo ansible/roles/host/files/boot/overlays/watchdog.dts
 sudo install -Dm644 /tmp/watchdog.dtbo \
   /boot/dtbs/$(uname -r)/rockchip/overlays/odroidm2/watchdog.dtbo
 # Append the overlay name to the overlays= line under [generic] -- note there is a
 # second overlays= line further down that must stay untouched.
 sudo nano /boot/config.ini
 
-sudo install -Dm644 host/files/etc/systemd/system.conf.d/10-watchdog.conf \
+sudo install -Dm644 ansible/roles/host/files/etc/systemd/system.conf.d/10-watchdog.conf \
   /etc/systemd/system.conf.d/10-watchdog.conf
 sudo reboot
 ```
@@ -289,12 +308,19 @@ systemctl show -p RuntimeWatchdogUSec               # -> back to 2min
 only self-heal with it. Re-install it and reboot:
 
 ```bash
-dtc -I dts -O dtb -o /tmp/watchdog.dtbo host/files/boot/overlays/watchdog.dts
+dtc -I dts -O dtb -o /tmp/watchdog.dtbo ansible/roles/host/files/boot/overlays/watchdog.dts
 sudo install -Dm644 /tmp/watchdog.dtbo \
   /boot/dtbs/$(uname -r)/rockchip/overlays/odroidm2/watchdog.dtbo
 ```
 
 The "watchdog not active" alert exists to catch this when the step is forgotten.
+
+`ansible/roles/host` rebuilds and reinstalls the overlay on every run, and verifies with
+`fdtoverlay` that it still merges cleanly before installing it — so in practice the
+repair after a kernel update is `ansible-playbook site.yml --tags watchdog` followed by a
+reboot. It does not touch `/boot/config.ini`: that file has a second `overlays=` line
+that looks exactly like the first, so the preflight role checks it and tells you to edit
+it by hand.
 
 ## Snap update discipline
 
@@ -431,7 +457,7 @@ timer first and do the initial pass by hand, watching it:
 ```bash
 sudo systemctl mask fstrim.timer
 
-sudo install -Dm644 host/files/etc/systemd/system/fstrim.service.d/20-scope.conf \
+sudo install -Dm644 ansible/roles/host/files/etc/systemd/system/fstrim.service.d/20-scope.conf \
   /etc/systemd/system/fstrim.service.d/20-scope.conf
 sudo systemctl daemon-reload
 
@@ -514,11 +540,11 @@ Both scripts write atomically, because node_exporter may read a file at any mome
 ### Applying
 
 ```bash
-sudo install -Dm755 host/files/usr/local/bin/node-exporter-apt  /usr/local/bin/node-exporter-apt
-sudo install -Dm755 host/files/usr/local/bin/node-exporter-snap /usr/local/bin/node-exporter-snap
-sudo install -Dm644 host/files/etc/systemd/system/node-exporter-textfile.service \
+sudo install -Dm755 ansible/roles/host/files/usr/local/bin/node-exporter-apt  /usr/local/bin/node-exporter-apt
+sudo install -Dm755 ansible/roles/host/files/usr/local/bin/node-exporter-snap /usr/local/bin/node-exporter-snap
+sudo install -Dm644 ansible/roles/host/files/etc/systemd/system/node-exporter-textfile.service \
   /etc/systemd/system/node-exporter-textfile.service
-sudo install -Dm644 host/files/etc/systemd/system/node-exporter-textfile.timer \
+sudo install -Dm644 ansible/roles/host/files/etc/systemd/system/node-exporter-textfile.timer \
   /etc/systemd/system/node-exporter-textfile.timer
 
 sudo systemctl daemon-reload
