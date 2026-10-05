@@ -1,0 +1,8 @@
+---
+collections:
+  # community.general.snap, used by roles/microk8s
+  - name: community.general
+    version: ">=8.0.0"
+  # helm and k8s modules used by roles/platform
+  - name: kubernetes.core
+    version: ">=3.0.0"

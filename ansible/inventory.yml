@@ -1,0 +1,8 @@
+# The playbooks run on the board itself: install Ubuntu, install Ansible, clone
+# this repository, run site.yml. No SSH, no control node, nothing that has to be
+# reachable while the machine is being rebuilt.
+all:
+  hosts:
+    odroid:
+      ansible_connection: local
+      ansible_host: localhost
