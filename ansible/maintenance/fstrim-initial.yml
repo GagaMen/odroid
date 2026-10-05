@@ -1,0 +1,59 @@
+---
+# The first TRIM pass after the service has been broken for a long time.
+#
+#   ansible-playbook maintenance/fstrim-initial.yml -K
+#
+# Kept out of site.yml on purpose. fstrim.timer has Persistent=true, so a run
+# missed while the service was dead fires at the next opportunity -- and the
+# first pass after a long gap has the most work to do. It is run here one device
+# at a time, masked timer, with the elapsed time reported, so a pass that stalls
+# the machine is visible rather than mysterious.
+#
+# Watch it from a second shell:
+#   watch -n1 'uptime; grep -E " (mmcblk0|nvme0n1) " /proc/diskstats'
+#
+# If a pass noticeably stalls the machine, leave the timer masked afterwards and
+# run fstrim by hand at a quiet time instead.
+
+- name: Run the initial TRIM pass under observation
+  hosts: odroid
+  gather_facts: true
+
+  tasks:
+    - name: Mask the timer so no catch-up run fires mid-pass
+      become: true
+      ansible.builtin.systemd_service:
+        name: fstrim.timer
+        masked: true
+
+    # Only the drop-in, not roles/host/tasks/fstrim.yml -- that one also hands
+    # the schedule back to the timer, which is the last thing wanted here.
+    - name: Make sure the scope drop-in is in place
+      ansible.builtin.import_role:
+        name: host
+        tasks_from: fstrim-scope
+
+    - name: Trim one mountpoint at a time
+      become: true
+      ansible.builtin.command:
+        cmd: "/sbin/fstrim --verbose {{ item }}"
+      loop: "{{ host_fstrim_mountpoints }}"
+      register: fstrim_runs
+      changed_when: true
+
+    - name: Report what each pass did and how long it took
+      ansible.builtin.debug:
+        msg: >-
+          {{ item.item }}: {{ item.stdout | trim }}
+          ({{ item.delta | default('?') }})
+      loop: "{{ fstrim_runs.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Hand the schedule back to the timer
+      become: true
+      ansible.builtin.systemd_service:
+        name: fstrim.timer
+        masked: false
+        enabled: true
+        state: started

@@ -1,0 +1,103 @@
+---
+# Update MicroK8s under control, rather than letting snapd do it at 03:00.
+#
+#   ansible-playbook maintenance/microk8s-update.yml -K
+#
+# `microk8s stop` does NOT unmount CSI volumes -- there is no umount anywhere in
+# the snap, and the stop script's first act is to stop kubelite, which kills the
+# pod serving the iSCSI targets. Every mount kubelet made stays behind pointing
+# at a device that no longer answers: the same state an unplanned restart
+# produces, and the reason a later shutdown blocks.
+#
+# So the workloads go first, while the CSI driver is still alive to unmount
+# them and the storage layer can detach cleanly.
+
+- name: Update MicroK8s with the volumes detached first
+  hosts: odroid
+  gather_facts: true
+
+  vars:
+    # The longhorn chart's namespaceOverride; the upstream default would be
+    # longhorn-system.
+    longhorn_namespace: longhorn
+
+  vars_prompt:
+    - name: confirm
+      prompt: |-
+        This drains the node and stops the cluster. Every workload goes down and
+        stays down until the refresh finishes. Type "drain" to continue
+      private: false
+
+  tasks:
+    - name: Refuse unless confirmed
+      ansible.builtin.fail:
+        msg: "Not confirmed -- nothing was touched."
+      when: confirm != "drain"
+
+    - name: Cordon the node
+      become: true
+      ansible.builtin.command:
+        cmd: "{{ microk8s_kubectl_binary }} cordon {{ ansible_hostname }}"
+      changed_when: true
+
+    - name: Drain the node
+      become: true
+      ansible.builtin.command:
+        cmd: >-
+          {{ microk8s_kubectl_binary }} drain {{ ansible_hostname }}
+          --ignore-daemonsets --delete-emptydir-data
+      changed_when: true
+
+    # The drain returns when the pods are gone; detaching happens afterwards and
+    # is the part that actually matters.
+    - name: Wait for every Longhorn volume to detach
+      become: true
+      ansible.builtin.command:
+        cmd: >-
+          {{ microk8s_kubectl_binary }} -n {{ longhorn_namespace }}
+          get volumes.longhorn.io -o jsonpath={.items[*].status.state}
+      register: longhorn_states
+      changed_when: false
+      retries: 30
+      delay: 10
+      until: >-
+        longhorn_states.stdout.split()
+        | reject('equalto', 'detached')
+        | list | length == 0
+
+    - name: Stop MicroK8s
+      become: true
+      ansible.builtin.command:
+        cmd: microk8s stop
+      changed_when: true
+
+    - name: Refresh the snap
+      become: true
+      ansible.builtin.command:
+        cmd: snap refresh microk8s
+      register: microk8s_refresh
+      changed_when: "'refreshed' in microk8s_refresh.stdout"
+
+    # `microk8s stop` passes --disable to the kubelite service, so the cluster
+    # does not come back on its own -- not after this, and not after a reboot.
+    - name: Start MicroK8s
+      become: true
+      ansible.builtin.command:
+        cmd: microk8s start
+      changed_when: true
+
+    - name: Wait for the cluster to become ready
+      become: true
+      ansible.builtin.command:
+        cmd: microk8s status --wait-ready --timeout 300
+      changed_when: false
+
+    - name: Uncordon the node
+      become: true
+      ansible.builtin.command:
+        cmd: "{{ microk8s_kubectl_binary }} uncordon {{ ansible_hostname }}"
+      changed_when: true
+
+    - name: Report
+      ansible.builtin.debug:
+        msg: "{{ microk8s_refresh.stdout_lines }}"
