@@ -1,0 +1,188 @@
+---
+# Capture the state of a working machine into the vault.
+#
+#   ansible-playbook capture.yml -K
+#
+# Run this once, now, on the board while it still works. It reads what cannot be
+# reconstructed from the repository -- which machine this is, which versions it
+# is pinned to, which credentials it holds -- and writes it to the vault outside
+# the repository.
+#
+# The vault is then the one artefact a restore cannot bring along by itself.
+# Back it up somewhere that survives the loss of this board. If it is gone, so
+# is velero.repositoryPassword, and a Kopia repository password cannot be
+# changed after the first backup: every Velero backup in both targets becomes
+# unreadable.
+
+- name: Capture the current state into the vault
+  hosts: odroid
+  gather_facts: true
+
+  tasks:
+    - name: Capture | Check the platform values exist
+      ansible.builtin.stat:
+        path: "{{ platform_values_file }}"
+      register: capture_values_stat
+
+    - name: Capture | Fail when there is nothing to capture
+      ansible.builtin.fail:
+        msg: |-
+          {{ platform_values_file }} does not exist, so there is no configured
+          machine here to capture.
+
+          This playbook records a working system; it does not invent one. On a
+          fresh install, write platform/values.yaml first (the chart READMEs
+          describe every key, and platform/values.schema.json validates it in the
+          editor), bring the platform up by hand once, then run this.
+      when: not capture_values_stat.stat.exists
+
+    - name: Capture | Read the platform values
+      ansible.builtin.slurp:
+        src: "{{ platform_values_file }}"
+      register: capture_values
+      no_log: true
+
+    # ---------------------------------------------------------------------
+    # Versions this host is pinned to
+    # ---------------------------------------------------------------------
+    # Captured rather than chosen. A restore that lands on a newer MicroK8s
+    # because the playbook said "latest" is not a restore.
+
+    - name: Capture | Read the MicroK8s channel
+      ansible.builtin.command:
+        cmd: snap list microk8s --unicode=never
+      register: capture_snap
+      changed_when: false
+
+    - name: Capture | Extract the tracked channel
+      ansible.builtin.set_fact:
+        capture_microk8s_channel: "{{ capture_snap.stdout_lines[1].split()[3] }}"
+
+    - name: Capture | Read the k9s version
+      ansible.builtin.command:
+        cmd: /usr/local/bin/k9s version --short
+      register: capture_k9s
+      changed_when: false
+      failed_when: false
+
+    # ---------------------------------------------------------------------
+    # WireGuard
+    # ---------------------------------------------------------------------
+    # Optional: a machine without a tunnel is a valid machine. Half a tunnel
+    # configuration is not, so it is all-or-nothing.
+
+    - name: Capture | Check for a WireGuard configuration
+      become: true
+      ansible.builtin.stat:
+        path: /etc/wireguard/wg0.conf
+      register: capture_wg_stat
+
+    - name: Capture | Read the WireGuard configuration
+      become: true
+      ansible.builtin.slurp:
+        src: /etc/wireguard/wg0.conf
+      register: capture_wg
+      no_log: true
+      when: capture_wg_stat.stat.exists
+
+    # ---------------------------------------------------------------------
+    # Boot configuration, recorded for reference only
+    # ---------------------------------------------------------------------
+    # Never applied. preflight asserts against the live file and tells you to
+    # edit it by hand; this copy exists so that after a reinstall you can see
+    # what the line used to say.
+
+    - name: Capture | Read the overlays line from the [generic] section
+      ansible.builtin.command:
+        cmd: >-
+          awk '/^\[generic\]/{f=1;next} /^\[/{f=0} f && /^[[:space:]]*overlays[[:space:]]*=/{print}' /boot/config.ini
+      register: capture_overlays
+      changed_when: false
+      failed_when: false
+
+    # ---------------------------------------------------------------------
+    # Write it out
+    # ---------------------------------------------------------------------
+
+    - name: Capture | Assemble the vault contents
+      ansible.builtin.set_fact:
+        capture_vault: >-
+          {{
+            {
+              'vault_platform_values': capture_values.content | b64decode,
+              'vault_microk8s_channel': capture_microk8s_channel,
+              'vault_k9s_version': capture_k9s.stdout | default('') | trim,
+              'vault_boot_overlays_line': capture_overlays.stdout | default('') | trim,
+            }
+            | combine(
+                {'vault_wireguard_conf': capture_wg.content | default('') | b64decode}
+                if capture_wg_stat.stat.exists else {}
+              )
+          }}
+      no_log: true
+
+    - name: Capture | Check for an existing vault
+      ansible.builtin.stat:
+        path: "{{ odroid_vault_file }}"
+      register: capture_existing
+
+    # Never overwrite a vault without leaving the old one behind. If the running
+    # machine has already drifted from what was captured, the previous copy may
+    # be the only record of a value that still matters.
+    - name: Capture | Back up the existing vault
+      ansible.builtin.copy:
+        src: "{{ odroid_vault_file }}"
+        dest: "{{ odroid_vault_file }}.{{ ansible_date_time.iso8601_basic_short }}.bak"
+        remote_src: true
+        mode: "0600"
+      when: capture_existing.stat.exists
+
+    - name: Capture | Ensure the vault directory exists
+      ansible.builtin.file:
+        path: "{{ odroid_vault_file | dirname }}"
+        state: directory
+        mode: "0700"
+
+    - name: Capture | Write the vault
+      ansible.builtin.copy:
+        content: "{{ capture_vault | to_nice_yaml(indent=2, width=1000) }}"
+        dest: "{{ odroid_vault_file }}"
+        mode: "0600"
+      no_log: true
+
+    # Written in the clear first, then encrypted. Ansible has no way to produce
+    # an encrypted file from inside a play, and doing the encryption as a
+    # separate, visible step is better than pretending otherwise -- the file
+    # spends a moment unencrypted at 0600 in the user's home directory, outside
+    # the repository, and you can see exactly when it stops being so.
+    - name: Capture | Encrypt the vault
+      ansible.builtin.command:
+        cmd: "ansible-vault encrypt {{ odroid_vault_file }}"
+      register: capture_encrypt
+      changed_when: capture_encrypt.rc == 0
+      failed_when: false
+      when: lookup('env', 'ANSIBLE_VAULT_PASSWORD_FILE') | length > 0
+
+    - name: Capture | Report
+      ansible.builtin.debug:
+        msg: >-
+          {{
+            (
+              'Vault written and encrypted at ' ~ odroid_vault_file
+            ) if (capture_encrypt.rc | default(1)) == 0 else (
+              'Vault written IN THE CLEAR at ' ~ odroid_vault_file ~
+              ' -- encrypt it now:  ansible-vault encrypt ' ~ odroid_vault_file
+            )
+          }}
+
+    - name: Capture | Say what has to happen next
+      ansible.builtin.debug:
+        msg:
+          - "Back this vault up somewhere that survives the loss of the board."
+          - "It holds velero.repositoryPassword, and a Kopia repository password"
+          - "cannot be changed after the first backup -- lose it and every backup"
+          - "in both targets is unreadable."
+          - ""
+          - "Then prove the playbook matches this machine:"
+          - "  ansible-playbook site.yml --check --diff --ask-vault-pass -K"
+          - "Every reported change is a difference between the playbook and reality."

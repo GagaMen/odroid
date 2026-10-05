@@ -1,0 +1,73 @@
+---
+# Restore and converge the ODROID home server.
+#
+#   ansible-playbook site.yml --ask-vault-pass -K
+#
+# Run it on the board itself. It is idempotent: on an already-correct machine it
+# must report zero changed tasks, which is also how the playbook is verified
+# against the hand-built original (see ansible/README.md).
+
+- name: Restore the ODROID home server
+  hosts: odroid
+  gather_facts: true
+
+  tasks:
+    # Measures the host and refuses to continue on a machine this configuration
+    # does not describe. Always runs: later roles read the facts it sets.
+    - name: Preflight
+      ansible.builtin.import_role:
+        name: preflight
+      tags: always
+
+    # Loads the captured state. Always runs, for the same reason.
+    - name: Secrets
+      ansible.builtin.import_role:
+        name: secrets
+      tags: always
+
+    - name: Host configuration
+      ansible.builtin.import_role:
+        name: host
+      tags: host
+
+    - name: MicroK8s
+      ansible.builtin.import_role:
+        name: microk8s
+      tags: microk8s
+
+    # Deliberately after the MicroK8s role: `snap refresh --hold microk8s` has
+    # nothing to hold until the snap exists. This is the one ordering constraint
+    # in the playbook that is not obvious from the role names.
+    - name: Host configuration | snap holds
+      ansible.builtin.import_role:
+        name: host
+        tasks_from: snap-holds
+      tags: [host, snap]
+
+    - name: Tooling
+      ansible.builtin.import_role:
+        name: tooling
+      tags: tooling
+
+    - name: WireGuard
+      ansible.builtin.import_role:
+        name: wireguard
+      when: wireguard_configured | bool
+      tags: wireguard
+
+    - name: Platform
+      ansible.builtin.import_role:
+        name: platform
+      tags: platform
+
+  post_tasks:
+    - name: Report what still has to happen by hand
+      ansible.builtin.debug:
+        msg:
+          - "The cluster is up. Two things this playbook deliberately did not do:"
+          - "1. Restore the data. The PVC contents come from Velero:"
+          - "     velero backup get"
+          - "     velero restore create --from-backup <backup>"
+          - "2. Reboot, if the watchdog overlay was reinstalled. Until then"
+          - "   /dev/watchdog is whatever the last boot provided."
+          - "Verification steps are in ansible/README.md."
