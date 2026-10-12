@@ -96,7 +96,7 @@ release namespace, which is why it must not be `default`.
 
 ```bash
 kubectl create namespace platform
-helm install platform ./platform -n platform -f platform/values.yaml
+scripts/helm-platform install
 ```
 
 The namespace is created outside the chart on purpose: `templates/namespace.yaml` must not
@@ -105,7 +105,7 @@ own the namespace that holds the release history.
 ### 4. Upgrade
 
 ```bash
-helm upgrade platform ./platform -n platform -f platform/values.yaml
+scripts/helm-platform upgrade
 ```
 
 ### 5. Uninstall
@@ -113,6 +113,59 @@ helm upgrade platform ./platform -n platform -f platform/values.yaml
 ```bash
 helm uninstall platform -n platform
 ```
+
+## Secrets
+
+Credentials are not part of `values.yaml`. They are stored in a Bitwarden organization
+(bitwarden.com, a self-hosted Bitwarden server or Vaultwarden) and read with the
+[`bw` CLI](https://bitwarden.com/help/cli/) each time Helm runs. This uses the regular password
+vault, not the separate Bitwarden Secrets Manager product, so it works with every server that
+implements the vault API. The pieces:
+
+- [`secrets/mapping.yaml`](../secrets/mapping.yaml) mirrors the structure of `values.yaml` and
+  names, for every secret value, the vault item (by its exact name) and the field to take:
+  `username`, `password`, `notes`, or a custom field.
+- [`scripts/secrets-values`](../scripts/secrets-values) resolves the mapping and prints the
+  result as a values file. It fails without output if an item is missing, a name is ambiguous,
+  or a field is empty, so Helm never sees a partial set.
+- [`scripts/helm-platform`](../scripts/helm-platform) runs `helm install`, `upgrade` or
+  `template` with `values.yaml` first and the secrets second, passed on stdin. Nothing is
+  written to disk, and the secrets win over anything left in `values.yaml`.
+
+Always deploy through the wrapper. A plain `helm upgrade -f platform/values.yaml` deploys the
+charts' placeholder credentials (Grafana's `changeme`, for instance) where a chart does not
+mark the value as required.
+
+### Vault Setup
+
+The CLI logs in as a dedicated user that is a member of only the organization holding these
+items. An unlocked session of that user can decrypt nothing else, so the vault cache on the
+server and the session key in its shell expose only the platform's credentials.
+
+1. Create an organization and a collection for the platform's items.
+2. Create a separate user, invite it to the organization with access to that collection only,
+   and confirm it as a member (until then it cannot decrypt the organization's items).
+3. Create one *Login* item per service, named as in `secrets/mapping.yaml`. Login credentials
+   go in username and password; other values go in hidden custom fields named exactly as in the
+   mapping.
+4. Log the CLI in as that user (`@bitwarden/cli` is a dev dependency, see `npm install`):
+
+```bash
+npx bw config server https://<server>   # skip for bitwarden.com
+npx bw login
+```
+
+### Deploying
+
+```bash
+export BW_SESSION=$(npx bw unlock --raw)
+scripts/helm-platform upgrade --dry-run=server   # optional preview
+scripts/helm-platform upgrade
+npx bw lock
+```
+
+The wrapper syncs the vault first, so a change made in another client takes effect without
+further steps.
 
 ## Configuration
 

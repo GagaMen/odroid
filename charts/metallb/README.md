@@ -68,8 +68,8 @@ whose CRD does not exist yet when it builds a release, so the release that insta
 **skips the pool and the advertisement**, and the next upgrade creates them:
 
 ```bash
-helm upgrade platform ./platform -n platform -f platform/values.yaml   # CRDs, controller, speaker
-helm upgrade platform ./platform -n platform -f platform/values.yaml   # pools, advertisement
+scripts/helm-platform upgrade   # CRDs, controller, speaker
+scripts/helm-platform upgrade   # pools, advertisement
 kubectl -n platform get ipaddresspool,l2advertisement
 ```
 

@@ -88,8 +88,8 @@ has exactly one suspect.
    server-side dry run, compares with the deployed revision). The change must match the
    assessment: typically the image, chart labels, and whatever the release notes announced.
    Anything unexplained stops the rollout until it is explained.
-5. **Deploy**:
-   `microk8s.helm3 upgrade --install platform platform/ -n platform -f platform/values.yaml`
+5. **Deploy**: `scripts/helm-platform upgrade`. The secrets come from Bitwarden, so this and
+   step 4 need an unlocked vault (`BW_SESSION`); the user unlocks it, never you.
    Then `kubectl rollout status` for each changed Deployment/StatefulSet/DaemonSet.
 6. **Verify** per [`verification.md`](verification.md). Done when that service's checks pass
    and every error seen is either explained there or explained by you.

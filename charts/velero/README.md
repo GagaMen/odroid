@@ -163,7 +163,7 @@ velero restore describe <restore> --details
 
 # 5. bring the workload back and let Helm own the PVC again
 kubectl -n monitoring scale deployment platform-grafana --replicas=1
-helm upgrade platform ./platform -n platform -f platform/values.yaml
+scripts/helm-platform upgrade
 ```
 
 After the test, delete the namespace **and** the volumes it left behind: a PVC on

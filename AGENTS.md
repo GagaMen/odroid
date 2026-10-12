@@ -94,12 +94,12 @@ If new files with sensitive data are found, add them to `.gitignore`!
 ### Helm Values
 
 - **Default Values** (`values.yaml` in charts): Contain only placeholders or safe defaults
-- **Production Values** (`platform/values.yaml`): Contains real credentials → is ignored!
+- **Production Values** (`platform/values.yaml`): Personal configuration (domains, addresses) → is ignored! Credentials are not in it; they come from Bitwarden
 - New charts should follow this pattern
 
 ### Secrets in Templates
 
-Secrets are injected via Helm values (see `platform/templates/secret.yaml`). The actual values come from the ignored `platform/values.yaml`.
+Secrets are injected via Helm values (see `platform/templates/secret.yaml`). The actual values come from Bitwarden through `secrets/mapping.yaml`, passed to Helm by `scripts/helm-platform`.
 
 ### Creating New Files
 
@@ -111,7 +111,7 @@ When creating new files with potentially sensitive data:
 
 ## ⚙️ Traps in This Repository
 
-Three things that are not obvious and have cost real debugging time.
+Four things that are not obvious and have cost real debugging time.
 
 ### The umbrella renders from vendored archives, not the working tree
 
@@ -177,6 +177,23 @@ the rest of userspace. Consequences that matter when touching services:
 
 Read [`host/README.md`](host/README.md) before changing anything below Kubernetes.
 
+### Secrets come from Bitwarden, not from values.yaml
+
+Credentials are resolved at deploy time from a Bitwarden organization through
+`secrets/mapping.yaml` (see [`platform/README.md`](platform/README.md#secrets)). Deploy with
+`scripts/helm-platform`, never with a bare `helm upgrade -f platform/values.yaml`: that deploys
+placeholder credentials wherever a chart does not mark them as required.
+
+`scripts/helm-platform` and `release_diff.py` need an unlocked vault (`BW_SESSION`). Ask the
+user to unlock it; do not try yourself. **Keep secrets out of your transcript:** never run
+`scripts/secrets-values` on its own, and never `scripts/helm-platform template` or
+`upgrade --dry-run` — all of them print Secret contents. To preview a change, use
+`.claude/skills/dependency-updates/scripts/release_diff.py`, which only reports that a Secret
+changed.
+
+A new secret value needs an entry in `secrets/mapping.yaml` and an item or field in the vault;
+it must not go into `platform/values.yaml`.
+
 ## 🛠️ Technology Stack
 
 - **Kubernetes:** MicroK8s on ARM64 (ODROID-M2)
@@ -192,8 +209,8 @@ Read [`host/README.md`](host/README.md) before changing anything below Kubernete
 # Update Helm dependencies
 helm dependency update platform/
 
-# Install/upgrade chart
-helm upgrade --install platform platform/ -n platform -f platform/values.yaml
+# Install/upgrade the platform; secrets are read from Bitwarden (see Traps)
+scripts/helm-platform upgrade
 
 # Show all resources in namespace
 kubectl get all -n <namespace>

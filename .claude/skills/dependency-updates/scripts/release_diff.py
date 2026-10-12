@@ -5,8 +5,9 @@ Usage (from the repository root):
   release_diff.py [--no-dependency-update]
 
 Repackages the umbrella (`helm dependency update platform/`, skip with the
-flag), runs `helm upgrade --dry-run=server` and compares its manifest with
-the one stored for the deployed revision.
+flag), runs `helm upgrade --dry-run=server` with the secrets from Bitwarden
+(see scripts/secrets-values; the vault must be unlocked) and compares its
+manifest with the one stored for the deployed revision.
 
 A server-side dry run is used on purpose: `helm template` knows neither the
 cluster's API versions nor `lookup`, so it reports false differences
@@ -40,10 +41,17 @@ def helm_binary():
 HELM = helm_binary()
 
 
-def helm(*args):
-    result = subprocess.run([HELM, *args], capture_output=True, text=True)
+def helm(*args, stdin=None):
+    result = subprocess.run([HELM, *args], input=stdin, capture_output=True, text=True)
     if result.returncode:
         sys.exit(f"helm {args[0]} failed:\n{result.stderr[-2000:]}")
+    return result.stdout
+
+
+def secret_values():
+    result = subprocess.run(["scripts/secrets-values"], capture_output=True, text=True)
+    if result.returncode:
+        sys.exit(result.stderr.strip())
     return result.stdout
 
 
@@ -70,7 +78,8 @@ def main():
         helm("dependency", "update", "platform/")
 
     live = resources(helm("get", "manifest", RELEASE, "-n", NAMESPACE))
-    dry_run = helm("upgrade", RELEASE, CHART, "-n", NAMESPACE, "-f", VALUES, "--dry-run=server")
+    dry_run = helm("upgrade", RELEASE, CHART, "-n", NAMESPACE, "-f", VALUES, "-f", "-", "--dry-run=server",
+                   stdin=secret_values())
     new = resources(dry_run.split("MANIFEST:", 1)[1].split("\nNOTES:", 1)[0])
 
     changed = [k for k in new if k in live and digest(new[k]) != digest(live[k])]

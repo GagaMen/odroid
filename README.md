@@ -136,20 +136,26 @@ Create a `platform/values.yaml` file with your configuration. See the individual
 - [Loki Configuration](charts/loki/README.md)
 - [Grafana Alloy Configuration](charts/alloy/README.md)
 
-### 3. Install the Platform
+### 3. Store the Secrets in Bitwarden
+
+Credentials are not kept in `platform/values.yaml`. They live in a Bitwarden organization
+(bitwarden.com, a self-hosted Bitwarden server or Vaultwarden) and are read with the `bw` CLI
+whenever Helm runs; `scripts/helm-platform` wraps the Helm commands for that. See [Secrets](platform/README.md#secrets) for the setup.
+
+### 4. Install the Platform
 
 The release lives in its own `platform` namespace, because components whose upstream
 chart has no namespace override deploy into the namespace of the release.
 
 ```bash
 kubectl create namespace platform
-helm install platform ./platform -n platform -f platform/values.yaml
+scripts/helm-platform install
 ```
 
-### 4. Upgrade the Platform
+### 5. Upgrade the Platform
 
 ```bash
-helm upgrade platform ./platform -n platform -f platform/values.yaml
+scripts/helm-platform upgrade
 ```
 
 ## 📁 Repository Structure
@@ -181,6 +187,8 @@ helm upgrade platform ./platform -n platform -f platform/values.yaml
 │   │   ├── velero-credentials.yaml         # S3 credentials per Velero target
 │   │   └── volumesnapshotclass.yaml        # CSI snapshot class backed by Longhorn
 │   └── values.yaml                         # Your configuration (gitignored)
+├── scripts/                                # Helm wrapper and secret resolver
+├── secrets/mapping.yaml                    # Which values come from Bitwarden
 ├── host/                                   # Host configuration below Kubernetes
 │   ├── README.md                           # What each file does and how to apply it
 │   └── files/                              # Target-faithful paths (Ansible-role layout)

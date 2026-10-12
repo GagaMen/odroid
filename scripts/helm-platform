@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Run a Helm command against the platform release, with its secrets read from
+# Bitwarden instead of platform/values.yaml.
+#
+# Usage: scripts/helm-platform <install|upgrade|template> [helm flags...]
+#   scripts/helm-platform upgrade --dry-run=server
+#   scripts/helm-platform upgrade
+#
+# The secrets go to Helm as a second values file on stdin and are never written
+# to disk. They come after platform/values.yaml, so they win over anything left
+# there. Helm does not run if a single secret cannot be resolved.
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+  sed -n '5,7p' "$0" | sed 's/^# //' >&2
+  exit 2
+fi
+
+cd "$(dirname "$0")/.."
+helm=${HELM:-$(command -v helm || command -v microk8s.helm3)}
+
+secrets=$(scripts/secrets-values)
+printf '%s\n' "$secrets" |
+  "$helm" "$1" platform ./platform -n platform -f platform/values.yaml -f - "${@:2}"
