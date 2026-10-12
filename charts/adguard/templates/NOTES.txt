@@ -7,6 +7,7 @@ To learn more about the release, try:
   $ helm status {{ .Release.Name }}
   $ helm get all {{ .Release.Name }}
 
+{{- if .Values.adguardHome.enabled }}
 {{- if .Values.ingress.enabled }}
 
 AdGuard Home is available at:
@@ -30,3 +31,15 @@ After completing the setup, port 3000 will be disabled and you can use
 the regular web interface on port 80 (or via Ingress).
 
 Note: AdGuard Home stores its configuration in persistent volumes.
+{{- else }}
+
+AdGuard Home itself is not deployed (adguardHome.enabled=false).
+{{- if .Values.prometheusExporter.enabled }}
+The Prometheus exporter scrapes {{ join ", " .Values.prometheusExporter.servers }} and serves
+metrics at:
+
+  http://{{ include "adguard-prometheus-exporter.fullname" . }}.{{ include "adguard.namespace" . }}.svc.cluster.local:{{ .Values.prometheusExporter.service.port }}/metrics
+{{- else }}
+The Prometheus exporter is disabled as well, so this release deploys nothing.
+{{- end }}
+{{- end }}

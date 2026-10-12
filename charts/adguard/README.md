@@ -51,6 +51,7 @@ helm install adguard ./charts/adguard -f values.yaml
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
+| `adguardHome.enabled` | Deploy AdGuard Home itself; `false` deploys only the exporter | `true` |
 | `image.repository` | Container image repository | `adguard/adguardhome` |
 | `image.tag` | Container image tag | `v0.107.79` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
@@ -208,6 +209,28 @@ adguard:
 ```
 
 > **Note:** The exporter is deployed as a separate Deployment with its own Service (ClusterIP on port 9618). Credentials are stored in a Kubernetes Secret.
+
+### Exporter Only
+
+If AdGuard Home runs outside the cluster, for example on the router, the chart can deploy just
+the exporter and point it at that instance. AdGuard Home's deployment, service, ingress and PVCs
+are not rendered; switching an existing release over removes them, PVCs included.
+
+```yaml
+adguard:
+  adguardHome:
+    enabled: false
+  prometheusExporter:
+    enabled: true
+    servers:
+      - http://router.example.lan
+    usernames:
+      - admin
+    passwords:
+      - your-adguard-password
+```
+
+The exporter keeps its name and port, so existing scrape configurations continue to work.
 
 ### Prometheus Scrape Configuration
 

@@ -5,6 +5,17 @@
     "Values": {
       "additionalProperties": false,
       "properties": {
+        "adguardHome": {
+          "additionalProperties": false,
+          "description": "AdGuard Home itself; disable to deploy only the Prometheus exporter",
+          "properties": {
+            "enabled": {
+              "description": "Deploy AdGuard Home (deployment, service, ingress, PVCs)",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
         "affinity": {
           "description": "Affinity rules for pod assignment",
           "type": "object"

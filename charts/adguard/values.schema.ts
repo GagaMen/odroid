@@ -157,6 +157,11 @@ export interface Values {
   enabled?: boolean;
   /** Override the deployment namespace */
   namespaceOverride?: string;
+  /** AdGuard Home itself; disable to deploy only the Prometheus exporter */
+  adguardHome?: {
+    /** Deploy AdGuard Home (deployment, service, ingress, PVCs) */
+    enabled?: boolean;
+  };
   /** Container image configuration */
   image?: Image;
   /** Override the chart name */

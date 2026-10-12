@@ -1,4 +1,4 @@
-{{- if .Values.persistence.conf.enabled }}
+{{- if and .Values.adguardHome.enabled .Values.persistence.conf.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -20,7 +20,7 @@ spec:
   {{- end }}
 {{- end }}
 ---
-{{- if .Values.persistence.work.enabled }}
+{{- if and .Values.adguardHome.enabled .Values.persistence.work.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
