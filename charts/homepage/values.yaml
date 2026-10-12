@@ -122,6 +122,13 @@ secret:
   annotations:
     kubernetes.io/service-account.name: homepage
 
+# Environment variables from a Secret. Homepage replaces {{HOMEPAGE_VAR_<NAME>}}
+# placeholders in its configuration files with the variable of that name, so
+# credentials for service widgets stay out of the ConfigMap. Names must start
+# with HOMEPAGE_VAR_ (or HOMEPAGE_FILE_ for a file path).
+secretEnv: {}
+#  HOMEPAGE_VAR_ADGUARD_PASSWORD: changeme
+
 clusterrole:
   enable: true
   rules:

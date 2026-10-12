@@ -81,6 +81,36 @@ The configuration is managed via ConfigMap. All Homepage configuration files are
 | `custom.js` | Custom JavaScript |
 | `docker.yaml` | Docker integration (if used) |
 
+### Credentials for Service Widgets
+
+Widgets that log in to a service need credentials in `services.yaml`, which ends up in a
+ConfigMap. Put them in `secretEnv` instead: each entry becomes an environment variable from a
+Secret, and Homepage replaces `{{HOMEPAGE_VAR_<NAME>}}` placeholders with it. Names must start
+with `HOMEPAGE_VAR_`.
+
+```yaml
+homepage:
+  secretEnv:
+    HOMEPAGE_VAR_ADGUARD_PASSWORD: <password>
+  configMap:
+    data:
+      services.yaml: |
+        - DNS:
+            - AdGuard:
+                widget:
+                  type: adguard
+                  url: http://adguard.adguard.svc.cluster.local
+                  username: admin
+                  password: "{{HOMEPAGE_VAR_ADGUARD_PASSWORD}}"
+```
+
+The pod restarts when a value in `secretEnv` changes, because Homepage reads its environment
+only at startup.
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `secretEnv` | Map of environment variable name to value, stored in a Secret | `{}` |
+
 ### Ingress
 
 | Parameter | Description | Default |

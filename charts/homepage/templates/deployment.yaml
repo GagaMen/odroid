@@ -15,9 +15,15 @@ spec:
       {{- include "homepage.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
+      {{- if or .Values.podAnnotations .Values.secretEnv }}
       annotations:
+        {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.secretEnv }}
+        # Homepage reads its environment only at startup.
+        checksum/secret-env: {{ include (print $.Template.BasePath "/secret-env.yaml") . | sha256sum }}
+        {{- end }}
       {{- end }}
       labels:
         {{- include "homepage.labels" . | nindent 8 }}
@@ -43,6 +49,11 @@ spec:
                 configMapKeyRef:
                   name: {{ include "homepage.fullname" . }}
                   key: allowedHosts
+          {{- if .Values.secretEnv }}
+          envFrom:
+            - secretRef:
+                name: {{ include "homepage.fullname" . }}-env
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

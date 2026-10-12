@@ -451,6 +451,13 @@
           },
           "type": "object"
         },
+        "secretEnv": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Environment variables from a Secret, referenced in config files as {{HOMEPAGE_VAR_<NAME>}}",
+          "type": "object"
+        },
         "securityContext": {
           "description": "Container security context",
           "type": "object"

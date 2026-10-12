@@ -202,6 +202,8 @@ export interface Values {
   configMap?: ConfigMap;
   /** Secret configuration */
   secret?: Secret;
+  /** Environment variables from a Secret, referenced in config files as {{HOMEPAGE_VAR_<NAME>}} */
+  secretEnv?: { [name: string]: string };
   /** ClusterRole for Kubernetes API access */
   clusterrole?: ClusterRole;
   /** Ingress configuration */
