@@ -60,3 +60,12 @@ metadata:
     app.kubernetes.io/name: monitoring
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: network
+  labels:
+    app.kubernetes.io/name: network
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}

@@ -1,0 +1,92 @@
+{
+  "$ref": "#/definitions/Values",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Values": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "description": "Enable/disable this chart (used by platform condition)",
+          "type": "boolean"
+        },
+        "global": {
+          "description": "Injected by Helm for sub-chart coordination",
+          "type": "object"
+        },
+        "ingress": {
+          "additionalProperties": false,
+          "description": "Settings shared by all Ingresses",
+          "properties": {
+            "annotations": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Annotations for every Ingress; an entry's own annotations are merged over them",
+              "type": "object"
+            },
+            "className": {
+              "description": "Ingress class name",
+              "type": "string"
+            },
+            "tls": {
+              "description": "Add a TLS section per host, with the certificate in the secret \"<name>-tls\"",
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "namespaceOverride": {
+          "description": "Override the deployment namespace",
+          "type": "string"
+        },
+        "services": {
+          "description": "Devices outside the cluster to put behind the ingress controller",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "addresses": {
+                "description": "IPv4 addresses of the device",
+                "items": {
+                  "description": "IPv4 address",
+                  "format": "ipv4",
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "annotations": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "Additional annotations for this Ingress",
+                "type": "object"
+              },
+              "host": {
+                "description": "Host name the Ingress serves",
+                "type": "string"
+              },
+              "name": {
+                "description": "Name of the Service, EndpointSlice and Ingress",
+                "type": "string"
+              },
+              "port": {
+                "description": "Port of the web interface on the device",
+                "maximum": 65535,
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "name",
+              "addresses",
+              "port",
+              "host"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    }
+  }
+}

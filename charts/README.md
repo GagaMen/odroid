@@ -9,6 +9,7 @@ This directory contains custom Helm charts for the Odroid home server platform. 
 | [actual](actual/) | Local-first personal finance manager with envelope budgeting | 1.0.0 |
 | [adguard](adguard/) | Network-wide ad & tracker blocking DNS server | 1.1.0 |
 | [cert-manager-dns-lexicon-webhook](cert-manager-dns-lexicon-webhook/) | DNS-01 ACME challenge solver using Lexicon | 1.0.0 |
+| [external-services](external-services/) | HTTPS ingresses for web interfaces of devices outside the cluster | 1.0.0 |
 | [homepage](homepage/) | Modern, customizable application dashboard | 1.0.0 |
 | [longhorn](longhorn/) | Cloud-native distributed block storage | 1.0.0 |
 | [metallb](metallb/) | LAN addresses for LoadBalancer services (layer 2) | 1.0.0 |
@@ -32,6 +33,7 @@ adguard:
 | actual | `default` |
 | adguard | `default` |
 | cert-manager-dns-lexicon-webhook | `default` |
+| external-services | `default` |
 | homepage | `default` |
 | longhorn | `longhorn-system` (built-in) |
 | metallb | release namespace (no override upstream) |

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: external-services
+description: Ingresses with TLS for web interfaces of devices outside the cluster.
+type: application
+version: 1.0.0

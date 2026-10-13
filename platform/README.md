@@ -46,6 +46,7 @@ platform/
 | grafana | 1.0.0 | `grafana.enabled` |
 | loki | 1.0.0 | `loki.enabled` |
 | alloy | 1.0.0 | `alloy.enabled` |
+| external-services | 1.0.0 | `external-services.enabled` |
 
 ## Installation
 
@@ -183,6 +184,7 @@ The platform chart creates dedicated namespaces for each service in `templates/n
 | `actual` | Personal finance manager |
 | `paperless` | Document archive |
 | `monitoring` | Prometheus, Grafana, Loki, Alloy |
+| `network` | Ingresses for devices outside the cluster (external-services) |
 
 > **Important:** Each sub-chart requires `namespaceOverride` to be set in your `values.yaml` to deploy into these namespaces. Without it, charts deploy into the release namespace `platform` (except Longhorn, which defaults to `longhorn-system`).
 

@@ -1,0 +1,78 @@
+{{- range .Values.services }}
+{{- $name := required "services[].name is required" .name }}
+{{- $port := required (printf "services[%s].port is required" $name) .port }}
+{{- $labels := include "external-services.labels" (dict "root" $ "service" .) }}
+{{- $annotations := mergeOverwrite (deepCopy ($.Values.ingress.annotations | default dict)) (.annotations | default dict) }}
+---
+# No selector: the endpoints come from the EndpointSlice below, not from pods.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "external-services.namespace" $ }}
+  labels:
+    {{- $labels | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ $port }}
+      targetPort: {{ $port }}
+      protocol: TCP
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "external-services.namespace" $ }}
+  labels:
+    {{- $labels | nindent 4 }}
+    kubernetes.io/service-name: {{ $name }}
+    # Anything but the controller's own name, so it neither adopts nor deletes this slice.
+    endpointslice.kubernetes.io/managed-by: helm
+addressType: IPv4
+ports:
+  # The name must match the Service port name, or the slice is not used for it.
+  - name: http
+    port: {{ $port }}
+    protocol: TCP
+endpoints:
+  - addresses:
+      {{- range required (printf "services[%s].addresses is required" $name) .addresses }}
+      - {{ . | quote }}
+      {{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "external-services.namespace" $ }}
+  labels:
+    {{- $labels | nindent 4 }}
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with $.Values.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- $host := required (printf "services[%s].host is required" $name) .host }}
+  {{- if $.Values.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ $host | quote }}
+      secretName: {{ $name }}-tls
+  {{- end }}
+  rules:
+    - host: {{ $host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $name }}
+                port:
+                  name: http
+{{- end }}
