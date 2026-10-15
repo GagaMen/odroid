@@ -12047,6 +12047,10 @@
                     "prometheus": {
                       "type": "object"
                     },
+                    "prometheusScrape": {
+                      "description": "Put the prometheus.io/scrape annotation on the Service",
+                      "type": "boolean"
+                    },
                     "rbac": {
                       "additionalProperties": false,
                       "properties": {

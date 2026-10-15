@@ -150,6 +150,8 @@ interface NodeExporterRbac {
 }
 
 interface PrometheusNodeExporter {
+  /** Put the prometheus.io/scrape annotation on the Service */
+  prometheusScrape?: boolean;
   namespaceOverride?: string;
   nameOverride?: string;
   fullnameOverride?: string;
