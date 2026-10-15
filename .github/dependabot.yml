@@ -12,11 +12,11 @@ version: 2
 # reporting an error. Charts are therefore pulled from ghcr.io wherever the
 # project publishes there.
 #
-# Longhorn, MetalLB, RustFS and Velero publish only to classic HTTP
-# repositories that are not on the allowlist, so Dependabot does not detect
-# their updates. Declaring them under `registries` would add
-# them to the allowlist, but GitHub rejects a helm-registry without
-# credentials, even for a public repository.
+# Longhorn, MetalLB and RustFS publish only to classic HTTP repositories that
+# are not on the allowlist, so Dependabot does not detect their updates.
+# Declaring them under `registries` would add them to the allowlist, but
+# GitHub rejects a helm-registry without credentials, even for a public
+# repository.
 updates:
   - package-ecosystem: "docker"
     directories:
