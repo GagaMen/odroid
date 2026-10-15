@@ -3143,6 +3143,14 @@
                   },
                   "type": "object"
                 },
+                "podManagementPolicy": {
+                  "description": "Pod management of the StatefulSet; immutable once it exists, ignored for a Deployment",
+                  "enum": [
+                    "OrderedReady",
+                    "Parallel"
+                  ],
+                  "type": "string"
+                },
                 "podPortName": {
                   "type": "string"
                 },

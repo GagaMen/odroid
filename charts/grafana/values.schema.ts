@@ -362,6 +362,8 @@ interface GrafanaUpstream {
   shadowBundledPlugins?: boolean;
   enableKubeBackwardCompatibility?: boolean;
   useStatefulSet?: boolean;
+  /** Pod management of the StatefulSet; immutable once it exists, ignored for a Deployment */
+  podManagementPolicy?: "OrderedReady" | "Parallel";
   extraObjects?: object[];
   assertNoLeakedSecrets?: boolean;
   priorityClassName?: string;
