@@ -61,3 +61,10 @@ updates:
       time: "20:00"
     assignees:
       - GagaMen
+    ignore:
+      # TypeScript is pinned for ts-json-schema-generator, which requires
+      # ^5.9.3 and uses the compiler API. A TypeScript 7 at the root would
+      # leave the generator on its own nested 5.x and the pin without effect.
+      # Drop this once the generator supports TypeScript 7.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
