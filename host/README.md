@@ -460,6 +460,58 @@ systemctl is-failed fstrim.service              # -> not failed
 systemctl list-timers fstrim.timer              # active again, next run scheduled
 ```
 
+## Multipath and Longhorn volumes
+
+### The problem
+
+Longhorn attaches every V1 volume to the node as an iSCSI disk with vendor `IET` and product
+`VIRTUAL-DISK`. Its WWID is derived from the iSCSI target ID, not from the volume:
+
+```bash
+cat /sys/block/sd*/device/wwid    # naa.60000000000000000e00000000010001, ...0e00000000030001, ...
+```
+
+Target IDs are reused, so a newly attached volume — a pod moving, a restart, the temporary
+clone a Velero data mover backup mounts — can come up with a WWID that `multipathd` has already
+recorded. `multipathd` then claims the disk as a multipath map (`mpatha`), and the CSI driver's
+mount fails with
+
+```
+mount: ... /dev/longhorn/pvc-...: already mounted or mount point busy.
+```
+
+`lsblk` shows the map stacked on the disk. Which attach hits it depends on which target ID the
+volume happens to get, so the failure is intermittent. A backup whose clone is caught this way
+times out after 30 minutes with `timeout on preparing data upload`.
+
+Nothing on this machine needs multipath: the only other disks are the eMMC and the NVMe drive,
+each with a single path. The stock configuration has no blacklist, so Longhorn's disks are
+excluded by vendor and product — the fix the Longhorn documentation gives for this error. It
+leaves `multipathd` running for any device that is not a Longhorn volume.
+
+### Applying
+
+```bash
+sudo install -Dm644 host/files/etc/multipath.conf /etc/multipath.conf
+sudo multipathd reconfigure
+
+# Release a disk that is already claimed; the CSI driver mounts it on its next retry.
+sudo multipath -f mpatha
+```
+
+### Verifying
+
+```bash
+sudo multipath -ll                 # -> no output
+ls /sys/block | grep dm-           # -> no output
+```
+
+The end-to-end check is a backup whose data mover mounts a clone of every labelled PVC:
+
+```bash
+velero -n platform backup create verify-multipath --from-schedule local-daily --wait
+```
+
 ## Update visibility
 
 ### The problem
