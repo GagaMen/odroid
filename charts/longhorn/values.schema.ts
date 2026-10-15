@@ -51,6 +51,12 @@ interface NetworkPolicies {
   kubeAPIServerSourceCIDRs?: string[];
   /** Restrict traffic between Longhorn's own components */
   restrictInternalTraffic?: boolean;
+  /** Source CIDRs of V1 data engine initiators allowed to reach the instance managers */
+  v1DataEngineInitiatorSourceCIDRs?: string[];
+  /** Extra ingress ports opened to the recovery backend */
+  recoveryBackendAdditionalIngressPorts?: object[];
+  /** Sources allowed to scrape Longhorn's metrics endpoints */
+  metricsScrapeSources?: object[];
 }
 
 interface LonghornPersistence {
@@ -137,6 +143,10 @@ interface CsiConfig {
    * @minimum 1
    */
   snapshotterReplicaCount?: IntegerType | null;
+  /** Let the CSI controller read Secrets referenced by StorageClasses */
+  allowControllerSecretAccess?: boolean;
+  /** Enable CSI volume group snapshots (needs the VolumeGroupSnapshot CRDs) */
+  volumeGroupSnapshotEnabled?: boolean;
 }
 
 interface DefaultSettings {
@@ -283,6 +293,26 @@ interface LonghornUIConfig {
   affinity?: object;
   tolerations?: object[];
   nodeSelector?: { [key: string]: string };
+  topologySpreadConstraints?: object[];
+}
+
+interface LonghornGlobalManagerConfig {
+  /**
+   * One replica is the active leader, the others are warm standbys
+   * @asType integer
+   * @minimum 1
+   */
+  replicas?: number;
+  priorityClass?: string;
+  affinity?: object;
+  /** Memory scales with the cluster's Pod count */
+  resources?: object | null;
+  tolerations?: object[];
+  nodeSelector?: { [key: string]: string };
+  annotations?: { [key: string]: string };
+  /** Only takes effect with more than one replica */
+  podDisruptionBudget?: object;
+  topologySpreadConstraints?: object[];
 }
 
 interface LonghornIngressConfig {
@@ -306,6 +336,8 @@ interface LonghornHttpRoute {
   path?: string;
   pathType?: string;
   annotations?: { [key: string]: string };
+  /** Gateway API filters applied to the route */
+  filters?: object[];
 }
 
 interface LonghornMetrics {
@@ -366,6 +398,8 @@ interface LonghornConfig {
   longhornDriver?: LonghornDriverConfig;
   /** Longhorn UI Deployment configuration */
   longhornUI?: LonghornUIConfig;
+  /** Longhorn Global Manager Deployment configuration (cluster-wide controllers, chart 1.13+) */
+  longhornGlobalManager?: LonghornGlobalManagerConfig;
   longhornConversionWebhook?: object;
   longhornAdmissionWebhook?: object;
   longhornRecoveryBackend?: object;

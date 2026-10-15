@@ -20,6 +20,10 @@
               "additionalProperties": false,
               "description": "CSI driver configuration",
               "properties": {
+                "allowControllerSecretAccess": {
+                  "description": "Let the CSI controller read Secrets referenced by StorageClasses",
+                  "type": "boolean"
+                },
                 "attacherReplicaCount": {
                   "anyOf": [
                     {
@@ -81,6 +85,10 @@
                   ],
                   "description": "Replica count of the CSI Snapshotter (default: 3)",
                   "minimum": 1
+                },
+                "volumeGroupSnapshotEnabled": {
+                  "description": "Enable CSI volume group snapshots (needs the VolumeGroupSnapshot CRDs)",
+                  "type": "boolean"
                 }
               },
               "type": "object"
@@ -900,6 +908,13 @@
                 "enabled": {
                   "type": "boolean"
                 },
+                "filters": {
+                  "description": "Gateway API filters applied to the route",
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "hostnames": {
                   "items": {
                     "type": "string"
@@ -1022,6 +1037,63 @@
               },
               "type": "object"
             },
+            "longhornGlobalManager": {
+              "additionalProperties": false,
+              "description": "Longhorn Global Manager Deployment configuration (cluster-wide controllers, chart 1.13+)",
+              "properties": {
+                "affinity": {
+                  "type": "object"
+                },
+                "annotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "nodeSelector": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
+                  "description": "Only takes effect with more than one replica",
+                  "type": "object"
+                },
+                "priorityClass": {
+                  "type": "string"
+                },
+                "replicas": {
+                  "description": "One replica is the active leader, the others are warm standbys",
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "resources": {
+                  "anyOf": [
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Memory scales with the cluster's Pod count"
+                },
+                "tolerations": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "topologySpreadConstraints": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
             "longhornManager": {
               "additionalProperties": false,
               "description": "Longhorn Manager DaemonSet configuration",
@@ -1113,6 +1185,12 @@
                     "type": "object"
                   },
                   "type": "array"
+                },
+                "topologySpreadConstraints": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
                 }
               },
               "type": "object"
@@ -1186,6 +1264,20 @@
                   },
                   "type": "array"
                 },
+                "metricsScrapeSources": {
+                  "description": "Sources allowed to scrape Longhorn's metrics endpoints",
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "recoveryBackendAdditionalIngressPorts": {
+                  "description": "Extra ingress ports opened to the recovery backend",
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "restrictInternalTraffic": {
                   "description": "Restrict traffic between Longhorn's own components",
                   "type": "boolean"
@@ -1198,6 +1290,13 @@
                     "rke1"
                   ],
                   "type": "string"
+                },
+                "v1DataEngineInitiatorSourceCIDRs": {
+                  "description": "Source CIDRs of V1 data engine initiators allowed to reach the instance managers",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
                 }
               },
               "type": "object"
