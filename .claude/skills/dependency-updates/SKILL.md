@@ -76,9 +76,8 @@ Default ordering, adjust with reason:
 Repeat for each update, in order. Finish one completely before starting the next, so a problem
 has exactly one suspect.
 
-1. **Apply.** From a PR: `git cherry-pick origin/<branch>` (history is linear; Dependabot closes the
-   PR itself once the change is on `main`). Manual: edit the version in `Chart.yaml` or the image
-   tag in `values.yaml`.
+1. **Apply.** From a PR: `git cherry-pick origin/<branch>` (history is linear). Manual: edit the
+   version in `Chart.yaml` or the image tag in `values.yaml`.
 2. **Schema.** For each added key not covered: extend `charts/<name>/values.schema.ts` (with a doc
    comment), then `npm run generate:<name>` **and** `npm run generate:platform`. Commit the schema
    change separately and place it *before* the bump, so every commit renders on its own.
@@ -95,7 +94,12 @@ has exactly one suspect.
    and every error seen is either explained there or explained by you.
 7. **Commit.** English message in the repository's style: lowercase subject saying what changed
    and why, body with what the upgrade changes and how it was verified. Cherry-picked Dependabot
-   commits keep their message. Run the security checklist from `AGENTS.md` on the commit.
+   commits keep their message. Every commit that settles a PR -- the cherry-pick, or the commit
+   that defers it, such as an `ignore` rule -- gets a `Closes: #<number>` trailer, so GitHub closes
+   the PR on push with a link to the commit. Dependabot's messages contain a `---` line that
+   `git interpret-trailers` mistakes for a patch divider; pass `--no-divider`:
+   `git log -1 --format=%B | git interpret-trailers --no-divider --trailer "Closes: #<n>" | git commit --amend -F -`.
+   Run the security checklist from `AGENTS.md` on the commit.
 
 If a step fails, stop and report; roll back with `microk8s.helm3 rollback platform <revision> -n platform`
 only with the user's agreement.
