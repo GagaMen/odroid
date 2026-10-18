@@ -179,7 +179,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: code
-        expr: 100 * (1 - (node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs"}))
+        expr: 100 * (1 - (node_filesystem_avail_bytes{app_kubernetes_io_name="prometheus-node-exporter",mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{app_kubernetes_io_name="prometheus-node-exporter",mountpoint="/",fstype!="tmpfs"}))
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -232,7 +232,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: code
-        expr: 100 * (1 - (node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs"}))
+        expr: 100 * (1 - (node_filesystem_avail_bytes{app_kubernetes_io_name="prometheus-node-exporter",mountpoint="/",fstype!="tmpfs"} / node_filesystem_size_bytes{app_kubernetes_io_name="prometheus-node-exporter",mountpoint="/",fstype!="tmpfs"}))
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -290,7 +290,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: code
-        expr: time() - node_boot_time_seconds
+        expr: time() - node_boot_time_seconds{app_kubernetes_io_name="prometheus-node-exporter"}
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -342,7 +342,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: builder
-        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+        expr: 100 - (avg(rate(node_cpu_seconds_total{app_kubernetes_io_name="prometheus-node-exporter",mode="idle"}[5m])) * 100)
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -395,7 +395,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: code
-        expr: 100 * (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes))
+        expr: 100 * (1 - (node_memory_MemAvailable_bytes{app_kubernetes_io_name="prometheus-node-exporter"} / node_memory_MemTotal_bytes{app_kubernetes_io_name="prometheus-node-exporter"}))
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -448,7 +448,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: builder
-        expr: max(node_hwmon_temp_celsius{chip=~".*thermal.*", sensor="temp1"})
+        expr: max(node_hwmon_temp_celsius{app_kubernetes_io_name="prometheus-node-exporter",chip=~".*thermal.*", sensor="temp1"})
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -941,7 +941,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: code
-        expr: time() - node_textfile_mtime_seconds
+        expr: time() - node_textfile_mtime_seconds{app_kubernetes_io_name="prometheus-node-exporter"}
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -979,6 +979,110 @@ groups:
     annotations:
       summary: 🕰️ Die Update-Metriken sind seit {{ $values.A }} Sekunden nicht aktualisiert worden.\nVermutlich läuft der
         Timer node-exporter-textfile nicht mehr.
+    labels:
+      priority: '2'
+      schedule: weekly
+    isPaused: false
+  - uid: wvmofjlqjt3i0s
+    title: Flint | Paket-Updates verfügbar
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: openwrt_apk_upgradable_packages{job="flint"}
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 1h
+    annotations:
+      summary: '📬 Für den Flint stehen {{ $values.A }} Paket-Updates bereit (Wochenbericht)'
+    labels:
+      priority: '2'
+      schedule: weekly
+    isPaused: false
+  - uid: ty88za1s10jd6o
+    title: Flint | Update-Metrik veraltet
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: time() - node_textfile_mtime_seconds{job="flint"}
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 93600
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 30m
+    annotations:
+      summary: '🕰️ Die Update-Metrik des Flint ist seit {{ $values.A }} Sekunden nicht aktualisiert worden.\nVermutlich läuft der Cron-Job apk-upgradable-prom nicht mehr.'
     labels:
       priority: '2'
       schedule: weekly
@@ -1545,7 +1649,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: code
-        expr: max by (mountpoint) (node_filesystem_readonly{fstype!~"tmpfs|squashfs|overlay|iso9660"}) == 1
+        expr: max by (mountpoint) (node_filesystem_readonly{app_kubernetes_io_name="prometheus-node-exporter",fstype!~"tmpfs|squashfs|overlay|iso9660"}) == 1
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -1643,6 +1747,542 @@ groups:
       summary: 💾 Longhorn Volume ist degraded/faulted!\nBetroffene Volumes:\n{{ $values.A }}
     labels:
       priority: '5'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+- orgId: 1
+  name: Every minute
+  folder: Netzwerk
+  interval: 1m
+  rules:
+  - uid: zh25stehcju4gt
+    title: Flint | Router wurde neu gestartet
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: time() - node_boot_time_seconds{job="flint"}
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 3600
+            type: lt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 0m
+    annotations:
+      summary: '🔄 Der Flint wurde neu gestartet\nBoot liegt {{ $values.A }} Sekunden zurück'
+    labels:
+      priority: '4'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: bi26dv7v35s5d6
+    title: Flint | WAN-Verbindung getrennt
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: node_network_carrier{job="flint",device="eth1"}
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 1
+            type: lt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 2m
+    annotations:
+      summary: '🔌 Der Flint hat keinen Link mehr zur Fritzbox (eth1).\nOhne WAN ist auch das VPN von außen nicht erreichbar.'
+    labels:
+      priority: '5'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: pacdgdub3m8eku
+    title: Flint | WireGuard-Interface fehlt
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: absent(node_network_receive_bytes_total{job="flint",device="wg0"}) and on() (up{job="flint"} == 1)
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 5m
+    annotations:
+      summary: '🔒 Auf dem Flint existiert wg0 nicht mehr, das VPN ist aus.\nPrüfen: ifstatus wg0; ifup wg0'
+    labels:
+      priority: '4'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: czqi9rs5ph08u3
+    title: Flint | Conntrack-Tabelle fast voll
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: 100 * node_nf_conntrack_entries{job="flint"} / node_nf_conntrack_entries_limit{job="flint"}
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 80
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 5m
+    annotations:
+      summary: '🌊 Die Verbindungstabelle des Flint ist zu über 80% belegt: {{ $values.A }}%\nIst sie voll, verwirft der Router neue Verbindungen. Ursache meist ein Gerät mit sehr vielen Verbindungen oder eine Flut von außen.'
+    labels:
+      priority: '4'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: g0asl6banq11c6
+    title: Flint | RAM-Auslastung zu hoch
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: 100 * (1 - node_memory_MemAvailable_bytes{job="flint"} / node_memory_MemTotal_bytes{job="flint"})
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 90
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 5m
+    annotations:
+      summary: '🚨 RAM auf dem Flint seit 5min über 90%\nAktuell: {{ $values.A }}% belegt'
+    labels:
+      priority: '3'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: egwsyuhsg8qgtx
+    title: Flint | CPU-Temperatur zu hoch
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: max(node_thermal_zone_temp{job="flint"})
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 85
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 5m
+    annotations:
+      summary: '🔥 Die CPU-Temperatur des Flint liegt über 85°\nAktuell: {{ $values.A }}°'
+    labels:
+      priority: '4'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: p4la6b6t089b1o
+    title: Netzwerk | Fehlgeschlagene Anmeldung am Router
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        editorMode: code
+        expr: sum by (host) (count_over_time({job="syslog"} |~ "(?i)(bad password attempt|login attempt for nonexistent user|failed login)" [5m]))
+        queryType: instant
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 0m
+    annotations:
+      summary: '🔑 Fehlgeschlagene Anmeldung an LuCI oder SSH auf {{ $labels.host }}: {{ $values.A }} Versuch(e) in 5min\nDie Oberflächen sind nur aus LAN und VPN erreichbar. Warst du es nicht, versucht ein Gerät im eigenen Netz Passwörter.\nDetails in Grafana Explore: Loki, job = syslog, nach password oder login filtern'
+    labels:
+      priority: '4'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+- orgId: 1
+  name: Every 5 minutes
+  folder: Netzwerk
+  interval: 5m
+  rules:
+  - uid: yosimtiepf2wb5
+    title: Flint | Flash-Speicher fast voll
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: 100 * (1 - node_filesystem_avail_bytes{job="flint",mountpoint="/overlay"} / node_filesystem_size_bytes{job="flint",mountpoint="/overlay"})
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 80
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 10m
+    annotations:
+      summary: '⚠️ Der Flash-Speicher des Flint (/overlay) ist zu über 80% belegt\nAktuell: {{ $values.A }}%. Ist er voll, lassen sich keine Einstellungen mehr speichern.'
+    labels:
+      priority: '3'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: sbzfwvwkmuu0cg
+    title: Flint | Ungewöhnlich viele verworfene WAN-Pakete
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: sum(rate(nft_counter_packets{job="flint",name="wan_dropped"}[15m])) / sum(rate(nft_counter_packets{job="flint",name="wan_dropped"}[7d])) and sum(rate(nft_counter_packets{job="flint",name="wan_dropped"}[15m])) > 1
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 10
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 15m
+    annotations:
+      summary: '🛡️ Der Flint verwirft gerade {{ $values.A }}-mal so viele Pakete aus dem Internet wie im 7-Tage-Schnitt.\nDie Firewall hält sie ab; das ist ein Hinweis, kein Einbruch. Die Quell-IPs stehen in Grafana Explore: Loki, job = syslog, app = kernel, nach reject wan in filtern'
+    labels:
+      priority: '3'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: vwwkys0bq6h4i6
+    title: Netzwerk | Router-Syslog bleibt aus
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        editorMode: code
+        expr: sum(count_over_time({job="syslog"}[3h]))
+        queryType: instant
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 1
+            type: lt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: Alerting
+    execErrState: Error
+    for: 15m
+    annotations:
+      summary: '🕰️ Seit 3 Stunden ist kein Syslog vom Router angekommen.\nDer Alert für fehlgeschlagene Anmeldungen ist damit blind. Prüfen: uci show system | grep log_ und kubectl -n monitoring get svc platform-alloy-syslog'
+    labels:
+      priority: '3'
     isPaused: false
     notification_settings:
       receiver: Ntfy
