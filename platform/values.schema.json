@@ -2005,6 +2005,45 @@
             "global": {
               "description": "Injected by Helm for sub-chart coordination",
               "type": "object"
+            },
+            "syslog": {
+              "additionalProperties": false,
+              "description": "Syslog reception from devices outside the cluster",
+              "properties": {
+                "allowedNetworks": {
+                  "description": "Source networks (CIDR) allowed to send; empty allows every source",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "enabled": {
+                  "description": "Render a LoadBalancer service for the pipeline's syslog listener",
+                  "type": "boolean"
+                },
+                "port": {
+                  "description": "UDP port devices send to",
+                  "type": "integer"
+                },
+                "service": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "address": {
+                      "description": "Address requested from MetalLB (metallb.io/loadBalancerIPs)",
+                      "type": "string"
+                    },
+                    "annotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "Additional service annotations",
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
             }
           },
           "type": "object"

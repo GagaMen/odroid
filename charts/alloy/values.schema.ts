@@ -354,6 +354,26 @@ interface AlloyUpstream {
   extraObjects?: object[];
 }
 
+interface SyslogService {
+  /** Address requested from MetalLB (metallb.io/loadBalancerIPs) */
+  address?: string;
+  /** Additional service annotations */
+  annotations?: Record<string, string>;
+}
+
+interface SyslogConfig {
+  /** Render a LoadBalancer service for the pipeline's syslog listener */
+  enabled?: boolean;
+  /**
+   * UDP port devices send to
+   * @asType integer
+   */
+  port?: number;
+  /** Source networks (CIDR) allowed to send; empty allows every source */
+  allowedNetworks?: string[];
+  service?: SyslogService;
+}
+
 export interface Values {
   /** Injected by Helm for sub-chart coordination */
   global?: object;
@@ -361,4 +381,6 @@ export interface Values {
   enabled?: boolean;
   /** Grafana Alloy upstream chart values (see https://github.com/grafana/alloy/tree/main/operations/helm/charts/alloy) */
   alloy?: AlloyUpstream;
+  /** Syslog reception from devices outside the cluster */
+  syslog?: SyslogConfig;
 }

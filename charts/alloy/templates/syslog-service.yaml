@@ -1,0 +1,39 @@
+{{- if .Values.syslog.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-alloy-syslog
+  # Must match where the alloy subchart puts its pods, which is
+  # namespaceOverride when set and the release namespace otherwise.
+  namespace: {{ .Values.alloy.namespaceOverride | default .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.alloy.nameOverride | default "alloy" }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: syslog
+  {{- if or .Values.syslog.service.address .Values.syslog.service.annotations }}
+  annotations:
+    {{- with .Values.syslog.service.address }}
+    metallb.io/loadBalancerIPs: {{ . | quote }}
+    {{- end }}
+    {{- with .Values.syslog.service.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
+spec:
+  type: LoadBalancer
+  # Keeps the sender's own address as the source, so the source ranges below
+  # see the device and not the node.
+  externalTrafficPolicy: Local
+  {{- with .Values.syslog.allowedNetworks }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  ports:
+    - name: syslog
+      port: {{ .Values.syslog.port }}
+      targetPort: syslog
+      protocol: UDP
+  selector:
+    app.kubernetes.io/name: {{ .Values.alloy.nameOverride | default "alloy" }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

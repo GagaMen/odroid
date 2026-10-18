@@ -17,7 +17,7 @@ alloy:
 
           selectors {
             role  = "pod"
-            field = "spec.nodeName=" + env("HOSTNAME")
+            field = "spec.nodeName=" + sys.env("HOSTNAME")
           }
         }
 
@@ -49,12 +49,59 @@ alloy:
           forward_to = [loki.write.default.receiver]
         }
 
+        // Receive syslog from network devices such as a router. The listener
+        // runs in every pod; the top-level syslog values give it an address in
+        // the home network. RFC 3164 is what OpenWrt's logd and most embedded
+        // devices send.
+        loki.source.syslog "network" {
+          listener {
+            address       = "0.0.0.0:5514"
+            protocol      = "udp"
+            syslog_format = "rfc3164"
+            labels        = { job = "syslog" }
+          }
+          relabel_rules = loki.relabel.syslog.rules
+          forward_to    = [loki.write.default.receiver]
+        }
+
+        // Only its rules are used, by loki.source.syslog above.
+        loki.relabel "syslog" {
+          forward_to = []
+
+          rule {
+            source_labels = ["__syslog_message_hostname"]
+            target_label  = "host"
+          }
+          rule {
+            source_labels = ["__syslog_message_app_name"]
+            target_label  = "app"
+          }
+          rule {
+            source_labels = ["__syslog_message_severity"]
+            target_label  = "level"
+          }
+        }
+
         // Write logs to Loki
         loki.write "default" {
           endpoint {
-            url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+            url = sys.env("LOKI_URL")
           }
         }
+
+    # -- Loki push endpoint used by the pipeline above. Kept out of the pipeline
+    # so a different Loki service name does not require overriding all of it.
+    extraEnv:
+      - name: LOKI_URL
+        value: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+
+    # -- Container port of the syslog listener; also added to the chart's
+    # ClusterIP service.
+    extraPorts:
+      - name: syslog
+        port: 5514
+        targetPort: 5514
+        protocol: UDP
 
   # -- RBAC: Alloy needs read access to pods for log discovery
   rbac:
@@ -62,3 +109,16 @@ alloy:
 
   serviceAccount:
     create: true
+
+# Syslog reception from devices outside the cluster. Gives the listener its own
+# address in the home network through a LoadBalancer service (MetalLB).
+syslog:
+  enabled: false
+  # -- UDP port devices send to
+  port: 514
+  # -- Source networks (CIDR) allowed to send; empty allows every source
+  allowedNetworks: []
+  service:
+    # -- Address requested from MetalLB (metallb.io/loadBalancerIPs)
+    address: ""
+    annotations: {}
