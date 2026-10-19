@@ -88,6 +88,10 @@ spec:
       {{- include "adguard-prometheus-exporter.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+        # The exporter reads its configuration from the environment, only at startup.
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
       labels:
         {{- include "adguard-prometheus-exporter.labels" . | nindent 8 }}
     spec:
