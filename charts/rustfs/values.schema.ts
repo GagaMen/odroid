@@ -82,6 +82,17 @@ interface RustfsService {
   console?: { port?: IntegerType; nodePort?: IntegerType };
 }
 
+interface RustfsTls {
+  /** Serve S3 and the console over TLS with a certificate from an external controller */
+  enabled?: boolean;
+  /** kubernetes.io/tls Secret with tls.crt and tls.key */
+  existingSecret?: string;
+  /** Secret with a ca.crt bundle for outbound connections */
+  trustSecret?: string;
+  /** Seconds between checks for a renewed certificate */
+  reloadInterval?: IntegerType;
+}
+
 interface RustfsStorageClass {
   /** StorageClass for the data (and log) PVCs */
   name?: string;
@@ -123,6 +134,7 @@ interface RustfsUpstream {
   service?: RustfsService;
   ingress?: object;
   gatewayApi?: object;
+  tls?: RustfsTls;
   mtls?: object;
   resources?: object;
   livenessProbe?: object;

@@ -13375,6 +13375,28 @@
                   },
                   "type": "object"
                 },
+                "tls": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "enabled": {
+                      "description": "Serve S3 and the console over TLS with a certificate from an external controller",
+                      "type": "boolean"
+                    },
+                    "existingSecret": {
+                      "description": "kubernetes.io/tls Secret with tls.crt and tls.key",
+                      "type": "string"
+                    },
+                    "reloadInterval": {
+                      "description": "Seconds between checks for a renewed certificate",
+                      "type": "integer"
+                    },
+                    "trustSecret": {
+                      "description": "Secret with a ca.crt bundle for outbound connections",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
                 "tolerations": {
                   "items": {
                     "type": "object"
