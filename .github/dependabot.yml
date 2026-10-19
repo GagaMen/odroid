@@ -17,6 +17,12 @@ version: 2
 # Declaring them under `registries` would add them to the allowlist, but
 # GitHub rejects a helm-registry without credentials, even for a public
 # repository.
+#
+# Every ecosystem runs monthly, which Dependabot schedules on the first day of
+# the month (`day` applies only to weekly updates); `time` is UTC. Two kinds of
+# run happen outside that schedule: pushing a change to this file to the
+# default branch starts a run for every entry, and security updates open as
+# soon as an advisory is published.
 updates:
   - package-ecosystem: "docker"
     directories:
@@ -30,7 +36,6 @@ updates:
       - /charts/velero
     schedule:
       interval: "monthly"
-      day: "friday"
       time: "20:00"
     assignees:
       - GagaMen
@@ -47,7 +52,6 @@ updates:
       - /charts/velero
     schedule:
       interval: "monthly"
-      day: "friday"
       time: "20:00"
     assignees:
       - GagaMen
@@ -57,7 +61,6 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-      day: "friday"
       time: "20:00"
     assignees:
       - GagaMen
