@@ -149,6 +149,13 @@
                   },
                   "type": "object"
                 },
+                "resizePolicy": {
+                  "description": "Whether an in-place resize of CPU or memory restarts the Alloy container",
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
                 "resources": {
                   "type": "object"
                 },
@@ -220,6 +227,13 @@
                     }
                   },
                   "type": "object"
+                },
+                "resizePolicy": {
+                  "description": "Whether an in-place resize of CPU or memory restarts the config reloader",
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
                 },
                 "resources": {
                   "type": "object"

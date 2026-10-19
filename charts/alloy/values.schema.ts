@@ -103,6 +103,8 @@ interface AlloyAppConfig {
   /** Security context to apply to the Grafana Alloy container */
   securityContext?: object;
   resources?: object;
+  /** Whether an in-place resize of CPU or memory restarts the Alloy container */
+  resizePolicy?: object[];
   /** Lifecycle hooks for the Grafana Alloy container */
   lifecycle?: object;
   /** Liveness probe for the Grafana Alloy container */
@@ -149,6 +151,8 @@ interface ConfigReloader {
   /** Override the args passed to the container */
   customArgs?: string[];
   resources?: object;
+  /** Whether an in-place resize of CPU or memory restarts the config reloader */
+  resizePolicy?: object[];
   securityContext?: object;
 }
 
