@@ -3,4 +3,4 @@ name: ntfy
 description: Simple HTTP-based pub-sub notification service.
 type: application
 version: 1.0.0
-appVersion: "v2.29.0"
+appVersion: "v2.32.0"
