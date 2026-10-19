@@ -984,7 +984,7 @@ groups:
       schedule: weekly
     isPaused: false
   - uid: wvmofjlqjt3i0s
-    title: Flint | Paket-Updates verfügbar
+    title: OpenWrt | Paket-Updates verfügbar
     condition: C
     data:
     - refId: A
@@ -994,7 +994,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: code
-        expr: openwrt_apk_upgradable_packages{job="flint"}
+        expr: openwrt_apk_upgradable_packages{os="openwrt"}
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -1030,13 +1030,13 @@ groups:
     execErrState: Error
     for: 1h
     annotations:
-      summary: '📬 Für den Flint stehen {{ $values.A }} Paket-Updates bereit (Wochenbericht)'
+      summary: '📬 Für {{ $labels.job }} stehen {{ $values.A }} Paket-Updates bereit (Wochenbericht)'
     labels:
       priority: '2'
       schedule: weekly
     isPaused: false
   - uid: ty88za1s10jd6o
-    title: Flint | Update-Metrik veraltet
+    title: OpenWrt | Update-Metrik veraltet
     condition: C
     data:
     - refId: A
@@ -1046,7 +1046,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: code
-        expr: time() - node_textfile_mtime_seconds{job="flint"}
+        expr: time() - node_textfile_mtime_seconds{os="openwrt"}
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -1082,7 +1082,7 @@ groups:
     execErrState: Error
     for: 30m
     annotations:
-      summary: '🕰️ Die Update-Metrik des Flint ist seit {{ $values.A }} Sekunden nicht aktualisiert worden.\nVermutlich läuft der Cron-Job apk-upgradable-prom nicht mehr.'
+      summary: '🕰️ Die Update-Metrik von {{ $labels.job }} ist seit {{ $values.A }} Sekunden nicht aktualisiert worden.\nVermutlich läuft der Cron-Job apk-upgradable-prom nicht mehr.'
     labels:
       priority: '2'
       schedule: weekly
@@ -1756,7 +1756,7 @@ groups:
   interval: 1m
   rules:
   - uid: zh25stehcju4gt
-    title: Flint | Router wurde neu gestartet
+    title: OpenWrt | Gerät wurde neu gestartet
     condition: C
     data:
     - refId: A
@@ -1766,7 +1766,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: code
-        expr: time() - node_boot_time_seconds{job="flint"}
+        expr: time() - node_boot_time_seconds{os="openwrt"}
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -1802,7 +1802,7 @@ groups:
     execErrState: Error
     for: 0m
     annotations:
-      summary: '🔄 Der Flint wurde neu gestartet\nBoot liegt {{ $values.A }} Sekunden zurück'
+      summary: '🔄 {{ $labels.job }} wurde neu gestartet\nBoot liegt {{ $values.A }} Sekunden zurück'
     labels:
       priority: '4'
     isPaused: false
@@ -1968,7 +1968,7 @@ groups:
     notification_settings:
       receiver: Ntfy
   - uid: g0asl6banq11c6
-    title: Flint | RAM-Auslastung zu hoch
+    title: OpenWrt | RAM-Auslastung zu hoch
     condition: C
     data:
     - refId: A
@@ -1978,7 +1978,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: code
-        expr: 100 * (1 - node_memory_MemAvailable_bytes{job="flint"} / node_memory_MemTotal_bytes{job="flint"})
+        expr: 100 * (1 - node_memory_MemAvailable_bytes{os="openwrt"} / node_memory_MemTotal_bytes{os="openwrt"})
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -2014,14 +2014,14 @@ groups:
     execErrState: Error
     for: 5m
     annotations:
-      summary: '🚨 RAM auf dem Flint seit 5min über 90%\nAktuell: {{ $values.A }}% belegt'
+      summary: '🚨 RAM auf {{ $labels.job }} seit 5min über 90%\nAktuell: {{ $values.A }}% belegt'
     labels:
       priority: '3'
     isPaused: false
     notification_settings:
       receiver: Ntfy
   - uid: egwsyuhsg8qgtx
-    title: Flint | CPU-Temperatur zu hoch
+    title: OpenWrt | CPU-Temperatur zu hoch
     condition: C
     data:
     - refId: A
@@ -2031,7 +2031,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: code
-        expr: max(node_thermal_zone_temp{job="flint"})
+        expr: max by (job) (node_thermal_zone_temp{os="openwrt"})
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -2067,7 +2067,7 @@ groups:
     execErrState: Error
     for: 5m
     annotations:
-      summary: '🔥 Die CPU-Temperatur des Flint liegt über 85°\nAktuell: {{ $values.A }}°'
+      summary: '🔥 Die CPU-Temperatur von {{ $labels.job }} liegt über 85°\nAktuell: {{ $values.A }}°'
     labels:
       priority: '4'
     isPaused: false
@@ -2130,7 +2130,7 @@ groups:
   interval: 5m
   rules:
   - uid: yosimtiepf2wb5
-    title: Flint | Flash-Speicher fast voll
+    title: OpenWrt | Flash-Speicher fast voll
     condition: C
     data:
     - refId: A
@@ -2140,7 +2140,7 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: code
-        expr: 100 * (1 - node_filesystem_avail_bytes{job="flint",mountpoint="/overlay"} / node_filesystem_size_bytes{job="flint",mountpoint="/overlay"})
+        expr: 100 * (1 - node_filesystem_avail_bytes{os="openwrt",mountpoint="/overlay"} / node_filesystem_size_bytes{os="openwrt",mountpoint="/overlay"})
         instant: true
         intervalMs: 1000
         legendFormat: __auto
@@ -2176,7 +2176,7 @@ groups:
     execErrState: Error
     for: 10m
     annotations:
-      summary: '⚠️ Der Flash-Speicher des Flint (/overlay) ist zu über 80% belegt\nAktuell: {{ $values.A }}%. Ist er voll, lassen sich keine Einstellungen mehr speichern.'
+      summary: '⚠️ Der Flash-Speicher von {{ $labels.job }} (/overlay) ist zu über 80% belegt\nAktuell: {{ $values.A }}%. Ist er voll, lassen sich keine Einstellungen mehr speichern.'
     labels:
       priority: '3'
     isPaused: false
@@ -2281,6 +2281,112 @@ groups:
     for: 15m
     annotations:
       summary: '🕰️ Seit 3 Stunden ist kein Syslog vom Router angekommen.\nDer Alert für fehlgeschlagene Anmeldungen ist damit blind. Prüfen: uci show system | grep log_ und kubectl -n monitoring get svc platform-alloy-syslog'
+    labels:
+      priority: '3'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: sl0eqkzmatp8uc
+    title: Repeater | Schwache Verbindung zum Router
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: wifi_network_signal_dbm{job="repeater",mode="Client"} > -255
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - -75
+            type: lt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 30m
+    annotations:
+      summary: '📶 Der Repeater empfängt den Router seit 30min nur mit {{ $values.A }} dBm ({{ $labels.ifname }}).\nAlles, was am Repeater hängt, wird dadurch langsam. Meist hilft ein Standort näher am Router.'
+    labels:
+      priority: '3'
+    isPaused: false
+    notification_settings:
+      receiver: Ntfy
+  - uid: mxico4atxm3u6n
+    title: Repeater | Verbindung zum Router instabil
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: increase(node_network_carrier_down_changes_total{job="repeater",device=~".*-sta.*"}[1h])
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 3
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 0m
+    annotations:
+      summary: '📶 Die WLAN-Verbindung des Repeaters zum Router ist in der letzten Stunde {{ $values.A }}-mal abgerissen ({{ $labels.device }}).\nTypische Ursachen: schwaches Signal, Störungen auf dem Kanal oder ein Kanalwechsel des Routers.'
     labels:
       priority: '3'
     isPaused: false
