@@ -3,4 +3,4 @@ name: actual
 description: Local-first personal finance manager with envelope budgeting.
 type: application
 version: 1.0.0
-appVersion: "26.9.0"
+appVersion: "26.10.0"

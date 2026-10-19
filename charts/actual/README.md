@@ -57,7 +57,7 @@ helm install actual ./charts/actual -f values.yaml
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `image.repository` | Container image repository | `actualbudget/actual-server` |
-| `image.tag` | Container image tag | `26.9.0` |
+| `image.tag` | Container image tag | `26.10.0` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 
 ### Server
@@ -175,6 +175,26 @@ Actual can encrypt the budget file so that the server only ever stores ciphertex
 a per-budget setting in the web UI, not a chart value, and it cannot be switched on from
 here. Note that any tooling talking to the server needs the encryption password once it is
 enabled.
+
+### Importing Bank Exports
+
+Actual reads a CSV file as UTF-8 unless the file starts with a UTF-16 byte order mark.
+Banks that export in ISO-8859-1, comdirect among them, need *Encoding: Windows-1252* in the
+import dialog, otherwise umlauts arrive garbled. Windows-1252 is a superset of ISO-8859-1,
+and Actual remembers the choice per account, so it is set once.
+
+Trade Republic lists fees and taxes in columns of their own, while Actual takes a
+transaction's amount from a single column. [`tools/trade-republic.py`](tools/trade-republic.py)
+adds a `total` column (amount + fee + tax) to the export; choose `total` as the amount
+when importing:
+
+```bash
+charts/actual/tools/trade-republic.py export.csv                # writes export.actual.csv
+charts/actual/tools/trade-republic.py export.csv --drop-trades  # without security buys/sells
+```
+
+`--drop-trades` is for budgeting only the cash account and tracking the securities
+elsewhere. The script needs nothing beyond the Python 3 standard library.
 
 ## Schema
 

@@ -21,3 +21,5 @@
 .idea/
 *.tmproj
 .vscode/
+# Client-side helpers, not part of the deployment
+tools/
