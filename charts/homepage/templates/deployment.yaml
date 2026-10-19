@@ -15,10 +15,15 @@ spec:
       {{- include "homepage.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- if or .Values.podAnnotations .Values.secretEnv }}
+      {{- if or .Values.podAnnotations .Values.configMap.enable .Values.secretEnv }}
       annotations:
         {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.configMap.enable }}
+        # The config files are mounted with subPath, which kubelet never
+        # updates, and HOMEPAGE_ALLOWED_HOSTS is read only at startup.
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         {{- end }}
         {{- if .Values.secretEnv }}
         # Homepage reads its environment only at startup.
