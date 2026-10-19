@@ -21,3 +21,6 @@ crash_report.md
 
 # Local Claude Code settings (personal, not shared)
 .claude/settings.local.json
+
+# Personal planning notes (no credentials; agents may read them, see AGENTS.md)
+notes/

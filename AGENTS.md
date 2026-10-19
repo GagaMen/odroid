@@ -41,6 +41,9 @@ platform/values.yaml
 - Private keys
 - Personal configurations
 
+**Exception:** `notes/` is ignored because it holds personal planning notes, not secrets. It
+may be read, and it is the place to look when planning new services. Credentials never go there.
+
 ### When in Doubt: Check Git Status
 
 If you are unsure whether a file may be read, run the following command:
