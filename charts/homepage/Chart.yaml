@@ -3,4 +3,4 @@ name: homepage
 description: A modern, fully static, fast, secure fully proxied, highly customizable application dashboard with integrations for over 100 services and translations into multiple languages.
 type: application
 version: 1.0.0
-appVersion: "v2.5.0"
+appVersion: "v2.6.0"
