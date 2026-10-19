@@ -42,6 +42,7 @@ updates:
   - package-ecosystem: "helm"
     directories:
       - /charts/alloy
+      - /charts/blackbox-exporter
       - /charts/grafana
       - /charts/loki
       - /charts/longhorn

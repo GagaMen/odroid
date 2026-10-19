@@ -1,0 +1,9 @@
+apiVersion: v2
+name: blackbox-exporter
+description: Prometheus blackbox exporter, which probes services from the outside, such as a DNS server answering queries.
+type: application
+version: 1.0.0
+dependencies:
+  - name: prometheus-blackbox-exporter
+    version: 11.20.0
+    repository: oci://ghcr.io/prometheus-community/charts

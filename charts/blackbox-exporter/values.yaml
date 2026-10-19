@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=values.schema.json
+# Default values for the blackbox-exporter chart wrapper.
+# Probe targets belong to Prometheus' scrape configuration; see README.md.
+
+prometheus-blackbox-exporter:
+  # A Service name independent of the release name, so scrape configurations
+  # can address the exporter as blackbox-exporter.<namespace>.svc.
+  fullnameOverride: blackbox-exporter
+
+  config:
+    modules:
+      # Asks a DNS server for an A record over UDP. Fails when nothing listens
+      # on the port, no answer arrives in time, or the answer is an error such
+      # as SERVFAIL. A resolver that lost its upstream servers keeps answering
+      # from its cache, so this module mainly catches a resolver that is down.
+      dns:
+        prober: dns
+        timeout: 5s
+        dns:
+          query_name: example.com
+          query_type: A
+          transport_protocol: udp
+          preferred_ip_protocol: ip4
+          ip_protocol_fallback: false
+          valid_rcodes:
+            - NOERROR
+
+  resources:
+    requests:
+      cpu: 10m
+      memory: 16Mi
+    limits:
+      memory: 64Mi

@@ -21,6 +21,7 @@ A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkern
 - **[Grafana](charts/grafana/)** - Dashboards, visualization, and alerting (with ntfy integration)
 - **[Loki](charts/loki/)** - Log aggregation
 - **[Grafana Alloy](charts/alloy/)** - Log shipping from Kubernetes pods to Loki
+- **[Blackbox Exporter](charts/blackbox-exporter/)** - Probes services from the outside, such as DNS answering queries
 
 ## 📋 Prerequisites
 
@@ -135,6 +136,7 @@ Create a `platform/values.yaml` file with your configuration. See the individual
 - [Grafana Configuration](charts/grafana/README.md)
 - [Loki Configuration](charts/loki/README.md)
 - [Grafana Alloy Configuration](charts/alloy/README.md)
+- [Blackbox Exporter Configuration](charts/blackbox-exporter/README.md)
 
 ### 3. Store the Secrets in Bitwarden
 
@@ -165,6 +167,7 @@ scripts/helm-platform upgrade
 │   ├── actual/                             # Actual Budget personal finance manager
 │   ├── adguard/                            # AdGuard Home DNS ad-blocker
 │   ├── alloy/                              # Grafana Alloy log shipper
+│   ├── blackbox-exporter/                  # Probes services from the outside
 │   ├── cert-manager-dns-lexicon-webhook/   # DNS-01 ACME solver
 │   ├── grafana/                            # Grafana dashboards & alerting
 │   ├── homepage/                           # Application dashboard
@@ -214,6 +217,7 @@ npm install
 npm run generate:actual
 npm run generate:adguard
 npm run generate:alloy
+npm run generate:blackbox-exporter
 npm run generate:cert-manager-dns-lexicon-webhook
 npm run generate:grafana
 npm run generate:homepage

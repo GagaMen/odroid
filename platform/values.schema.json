@@ -2062,6 +2062,462 @@
           },
           "type": "object"
         },
+        "blackbox-exporter": {
+          "additionalProperties": false,
+          "description": "blackbox-exporter chart values (wrapper: upstream values go under prometheus-blackbox-exporter)",
+          "properties": {
+            "enabled": {
+              "description": "Enable/disable this chart (used by platform condition)",
+              "type": "boolean"
+            },
+            "global": {
+              "description": "Injected by Helm for sub-chart coordination",
+              "type": "object"
+            },
+            "prometheus-blackbox-exporter": {
+              "additionalProperties": false,
+              "description": "prometheus-blackbox-exporter upstream chart values (see https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus-blackbox-exporter)",
+              "properties": {
+                "affinity": {
+                  "type": "object"
+                },
+                "automountServiceAccountToken": {
+                  "type": "boolean"
+                },
+                "commonLabels": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "config": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "modules": {
+                      "additionalProperties": {
+                        "additionalProperties": false,
+                        "description": "One probe module of the blackbox exporter configuration",
+                        "properties": {
+                          "dns": {
+                            "type": "object"
+                          },
+                          "grpc": {
+                            "type": "object"
+                          },
+                          "http": {
+                            "type": "object"
+                          },
+                          "icmp": {
+                            "type": "object"
+                          },
+                          "prober": {
+                            "description": "Prober that runs the module: http, tcp, dns, icmp or grpc",
+                            "enum": [
+                              "http",
+                              "tcp",
+                              "dns",
+                              "icmp",
+                              "grpc"
+                            ],
+                            "type": "string"
+                          },
+                          "tcp": {
+                            "type": "object"
+                          },
+                          "timeout": {
+                            "description": "Time after which the probe counts as failed, e.g. 5s",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "prober"
+                        ],
+                        "type": "object"
+                      },
+                      "description": "Probe modules, selected per target by the module parameter of the scrape",
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                },
+                "configExistingSecretName": {
+                  "description": "Secret with the configuration instead of the config value",
+                  "type": "string"
+                },
+                "configPath": {
+                  "description": "Path of the configuration file inside the container",
+                  "type": "string"
+                },
+                "configReloader": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "config": {
+                      "type": "object"
+                    },
+                    "containerPort": {
+                      "type": "integer"
+                    },
+                    "enabled": {
+                      "description": "Reload the configuration in place instead of restarting the pod",
+                      "type": "boolean"
+                    },
+                    "image": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "digest": {
+                          "type": "string"
+                        },
+                        "pullPolicy": {
+                          "type": "string"
+                        },
+                        "registry": {
+                          "type": "string"
+                        },
+                        "repository": {
+                          "type": "string"
+                        },
+                        "tag": {
+                          "description": "Overrides the image tag whose default is the chart appVersion",
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "livenessProbe": {
+                      "type": "object"
+                    },
+                    "readinessProbe": {
+                      "type": "object"
+                    },
+                    "resources": {
+                      "type": "object"
+                    },
+                    "securityContext": {
+                      "type": "object"
+                    },
+                    "service": {
+                      "type": "object"
+                    },
+                    "serviceMonitor": {
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                },
+                "containerPort": {
+                  "type": "integer"
+                },
+                "deploymentAnnotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "dnsConfig": {
+                  "anyOf": [
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "dnsPolicy": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "extraArgs": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "extraConfigmapMounts": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraContainers": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraEnv": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraEnvFrom": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraInitContainers": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraManifests": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraSecretMounts": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "extraVolumeMounts": {
+                  "anyOf": [
+                    {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "extraVolumes": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "fullnameOverride": {
+                  "type": "string"
+                },
+                "global": {
+                  "description": "Injected by Helm for sub-chart coordination",
+                  "type": "object"
+                },
+                "hostAliases": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "hostNetwork": {
+                  "type": "boolean"
+                },
+                "hostPort": {
+                  "type": "integer"
+                },
+                "image": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "digest": {
+                      "type": "string"
+                    },
+                    "pullPolicy": {
+                      "type": "string"
+                    },
+                    "registry": {
+                      "type": "string"
+                    },
+                    "repository": {
+                      "type": "string"
+                    },
+                    "tag": {
+                      "description": "Overrides the image tag whose default is the chart appVersion",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "ingress": {
+                  "type": "object"
+                },
+                "kind": {
+                  "enum": [
+                    "Deployment",
+                    "DaemonSet"
+                  ],
+                  "type": "string"
+                },
+                "kubeVersionOverride": {
+                  "type": "string"
+                },
+                "livenessProbe": {
+                  "type": "object"
+                },
+                "nameOverride": {
+                  "type": "string"
+                },
+                "namespaceOverride": {
+                  "type": "string"
+                },
+                "networkPolicy": {
+                  "type": "object"
+                },
+                "nodeSelector": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "pod": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "labels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                },
+                "podAnnotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "podDisruptionBudget": {
+                  "type": "object"
+                },
+                "podMonitoring": {
+                  "description": "Needs the Google Managed Prometheus CRDs",
+                  "type": "object"
+                },
+                "podSecurityContext": {
+                  "type": "object"
+                },
+                "priorityClassName": {
+                  "type": "string"
+                },
+                "prometheusRule": {
+                  "description": "Needs the Prometheus Operator CRDs",
+                  "type": "object"
+                },
+                "readinessProbe": {
+                  "type": "object"
+                },
+                "releaseLabel": {
+                  "type": "boolean"
+                },
+                "replicas": {
+                  "type": "integer"
+                },
+                "resources": {
+                  "type": "object"
+                },
+                "restartPolicy": {
+                  "type": "string"
+                },
+                "revisionHistoryLimit": {
+                  "type": "integer"
+                },
+                "route": {
+                  "type": "object"
+                },
+                "secretAnnotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                "secretConfig": {
+                  "description": "Store the configuration in a Secret instead of a ConfigMap",
+                  "type": "boolean"
+                },
+                "securityContext": {
+                  "type": "object"
+                },
+                "service": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "annotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "ipDualStack": {
+                      "type": "object"
+                    },
+                    "labels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "port": {
+                      "type": "integer"
+                    },
+                    "type": {
+                      "enum": [
+                        "ClusterIP",
+                        "NodePort",
+                        "LoadBalancer"
+                      ],
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "serviceAccount": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "annotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "create": {
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "type": "object"
+                },
+                "serviceMonitor": {
+                  "description": "Needs the Prometheus Operator CRDs",
+                  "type": "object"
+                },
+                "strategy": {
+                  "type": "object"
+                },
+                "tolerations": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "topologySpreadConstraints": {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "verticalPodAutoscaler": {
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
         "cert-manager-dns-lexicon-webhook": {
           "additionalProperties": false,
           "description": "cert-manager-dns-lexicon-webhook chart values",

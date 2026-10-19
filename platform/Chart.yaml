@@ -62,6 +62,10 @@ dependencies:
     version: 1.0.0
     repository: file://../charts/alloy
     condition: alloy.enabled
+  - name: blackbox-exporter
+    version: 1.0.0
+    repository: file://../charts/blackbox-exporter
+    condition: blackbox-exporter.enabled
   - name: external-services
     version: 1.0.0
     repository: file://../charts/external-services

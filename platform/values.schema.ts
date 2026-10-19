@@ -1,6 +1,7 @@
 import type { Values as ActualValues } from "../charts/actual/values.schema";
 import type { Values as AdguardValues } from "../charts/adguard/values.schema";
 import type { Values as AlloyValues } from "../charts/alloy/values.schema";
+import type { Values as BlackboxExporterValues } from "../charts/blackbox-exporter/values.schema";
 import type { Values as CertManagerDnsLexiconWebhookValues } from "../charts/cert-manager-dns-lexicon-webhook/values.schema";
 import type { Values as ExternalServicesValues } from "../charts/external-services/values.schema";
 import type { Values as GrafanaValues } from "../charts/grafana/values.schema";
@@ -88,6 +89,8 @@ export interface PlatformValues {
   loki?: LokiValues;
   /** alloy chart values (wrapper: upstream values go under alloy) */
   alloy?: AlloyValues;
+  /** blackbox-exporter chart values (wrapper: upstream values go under prometheus-blackbox-exporter) */
+  "blackbox-exporter"?: BlackboxExporterValues;
   /** external-services chart values: ingresses for devices outside the cluster */
   "external-services"?: ExternalServicesValues;
 }

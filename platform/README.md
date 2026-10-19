@@ -46,6 +46,7 @@ platform/
 | grafana | 1.0.0 | `grafana.enabled` |
 | loki | 1.0.0 | `loki.enabled` |
 | alloy | 1.0.0 | `alloy.enabled` |
+| blackbox-exporter | 1.0.0 | `blackbox-exporter.enabled` |
 | external-services | 1.0.0 | `external-services.enabled` |
 
 ## Installation
@@ -183,7 +184,7 @@ The platform chart creates dedicated namespaces for each service in `templates/n
 | `ntfy` | Push notifications |
 | `actual` | Personal finance manager |
 | `paperless` | Document archive |
-| `monitoring` | Prometheus, Grafana, Loki, Alloy |
+| `monitoring` | Prometheus, Grafana, Loki, Alloy, blackbox exporter |
 | `network` | Ingresses for devices outside the cluster (external-services) |
 
 > **Important:** Each sub-chart requires `namespaceOverride` to be set in your `values.yaml` to deploy into these namespaces. Without it, charts deploy into the release namespace `platform` (except Longhorn, which defaults to `longhorn-system`).
@@ -214,7 +215,7 @@ paperless:
 
 ### Monitoring
 
-All four monitoring components share the `monitoring` namespace:
+All monitoring components share the `monitoring` namespace:
 
 ```yaml
 prometheus:
@@ -259,7 +260,15 @@ loki:
 alloy:
   enabled: true
   namespaceOverride: monitoring
+
+blackbox-exporter:
+  enabled: true
+  prometheus-blackbox-exporter:
+    namespaceOverride: monitoring
 ```
+
+The blackbox exporter only runs probes that Prometheus asks for; its targets are scrape
+jobs in the Prometheus values (see [charts/blackbox-exporter](../charts/blackbox-exporter/README.md#probe-targets)).
 
 > **Tip:** After deploying, configure ntfy as a Grafana Alerting contact point:
 > Alerting → Contact points → Add → Webhook → `http://ntfy.ntfy.svc.cluster.local/<topic>`
