@@ -49,7 +49,7 @@ helm install ntfy ./charts/ntfy -f values.yaml
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `image.repository` | Container image repository | `binwiederhier/ntfy` |
-| `image.tag` | Container image tag | `v2.16.0` |
+| `image.tag` | Container image tag | `v2.29.0` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 
 ### Service

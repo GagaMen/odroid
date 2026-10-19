@@ -48,7 +48,7 @@ helm install homepage ./charts/homepage -f values.yaml
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `image.repository` | Container image repository | `ghcr.io/gethomepage/homepage` |
-| `image.tag` | Container image tag | `v1.9.0` |
+| `image.tag` | Container image tag | `v2.5.0` |
 | `image.pullPolicy` | Image pull policy | `Always` |
 
 ### Service Account

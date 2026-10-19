@@ -3,4 +3,4 @@ name: paperless
 description: Document management system that scans, OCRs, indexes and archives paper documents.
 type: application
 version: 1.0.0
-appVersion: "3.2.1"
+appVersion: "3.3.1"
