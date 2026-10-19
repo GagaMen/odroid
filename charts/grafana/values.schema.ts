@@ -231,6 +231,8 @@ interface GrafanaImageRenderer {
   grafanaSubPath?: string;
   /** Path the renderer's probes hit */
   healthcheckPath?: string;
+  /** Readiness probe of the renderer container; empty adds none */
+  readinessProbe?: object;
   dnsConfig?: object;
   /** Secret holding the renderer token instead of setting it inline */
   existingSecret?: string;

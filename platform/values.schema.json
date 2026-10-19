@@ -2900,6 +2900,10 @@
                     "priorityClassName": {
                       "type": "string"
                     },
+                    "readinessProbe": {
+                      "description": "Readiness probe of the renderer container; empty adds none",
+                      "type": "object"
+                    },
                     "renderingCallbackURL": {
                       "type": "string"
                     },
