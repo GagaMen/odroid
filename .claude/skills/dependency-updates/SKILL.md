@@ -78,6 +78,11 @@ has exactly one suspect.
 
 1. **Apply.** From a PR: `git cherry-pick origin/<branch>` (history is linear). Manual: edit the
    version in `Chart.yaml` or the image tag in `values.yaml`.
+   An image bump touches only `values.yaml`, but the tag is repeated where Dependabot does not
+   look: the main image's tag is the wrapper's `appVersion` in `Chart.yaml` (it sets the
+   `app.kubernetes.io/version` label), and every image's tag is a default in the `README.md`
+   configuration table. `grep -rn '<old-tag>' charts/<name>` finds them; bring them to the new
+   tag in the same commit (`git commit --amend --no-edit` after a cherry-pick).
 2. **Schema.** For each added key not covered: extend `charts/<name>/values.schema.ts` (with a doc
    comment), then `npm run generate:<name>` **and** `npm run generate:platform`. Commit the schema
    change separately and place it *before* the bump, so every commit renders on its own.
