@@ -2,6 +2,13 @@
 # Default values for the prometheus chart wrapper.
 # Real credentials and host overrides go into platform/values.yaml (gitignored).
 
+# Bearer tokens for scrape jobs, by name. They come from Bitwarden through
+# secrets/mapping.yaml. Each one lands as a file in the server container, for a
+# scrape job to reference:
+#   authorization:
+#     credentials_file: /etc/prometheus/scrape-credentials/<name>
+scrapeCredentials: {}
+
 prometheus:
   # -- Prometheus server retention period
   server:
@@ -14,6 +21,15 @@ prometheus:
       enabled: true
       size: 20Gi
       storageClass: longhorn
+    # The tokens from scrapeCredentials. No subPath, so a changed token reaches the
+    # running container; Prometheus reads credentials_file on every scrape. The
+    # secret only exists once a token is set, hence optional.
+    extraSecretMounts:
+      - name: scrape-credentials
+        mountPath: /etc/prometheus/scrape-credentials
+        secretName: prometheus-scrape-credentials
+        readOnly: true
+        optional: true
 
   # -- Disable Alertmanager (we use Grafana Alerting instead)
   alertmanager:

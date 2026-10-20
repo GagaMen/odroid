@@ -1347,6 +1347,13 @@
             }
           },
           "type": "object"
+        },
+        "scrapeCredentials": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Bearer tokens for scrape jobs, by name; mounted as /etc/prometheus/scrape-credentials/<name>",
+          "type": "object"
         }
       },
       "type": "object"

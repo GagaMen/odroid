@@ -551,5 +551,7 @@ export interface Values {
   global?: object;
   /** Enable/disable this chart (used by platform condition) */
   enabled?: boolean;
+  /** Bearer tokens for scrape jobs, by name; mounted as /etc/prometheus/scrape-credentials/<name> */
+  scrapeCredentials?: Record<string, string>;
   prometheus?: PrometheusUpstream;
 }
