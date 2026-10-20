@@ -1,0 +1,122 @@
+# yaml-language-server: $schema=values.schema.json
+# Default values for home-assistant.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: ghcr.io/home-assistant/home-assistant
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "2026.10.2"
+
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# Discovery of devices in the LAN (mDNS/zeroconf, SSDP) relies on multicast, which
+# does not cross the pod network. With hostNetwork the pod shares the node's
+# network, so Home Assistant sees the LAN directly -- and listens on port 8123 of
+# the node as well, next to the ingress.
+hostNetwork: true
+
+# Home Assistant keeps its recorder in a SQLite file on a ReadWriteOnce volume, and
+# with hostNetwork it binds port 8123 on the node. A rolling update would start the
+# new pod while the old one still holds both. Recreate stops the old pod first.
+strategy:
+  type: Recreate
+
+# Settings the chart manages. Everything else is configured in the UI or in
+# configuration.yaml on the volume, which belongs to Home Assistant. That includes
+# the reverse proxy settings the ingress needs (see README.md, Reverse Proxy).
+config:
+  # Time zone of the container (TZ). The time zone Home Assistant uses for
+  # automations is set during onboarding.
+  timeZone: Europe/Berlin
+  # Configuration of the prometheus integration, which serves /api/prometheus.
+  # Passed verbatim, e.g. a filter to export only some entities. The endpoint
+  # requires a long-lived access token unless requires_auth is set to false.
+  prometheus: {}
+    # filter:
+    #   include_domains:
+    #     - sensor
+
+# Additional environment variables, passed to the container verbatim.
+env: []
+
+# Persistent Volume Claim for /config: configuration, recorder database, auth
+# and the state of every integration.
+persistence:
+  config:
+    enabled: true
+    size: 5Gi
+    accessMode: ReadWriteOnce
+    labels: {}
+    # storageClass: ""
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+  # Service port; Home Assistant itself always listens on 8123.
+  port: 8123
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: true
+  className: ""
+  annotations:
+    # The frontend keeps a WebSocket open for its whole session. nginx closes a
+    # proxied connection after 60 seconds without traffic by default, which shows
+    # up as "Connection lost" and a reconnect.
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    # cert-manager.io/cluster-issuer: lets-encrypt
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.0.0/24,10.8.0.0/24
+  hosts:
+    - host: home-assistant.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: home-assistant-tls
+  #    hosts:
+  #      - home-assistant.example.com
+
+# /manifest.json is served without a login. The first start installs the Python
+# packages of the default integrations, which takes several minutes on ARM, so the
+# startup probe allows ten minutes before liveness takes over.
+startupProbe:
+  httpGet:
+    path: /manifest.json
+    port: http
+  periodSeconds: 10
+  failureThreshold: 60
+livenessProbe:
+  httpGet:
+    path: /manifest.json
+    port: http
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5
+readinessProbe:
+  httpGet:
+    path: /manifest.json
+    port: http
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    memory: 2Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

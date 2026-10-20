@@ -11,6 +11,7 @@ This directory contains custom Helm charts for the Odroid home server platform. 
 | [blackbox-exporter](blackbox-exporter/) | Probes services from the outside, e.g. whether a DNS server answers | 1.0.0 |
 | [cert-manager-dns-lexicon-webhook](cert-manager-dns-lexicon-webhook/) | DNS-01 ACME challenge solver using Lexicon | 1.0.0 |
 | [external-services](external-services/) | HTTPS ingresses for web interfaces of devices outside the cluster | 1.0.0 |
+| [home-assistant](home-assistant/) | Local home automation: devices, presence, calendars, automations | 1.0.0 |
 | [homepage](homepage/) | Modern, customizable application dashboard | 1.0.0 |
 | [longhorn](longhorn/) | Cloud-native distributed block storage | 1.0.0 |
 | [metallb](metallb/) | LAN addresses for LoadBalancer services (layer 2) | 1.0.0 |
@@ -36,6 +37,7 @@ adguard:
 | blackbox-exporter | `default` |
 | cert-manager-dns-lexicon-webhook | `default` |
 | external-services | `default` |
+| home-assistant | `default` |
 | homepage | `default` |
 | longhorn | `longhorn-system` (built-in) |
 | metallb | release namespace (no override upstream) |

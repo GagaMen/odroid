@@ -1,0 +1,51 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+{{- if .Values.ingress.enabled }}
+
+Home Assistant is available at:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- else }}
+
+No ingress is enabled. Reach Home Assistant with a port-forward:
+
+  $ kubectl port-forward -n {{ include "home-assistant.namespace" . }} deployment/{{ include "home-assistant.fullname" . }} 8123:8123
+{{- end }}
+
+================================================================================
+IMPORTANT: Initial Setup
+================================================================================
+
+Home Assistant has no user until onboarding creates one. Whoever opens it first
+creates the owner account, so finish onboarding right after the first start.
+The ingress answers 400 until step 3 is done, so start on port 8123 of the node
+(with hostNetwork) or through kubectl port-forward:
+
+  1. Create the owner account
+  2. Set location, time zone and units
+  3. Settings -> System -> Network -> HTTP server -> Reverse proxy: trust
+     X-Forwarded-For from the ingress controller's network, save, then confirm
+     the new configuration through the ingress within five minutes
+  4. Add the integrations that were discovered in the network
+
+The first start installs packages and can take several minutes.
+
+{{- if .Values.hostNetwork }}
+
+hostNetwork is enabled: port 8123 is also open on the node's own address,
+without the ingress' TLS and source-range restrictions.
+{{- end }}
+
+{{- if not .Values.persistence.config.enabled }}
+
+WARNING: persistence is disabled. Configuration, users and history live in an
+emptyDir and are lost when the pod is deleted.
+{{- end }}

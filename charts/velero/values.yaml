@@ -12,6 +12,7 @@ scope:
   namespaces:
     - actual
     - adguard
+    - home-assistant
     - monitoring
     - paperless
   # PVCs carry this label; "gfs" gets all three tiers, "weekly" only the weekly one.

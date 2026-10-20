@@ -29,6 +29,7 @@ updates:
       - /charts/actual
       - /charts/adguard
       - /charts/cert-manager-dns-lexicon-webhook
+      - /charts/home-assistant
       - /charts/homepage
       - /charts/ntfy
       - /charts/paperless

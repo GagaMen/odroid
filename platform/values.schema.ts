@@ -5,6 +5,7 @@ import type { Values as BlackboxExporterValues } from "../charts/blackbox-export
 import type { Values as CertManagerDnsLexiconWebhookValues } from "../charts/cert-manager-dns-lexicon-webhook/values.schema";
 import type { Values as ExternalServicesValues } from "../charts/external-services/values.schema";
 import type { Values as GrafanaValues } from "../charts/grafana/values.schema";
+import type { Values as HomeAssistantValues } from "../charts/home-assistant/values.schema";
 import type { Values as HomepageValues } from "../charts/homepage/values.schema";
 import type { Values as LokiValues } from "../charts/loki/values.schema";
 import type { Values as LonghornValues } from "../charts/longhorn/values.schema";
@@ -81,6 +82,8 @@ export interface PlatformValues {
   ntfy?: NtfyValues;
   /** paperless chart values */
   paperless?: PaperlessValues;
+  /** home-assistant chart values */
+  "home-assistant"?: HomeAssistantValues;
   /** prometheus chart values (wrapper: upstream values go under prometheus) */
   prometheus?: PrometheusValues;
   /** grafana chart values (wrapper: upstream values go under grafana) */

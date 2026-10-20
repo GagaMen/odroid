@@ -7,6 +7,7 @@ A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkern
 - **[AdGuard Home](charts/adguard/)** - Network-wide ad & tracker blocking DNS server
 - **[Actual Budget](charts/actual/)** - Personal finance manager with envelope budgeting
 - **[Paperless-ngx](charts/paperless/)** - Document archive with OCR, full-text search and a scanner share
+- **[Home Assistant](charts/home-assistant/)** - Local home automation for devices, presence and calendars
 - **[Homepage](charts/homepage/)** - Modern, customizable application dashboard
 - **[ntfy](charts/ntfy/)** - Self-hosted push notification service
 - **[Longhorn](charts/longhorn/)** - Cloud-native distributed storage
@@ -124,6 +125,7 @@ Create a `platform/values.yaml` file with your configuration. See the individual
 - [AdGuard Configuration](charts/adguard/README.md)
 - [Actual Budget Configuration](charts/actual/README.md)
 - [Paperless-ngx Configuration](charts/paperless/README.md)
+- [Home Assistant Configuration](charts/home-assistant/README.md)
 - [Homepage Configuration](charts/homepage/README.md)
 - [ntfy Configuration](charts/ntfy/README.md)
 - [Longhorn Configuration](charts/longhorn/README.md)
@@ -170,6 +172,7 @@ scripts/helm-platform upgrade
 │   ├── blackbox-exporter/                  # Probes services from the outside
 │   ├── cert-manager-dns-lexicon-webhook/   # DNS-01 ACME solver
 │   ├── grafana/                            # Grafana dashboards & alerting
+│   ├── home-assistant/                     # Home Assistant home automation
 │   ├── homepage/                           # Application dashboard
 │   ├── loki/                               # Log aggregation
 │   ├── longhorn/                           # Distributed storage
@@ -220,6 +223,7 @@ npm run generate:alloy
 npm run generate:blackbox-exporter
 npm run generate:cert-manager-dns-lexicon-webhook
 npm run generate:grafana
+npm run generate:home-assistant
 npm run generate:homepage
 npm run generate:loki
 npm run generate:longhorn

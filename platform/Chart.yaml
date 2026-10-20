@@ -46,6 +46,10 @@ dependencies:
     version: 1.0.0
     repository: file://../charts/paperless
     condition: paperless.enabled
+  - name: home-assistant
+    version: 1.0.0
+    repository: file://../charts/home-assistant
+    condition: home-assistant.enabled
   - name: prometheus
     version: 1.0.0
     repository: file://../charts/prometheus

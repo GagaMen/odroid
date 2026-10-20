@@ -4060,6 +4060,422 @@
           },
           "type": "object"
         },
+        "home-assistant": {
+          "additionalProperties": false,
+          "description": "home-assistant chart values",
+          "properties": {
+            "affinity": {
+              "description": "Affinity rules for pod assignment",
+              "type": "object"
+            },
+            "config": {
+              "additionalProperties": false,
+              "description": "Settings the chart manages: time zone, http and prometheus configuration",
+              "properties": {
+                "prometheus": {
+                  "description": "Configuration of the prometheus integration, passed verbatim (e.g. filter, requires_auth)",
+                  "type": "object"
+                },
+                "timeZone": {
+                  "description": "Time zone of the container (TZ)",
+                  "type": "string"
+                },
+                "trustedProxies": {
+                  "description": "Proxies whose X-Forwarded-For is accepted (http.trusted_proxies); must cover the ingress controller's address",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
+            "enabled": {
+              "description": "Enable/disable this chart (used by platform condition)",
+              "type": "boolean"
+            },
+            "env": {
+              "description": "Additional environment variables for the container",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "fullnameOverride": {
+              "description": "Override the full release name",
+              "type": "string"
+            },
+            "global": {
+              "description": "Injected by Helm for sub-chart coordination",
+              "type": "object"
+            },
+            "hostNetwork": {
+              "description": "Share the node's network, needed for mDNS/SSDP discovery in the LAN",
+              "type": "boolean"
+            },
+            "image": {
+              "additionalProperties": false,
+              "description": "Container image configuration",
+              "properties": {
+                "pullPolicy": {
+                  "description": "Image pull policy",
+                  "enum": [
+                    "Always",
+                    "IfNotPresent",
+                    "Never"
+                  ],
+                  "type": "string"
+                },
+                "repository": {
+                  "description": "Container image repository",
+                  "type": "string"
+                },
+                "tag": {
+                  "description": "Overrides the image tag whose default is the chart appVersion",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "ingress": {
+              "additionalProperties": false,
+              "description": "Ingress configuration",
+              "properties": {
+                "annotations": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Ingress annotations",
+                  "type": "object"
+                },
+                "className": {
+                  "description": "Ingress class name",
+                  "type": "string"
+                },
+                "enabled": {
+                  "description": "Enable ingress",
+                  "type": "boolean"
+                },
+                "hosts": {
+                  "description": "Ingress host rules",
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "host": {
+                        "type": "string"
+                      },
+                      "paths": {
+                        "items": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "path": {
+                              "type": "string"
+                            },
+                            "pathType": {
+                              "enum": [
+                                "Prefix",
+                                "Exact",
+                                "ImplementationSpecific"
+                              ],
+                              "type": "string"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "type": "array"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "tls": {
+                  "description": "Ingress TLS configuration",
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "hosts": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "secretName": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            },
+            "livenessProbe": {
+              "additionalProperties": false,
+              "description": "Liveness probe configuration",
+              "properties": {
+                "failureThreshold": {
+                  "type": "integer"
+                },
+                "httpGet": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "port": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
+                    }
+                  },
+                  "type": "object"
+                },
+                "initialDelaySeconds": {
+                  "type": "integer"
+                },
+                "periodSeconds": {
+                  "type": "integer"
+                },
+                "timeoutSeconds": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "nameOverride": {
+              "description": "Override the chart name",
+              "type": "string"
+            },
+            "namespaceOverride": {
+              "description": "Override the deployment namespace",
+              "type": "string"
+            },
+            "nodeSelector": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Node selector for pod assignment",
+              "type": "object"
+            },
+            "persistence": {
+              "additionalProperties": false,
+              "description": "Persistent Volume Claim for /config",
+              "properties": {
+                "config": {
+                  "additionalProperties": false,
+                  "description": "PVC for configuration, recorder database and integration state",
+                  "properties": {
+                    "accessMode": {
+                      "description": "PVC access mode",
+                      "enum": [
+                        "ReadWriteOnce",
+                        "ReadOnlyMany",
+                        "ReadWriteMany"
+                      ],
+                      "type": "string"
+                    },
+                    "enabled": {
+                      "description": "Enable persistent volume",
+                      "type": "boolean"
+                    },
+                    "labels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "description": "Labels for the PVC",
+                      "type": "object"
+                    },
+                    "size": {
+                      "description": "Volume size (e.g. 500Mi, 2Gi)",
+                      "pattern": "^[0-9]+(Mi|Gi|Ti)$",
+                      "type": "string"
+                    },
+                    "storageClass": {
+                      "description": "Storage class name",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "readinessProbe": {
+              "additionalProperties": false,
+              "description": "Readiness probe configuration",
+              "properties": {
+                "failureThreshold": {
+                  "type": "integer"
+                },
+                "httpGet": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "port": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
+                    }
+                  },
+                  "type": "object"
+                },
+                "initialDelaySeconds": {
+                  "type": "integer"
+                },
+                "periodSeconds": {
+                  "type": "integer"
+                },
+                "timeoutSeconds": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "resources": {
+              "additionalProperties": false,
+              "description": "CPU/memory resource requests and limits",
+              "properties": {
+                "limits": {
+                  "additionalProperties": false,
+                  "description": "CPU/memory resource limits",
+                  "properties": {
+                    "cpu": {
+                      "type": "string"
+                    },
+                    "memory": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "requests": {
+                  "additionalProperties": false,
+                  "description": "CPU/memory resource requests",
+                  "properties": {
+                    "cpu": {
+                      "type": "string"
+                    },
+                    "memory": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            },
+            "service": {
+              "additionalProperties": false,
+              "description": "Service configuration",
+              "properties": {
+                "port": {
+                  "description": "Service port number; Home Assistant itself always listens on 8123",
+                  "type": "integer"
+                },
+                "type": {
+                  "description": "Service type",
+                  "enum": [
+                    "ClusterIP",
+                    "NodePort",
+                    "LoadBalancer",
+                    "ExternalName"
+                  ],
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "startupProbe": {
+              "additionalProperties": false,
+              "description": "Startup probe configuration",
+              "properties": {
+                "failureThreshold": {
+                  "type": "integer"
+                },
+                "httpGet": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "port": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
+                    }
+                  },
+                  "type": "object"
+                },
+                "initialDelaySeconds": {
+                  "type": "integer"
+                },
+                "periodSeconds": {
+                  "type": "integer"
+                },
+                "timeoutSeconds": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            },
+            "strategy": {
+              "additionalProperties": false,
+              "description": "Deployment update strategy -- Recreate, because of the SQLite recorder and the host port",
+              "properties": {
+                "rollingUpdate": {
+                  "type": "object"
+                },
+                "type": {
+                  "enum": [
+                    "Recreate",
+                    "RollingUpdate"
+                  ],
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "tolerations": {
+              "description": "Tolerations for pod assignment",
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
         "homepage": {
           "additionalProperties": false,
           "description": "homepage chart values",
@@ -13689,6 +14105,13 @@
                   "type": "object"
                 }
               },
+              "type": "object"
+            },
+            "scrapeCredentials": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Bearer tokens for scrape jobs, by name; mounted as /etc/prometheus/scrape-credentials/<name>",
               "type": "object"
             }
           },

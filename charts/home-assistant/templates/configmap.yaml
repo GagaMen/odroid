@@ -1,0 +1,30 @@
+{{- /*
+The part of the configuration the chart owns. prometheus.yaml is mounted
+read-only into /config/chart and included from configuration.yaml.
+configuration.yaml itself lives on the volume and belongs to Home Assistant: the
+init container copies the seed below only when the file does not exist yet.
+
+No http.yaml: since 2026.10 Home Assistant takes the http settings from YAML only
+once, as a trial that has to be confirmed in the UI within five minutes, and
+ignores YAML from then on. They are managed in the UI.
+*/ -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "home-assistant.fullname" . }}
+  namespace: {{ include "home-assistant.namespace" . }}
+  labels:
+    {{- include "home-assistant.labels" . | nindent 4 }}
+data:
+  prometheus.yaml: |
+    {{- toYaml .Values.config.prometheus | nindent 4 }}
+  configuration.yaml: |
+    # Loads default set of integrations. Do not remove.
+    default_config:
+
+    # Managed by the Helm chart (mounted from a ConfigMap).
+    prometheus: !include chart/prometheus.yaml
+
+    automation: !include automations.yaml
+    script: !include scripts.yaml
+    scene: !include scenes.yaml
