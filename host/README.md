@@ -679,6 +679,7 @@ security source, which matches what `/usr/lib/update-notifier/apt-check` reports
 | Metric | Meaning |
 |---|---|
 | `snap_refresh_available{snap,held}` | a newer revision exists on the tracked channel |
+| `snap_newer_track_available{snap,held,track,newest}` | a newer version track than the tracked one has a stable channel |
 | `node_watchdog_present` | `/dev/watchdog` exists |
 
 It queries snapd over its REST socket rather than parsing CLI output. The socket is
@@ -696,6 +697,15 @@ the revision their channel currently offers.
 That comparison uses the snap's `channel` field rather than `tracking-channel`. A snap may
 track a branch such as `4.0/stable/ubuntu-24.04`, which the channel map does not list, while
 `channel` holds the resolved track/risk pair that does.
+
+A refresh never leaves the tracked track, so `snap_refresh_available` stays silent when a new
+Kubernetes minor version comes out: MicroK8s publishes each one as a track of its own (`1.36`,
+`1.37`, ...). `snap_newer_track_available` covers that gap for every snap on a numeric track. It
+compares the tracked track with the highest numeric track that has a `stable` channel, compared
+as numbers, so `1.100` counts as newer than `1.37`. Suffixed tracks such as `1.36-strict` are
+another packaging of the same version and do not count, nor do `latest` or a pre-release
+that has only `edge` or `beta`. A snap whose channel map cannot be fetched (offline) gets no
+line, which the alert treats as OK.
 
 Both scripts write atomically, because node_exporter may read a file at any moment.
 

@@ -878,6 +878,59 @@ groups:
     isPaused: false
     notification_settings:
       receiver: Ntfy
+  - uid: f2trg712oops6m
+    title: Wartung | Neue microk8s-Version verfügbar
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        editorMode: code
+        expr: snap_newer_track_available{snap="microk8s"}
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        conditions:
+        - evaluator:
+            params:
+            - 0
+            type: gt
+          operator:
+            type: and
+          query:
+            params:
+            - C
+          reducer:
+            params: []
+            type: last
+          type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+    noDataState: OK
+    execErrState: Error
+    for: 1h
+    annotations:
+      summary: '📬 microk8s {{ $labels.newest }} ist stable, installiert ist {{ $labels.track }} (Wochenbericht)\nEine
+        Minor-Version nach der anderen, vorher Backup.\nProzedur: host/README.md, Abschnitt Minor upgrades'
+    labels:
+      priority: '2'
+      schedule: weekly
+    isPaused: false
   - uid: bfx2axure3jlsb
     title: Wartung | Updates verfügbar
     condition: C

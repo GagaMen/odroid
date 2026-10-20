@@ -8,6 +8,7 @@ world-readable, so this runs unprivileged, and read-only queries need no rights.
 import http.client
 import json
 import os
+import re
 import socket
 import sys
 import tempfile
@@ -46,8 +47,8 @@ def snapd_get(endpoint):
     return body.get("result") or []
 
 
-def channel_revision(name, channel):
-    """Revision currently offered on a channel, or None if it cannot be resolved.
+def store_channels(name):
+    """Channel map the store offers for a snap, or None if it cannot be resolved.
 
     This queries the store, so it fails when the machine is offline.
     """
@@ -58,8 +59,31 @@ def channel_revision(name, channel):
         return None
     if not result:
         return None
-    entry = result[0].get("channels", {}).get(channel)
-    return entry.get("revision") if entry else None
+    return result[0].get("channels", {})
+
+
+def version_track(track):
+    """A track such as "1.36" as a comparable tuple, or None for "latest" and the like."""
+    if not re.fullmatch(r"\d+(\.\d+)*", track or ""):
+        return None
+    return tuple(int(part) for part in track.split("."))
+
+
+def newest_stable_track(channels, current):
+    """The highest version track with a stable channel, if it is newer than current.
+
+    Tracks with a suffix, such as 1.36-strict, are a different packaging of the same
+    version and do not count.
+    """
+    newest = None
+    for channel in channels:
+        track, _, risk = channel.partition("/")
+        version = version_track(track)
+        if risk == "stable" and version and (newest is None or version > newest[0]):
+            newest = (version, track)
+    if newest and newest[0] > version_track(current):
+        return newest[1]
+    return None
 
 
 def collect():
@@ -73,31 +97,44 @@ def collect():
         pending = set()
 
     rows = []
+    tracks = []
     for snap in installed:
         name = snap["name"]
         held = "hold" in snap
         available = name in pending
 
-        # A held snap may be omitted from the refresh candidates, and a held snap is
-        # exactly the one whose updates must not go unnoticed. Check it directly.
-        #
         # Use "channel" rather than "tracking-channel": a snap may track a branch
         # such as 4.0/stable/ubuntu-24.04, which the channel map does not list,
         # while "channel" holds the resolved track/risk pair.
-        if held and not available:
-            channel = snap.get("channel")
-            if channel:
-                offered = channel_revision(name, channel)
-                if offered is not None and str(offered) != str(snap.get("revision")):
-                    available = True
+        channel = snap.get("channel") or ""
+        track = channel.partition("/")[0]
+        channels = None
+
+        # A held snap may be omitted from the refresh candidates, and a held snap is
+        # exactly the one whose updates must not go unnoticed. Check it directly.
+        if held and not available and channel:
+            channels = store_channels(name)
+            entry = (channels or {}).get(channel)
+            offered = entry.get("revision") if entry else None
+            if offered is not None and str(offered) != str(snap.get("revision")):
+                available = True
+
+        # A snap on a version track, such as microk8s on 1.36, only ever receives
+        # updates within that track. A new major or minor version opens a new track,
+        # which a refresh never moves to by itself.
+        if version_track(track):
+            if channels is None:
+                channels = store_channels(name)
+            if channels is not None:
+                tracks.append((name, held, track, newest_stable_track(channels, track)))
 
         rows.append((name, held, available))
-    return sorted(rows)
+    return sorted(rows), sorted(tracks)
 
 
 def main():
     try:
-        rows = collect()
+        rows, tracks = collect()
     except Exception as exc:  # noqa: BLE001 - a snapd hiccup must not kill the timer
         print(f"querying snapd failed: {exc}", file=sys.stderr)
         return 1
@@ -109,6 +146,16 @@ def main():
     for name, held, available in rows:
         lines.append(
             f'snap_refresh_available{{snap="{name}",held="{int(held)}"}} {int(available)}'
+        )
+
+    lines += [
+        "# HELP snap_newer_track_available Whether a newer version track than the tracked one offers a stable channel.",
+        "# TYPE snap_newer_track_available gauge",
+    ]
+    for name, held, track, newest in tracks:
+        lines.append(
+            f'snap_newer_track_available{{snap="{name}",held="{int(held)}",'
+            f'track="{track}",newest="{newest or track}"}} {int(newest is not None)}'
         )
 
     lines += [
