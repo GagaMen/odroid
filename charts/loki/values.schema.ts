@@ -6,6 +6,10 @@ type SchemaVersion = "v11" | "v12" | "v13";
 /** Storage size @pattern ^[0-9]+(Mi|Gi|Ti)$ */
 type StorageSize = string;
 
+// Keys the upstream chart leaves empty are null in its defaults. Helm 3.20 and
+// later keep those nulls when merging values and validate them, so such keys
+// must accept null and must be listed even when this wrapper never sets them.
+
 // ---------------------------------------------------------------------------
 // Shared base for all Loki component configs
 // ---------------------------------------------------------------------------
@@ -50,7 +54,9 @@ interface LokiComponentBase {
   terminationGracePeriodSeconds?: number;
   podManagementPolicy?: string;
   persistence?: object;
-  priorityClassName?: string;
+  priorityClassName?: string | null;
+  /** Command to run instead of the image's entrypoint */
+  command?: string | null;
   livenessProbe?: object;
   readinessProbe?: object;
   startupProbe?: object;
@@ -222,6 +228,8 @@ interface SingleBinaryPersistence {
   whenScaled?: string;
   /** Extra fields merged into the generated PVC spec */
   dataVolumeParameters?: object;
+  /** Label selector for binding to an existing PV */
+  selector?: object | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -301,6 +309,8 @@ interface MinioConfig {
   users?: object[];
   resources?: object;
   persistence?: object;
+  /** Address of an external MinIO, in place of the bundled one */
+  address?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -311,6 +321,7 @@ interface LokiIngester extends LokiComponentBase {
   maxUnavailable?: number | string;
   updateStrategy?: object;
   addIngesterNamePrefix?: boolean;
+  rolloutGroupPrefix?: string | null;
 }
 
 // ---------------------------------------------------------------------------

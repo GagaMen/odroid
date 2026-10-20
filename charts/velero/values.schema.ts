@@ -46,6 +46,10 @@ interface Target {
 
 // ---------------------------------------------------------------------------
 // Upstream chart
+//
+// Keys the upstream chart leaves empty are null in its defaults. Helm 3.20 and
+// later keep those nulls when merging values and validate them, so such keys
+// must accept null and must be listed even when this wrapper never sets them.
 // ---------------------------------------------------------------------------
 interface VeleroConfiguration {
   /** Comma-separated feature flags, e.g. EnableCSI */
@@ -56,33 +60,41 @@ interface VeleroConfiguration {
   uploaderType?: string;
   backupStorageLocation?: object[];
   volumeSnapshotLocation?: object[];
-  defaultBackupStorageLocation?: string;
-  defaultBackupTTL?: Duration;
-  defaultVolumesToFsBackup?: boolean;
-  defaultRepoMaintainFrequency?: Duration;
-  defaultItemOperationTimeout?: Duration;
-  dataMoverPrepareTimeout?: Duration;
-  fsBackupTimeout?: Duration;
-  garbageCollectionFrequency?: Duration;
-  storeValidationFrequency?: Duration;
-  backupSyncPeriod?: Duration;
-  itemBlockWorkerCount?: IntegerType;
+  defaultBackupStorageLocation?: string | null;
+  defaultBackupTTL?: Duration | null;
+  defaultVolumesToFsBackup?: boolean | null;
+  defaultRepoMaintainFrequency?: Duration | null;
+  defaultItemOperationTimeout?: Duration | null;
+  dataMoverPrepareTimeout?: Duration | null;
+  fsBackupTimeout?: Duration | null;
+  garbageCollectionFrequency?: Duration | null;
+  storeValidationFrequency?: Duration | null;
+  backupSyncPeriod?: Duration | null;
+  itemBlockWorkerCount?: IntegerType | null;
   disableInformerCache?: boolean;
-  disableControllers?: string;
-  logFormat?: string;
-  logLevel?: string;
-  metricsAddress?: string;
+  disableControllers?: string | null;
+  logFormat?: string | null;
+  logLevel?: string | null;
+  metricsAddress?: string | null;
   repositoryMaintenanceJob?: object;
-  restoreOnlyMode?: boolean;
-  restoreResourcePriorities?: string;
+  restoreOnlyMode?: boolean | null;
+  restoreResourcePriorities?: string | null;
   extraArgs?: string[];
   extraEnvVars?: object[];
+  namespace?: string | null;
+  terminatingResourceTimeout?: Duration | null;
+  clientQPS?: number | string | null;
+  clientBurst?: IntegerType | null;
+  clientPageSize?: IntegerType | null;
+  defaultVolumeSnapshotLocations?: string | null;
+  profilerAddress?: string | null;
+  pluginDir?: string | null;
 }
 
 interface VeleroCredentials {
   useSecret?: boolean;
   /** Name of the secret the chart would create */
-  name?: string;
+  name?: string | null;
   /** Use a secret that already exists instead */
   existingSecret?: string;
   /** Contents of the credentials file, keyed by file name */

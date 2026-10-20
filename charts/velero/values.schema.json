@@ -143,42 +143,119 @@
                   "type": "array"
                 },
                 "backupSyncPeriod": {
-                  "description": "Go duration, e.g. 168h",
-                  "pattern": "^[0-9]+(h|m|s)$",
-                  "type": "string"
+                  "anyOf": [
+                    {
+                      "description": "Go duration, e.g. 168h",
+                      "pattern": "^[0-9]+(h|m|s)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "clientBurst": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "clientPageSize": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "clientQPS": {
+                  "type": [
+                    "number",
+                    "string",
+                    "null"
+                  ]
                 },
                 "dataMoverPrepareTimeout": {
-                  "description": "Go duration, e.g. 168h",
-                  "pattern": "^[0-9]+(h|m|s)$",
-                  "type": "string"
+                  "anyOf": [
+                    {
+                      "description": "Go duration, e.g. 168h",
+                      "pattern": "^[0-9]+(h|m|s)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "defaultBackupStorageLocation": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "defaultBackupTTL": {
-                  "description": "Go duration, e.g. 168h",
-                  "pattern": "^[0-9]+(h|m|s)$",
-                  "type": "string"
+                  "anyOf": [
+                    {
+                      "description": "Go duration, e.g. 168h",
+                      "pattern": "^[0-9]+(h|m|s)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "defaultItemOperationTimeout": {
-                  "description": "Go duration, e.g. 168h",
-                  "pattern": "^[0-9]+(h|m|s)$",
-                  "type": "string"
+                  "anyOf": [
+                    {
+                      "description": "Go duration, e.g. 168h",
+                      "pattern": "^[0-9]+(h|m|s)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "defaultRepoMaintainFrequency": {
-                  "description": "Go duration, e.g. 168h",
-                  "pattern": "^[0-9]+(h|m|s)$",
-                  "type": "string"
+                  "anyOf": [
+                    {
+                      "description": "Go duration, e.g. 168h",
+                      "pattern": "^[0-9]+(h|m|s)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "defaultSnapshotMoveData": {
                   "description": "Move CSI snapshot data to object storage by default",
                   "type": "boolean"
                 },
+                "defaultVolumeSnapshotLocations": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "defaultVolumesToFsBackup": {
-                  "type": "boolean"
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
                 },
                 "disableControllers": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "disableInformerCache": {
                   "type": "boolean"
@@ -200,40 +277,113 @@
                   "type": "string"
                 },
                 "fsBackupTimeout": {
-                  "description": "Go duration, e.g. 168h",
-                  "pattern": "^[0-9]+(h|m|s)$",
-                  "type": "string"
+                  "anyOf": [
+                    {
+                      "description": "Go duration, e.g. 168h",
+                      "pattern": "^[0-9]+(h|m|s)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "garbageCollectionFrequency": {
-                  "description": "Go duration, e.g. 168h",
-                  "pattern": "^[0-9]+(h|m|s)$",
-                  "type": "string"
+                  "anyOf": [
+                    {
+                      "description": "Go duration, e.g. 168h",
+                      "pattern": "^[0-9]+(h|m|s)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "itemBlockWorkerCount": {
-                  "type": "integer"
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "logFormat": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "logLevel": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "metricsAddress": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "namespace": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "pluginDir": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "profilerAddress": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "repositoryMaintenanceJob": {
                   "type": "object"
                 },
                 "restoreOnlyMode": {
-                  "type": "boolean"
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
                 },
                 "restoreResourcePriorities": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "storeValidationFrequency": {
-                  "description": "Go duration, e.g. 168h",
-                  "pattern": "^[0-9]+(h|m|s)$",
-                  "type": "string"
+                  "anyOf": [
+                    {
+                      "description": "Go duration, e.g. 168h",
+                      "pattern": "^[0-9]+(h|m|s)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "terminatingResourceTimeout": {
+                  "anyOf": [
+                    {
+                      "description": "Go duration, e.g. 168h",
+                      "pattern": "^[0-9]+(h|m|s)$",
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "uploaderType": {
                   "description": "Data mover: kopia or restic",
@@ -269,7 +419,10 @@
                 },
                 "name": {
                   "description": "Name of the secret the chart would create",
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "secretContents": {
                   "additionalProperties": {

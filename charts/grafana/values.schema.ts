@@ -2,6 +2,13 @@ type PullPolicy = "Always" | "IfNotPresent" | "Never";
 type StorageAccessMode = "ReadWriteOnce" | "ReadOnlyMany" | "ReadWriteMany";
 type DatasourceAccess = "proxy" | "direct";
 
+/** @asType integer */
+type IntegerType = number;
+
+// Keys the upstream chart leaves empty are null in its defaults. Helm 3.20 and
+// later keep those nulls when merging values and validate them, so such keys
+// must accept null and must be listed even when this wrapper never sets them.
+
 /** Storage size @pattern ^[0-9]+(Mi|Gi|Ti)$ */
 type StorageSize = string;
 
@@ -234,6 +241,8 @@ interface GrafanaImageRenderer {
   /** Readiness probe of the renderer container; empty adds none */
   readinessProbe?: object;
   dnsConfig?: object;
+  dnsPolicy?: string | null;
+  progressDeadlineSeconds?: IntegerType | null;
   /** Secret holding the renderer token instead of setting it inline */
   existingSecret?: string;
   /** Renderer auth token; Grafana 13 requires one, the chart generates it if unset */

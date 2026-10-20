@@ -242,6 +242,23 @@ interface DefaultSettings {
   nodeDiskHealthMonitoring?: boolean | null;
   csiAllowedTopologyKeys?: string | null;
   csiStorageCapacityTracking?: boolean | null;
+  kubernetesMetricsServerMetricsEnabled?: boolean | null;
+  snapshotCountWarningThreshold?: IntegerType | null;
+  engineImagePodLivenessProbeTimeout?: IntegerType | null;
+  engineImagePodLivenessProbePeriod?: IntegerType | null;
+  engineImagePodLivenessProbeFailureThreshold?: IntegerType | null;
+  defaultNvmeTcpNrIoQueues?: IntegerType | null;
+  // V2 data engine only; the data engine settings take a JSON map such as {"v2":"false"}
+  dataEngineInterruptModeEnabled?: string | null;
+  dataEngineCPUIsolationEnabled?: string | null;
+  dataEngineNumberOfCPUCores?: string | null;
+  dataEngineIobufSmallPoolSize?: string | null;
+  dataEngineIobufLargePoolSize?: string | null;
+  allowInstanceManagerAutomaticUpgrade?: boolean | null;
+  /** RFC 3339; empty starts the upgrade right away */
+  instanceManagerUpgradeStartTime?: string | null;
+  /** Minutes one instance manager upgrade attempt may take */
+  instanceManagerUpgradeTimeout?: IntegerType | null;
 }
 
 interface DefaultBackupStore {

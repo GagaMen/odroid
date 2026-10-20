@@ -3,6 +3,13 @@ type ControllerType = "daemonset" | "deployment" | "statefulset";
 type StabilityLevel = "experimental" | "public-preview" | "generally-available";
 type DNSPolicy = "ClusterFirst" | "ClusterFirstWithHostNet" | "Default" | "None";
 
+/** @asType integer */
+type IntegerType = number;
+
+// Keys the upstream chart leaves empty are null in its defaults. Helm 3.20 and
+// later keep those nulls when merging values and validate them, so such keys
+// must accept null.
+
 interface GlobalImage {
   /** Global image registry override */
   registry?: string;
@@ -40,9 +47,9 @@ interface ConfigMap {
   /** Alloy pipeline configuration (River format) */
   content?: string;
   /** Name of existing ConfigMap to use (when create is false) */
-  name?: string;
+  name?: string | null;
   /** ConfigMap key for the config file */
-  key?: string;
+  key?: string | null;
 }
 
 interface AlloyMounts {
@@ -130,7 +137,7 @@ interface ServiceAccount {
   /** Annotations to add to the created service account */
   annotations?: { [key: string]: string };
   /** Name of the existing service account to use when create is false */
-  name?: string;
+  name?: string | null;
   /** Whether the Alloy pod should automatically mount the service account token */
   automountServiceAccountToken?: boolean;
 }
@@ -159,8 +166,8 @@ interface ConfigReloader {
 interface PodDisruptionBudget {
   /** Whether to create a PodDisruptionBudget */
   enabled?: boolean;
-  minAvailable?: number | string;
-  maxUnavailable?: number | string;
+  minAvailable?: number | string | null;
+  maxUnavailable?: number | string | null;
 }
 
 interface AutoscalingScalePolicy {
@@ -196,7 +203,7 @@ interface VerticalAutoscaling {
   enabled?: boolean;
   recommenders?: object[];
   resourcePolicy?: object;
-  updatePolicy?: object;
+  updatePolicy?: object | null;
 }
 
 interface ControllerAutoscaling {
@@ -256,9 +263,8 @@ interface ControllerConfig {
   revisionHistoryLimit?: number;
   /**
    * Termination grace period in seconds
-   * @asType integer
    */
-  terminationGracePeriodSeconds?: number;
+  terminationGracePeriodSeconds?: IntegerType | null;
   updateStrategy?: object;
   nodeSelector?: { [key: string]: string };
   tolerations?: object[];
@@ -326,9 +332,9 @@ interface IngressConfig {
 interface AlloyImage {
   registry?: string;
   repository?: string;
-  tag?: string;
+  tag?: string | null;
   /** SHA256 digest override */
-  digest?: string;
+  digest?: string | null;
   pullPolicy?: PullPolicy;
   pullSecrets?: object[];
 }

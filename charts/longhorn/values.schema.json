@@ -143,6 +143,12 @@
                     "null"
                   ]
                 },
+                "allowInstanceManagerAutomaticUpgrade": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
                 "allowRecurringJobWhileVolumeDetached": {
                   "type": [
                     "boolean",
@@ -291,6 +297,12 @@
                     "null"
                   ]
                 },
+                "dataEngineCPUIsolationEnabled": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "dataEngineCPUMask": {
                   "type": [
                     "string",
@@ -300,6 +312,24 @@
                 "dataEngineHugepageEnabled": {
                   "type": [
                     "boolean",
+                    "null"
+                  ]
+                },
+                "dataEngineInterruptModeEnabled": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "dataEngineIobufLargePoolSize": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "dataEngineIobufSmallPoolSize": {
+                  "type": [
+                    "string",
                     "null"
                   ]
                 },
@@ -316,6 +346,12 @@
                   ]
                 },
                 "dataEngineMemorySize": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "dataEngineNumberOfCPUCores": {
                   "type": [
                     "string",
                     "null"
@@ -347,6 +383,16 @@
                   "type": [
                     "string",
                     "null"
+                  ]
+                },
+                "defaultNvmeTcpNrIoQueues": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
                   ]
                 },
                 "defaultReplicaCount": {
@@ -415,6 +461,36 @@
                     "null"
                   ]
                 },
+                "engineImagePodLivenessProbeFailureThreshold": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "engineImagePodLivenessProbePeriod": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "engineImagePodLivenessProbeTimeout": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "engineReplicaTimeout": {
                   "anyOf": [
                     {
@@ -463,7 +539,31 @@
                     }
                   ]
                 },
+                "instanceManagerUpgradeStartTime": {
+                  "description": "RFC 3339; empty starts the upgrade right away",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "instanceManagerUpgradeTimeout": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Minutes one instance manager upgrade attempt may take"
+                },
                 "kubernetesClusterAutoscalerEnabled": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "kubernetesMetricsServerMetricsEnabled": {
                   "type": [
                     "boolean",
                     "null"
@@ -663,6 +763,16 @@
                   "type": [
                     "boolean",
                     "null"
+                  ]
+                },
+                "snapshotCountWarningThreshold": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
                   ]
                 },
                 "snapshotDataIntegrity": {

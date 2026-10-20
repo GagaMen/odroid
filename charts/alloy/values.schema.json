@@ -51,11 +51,17 @@
                     },
                     "key": {
                       "description": "ConfigMap key for the config file",
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "name": {
                       "description": "Name of existing ConfigMap to use (when create is false)",
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "type": "object"
@@ -387,7 +393,14 @@
                           "type": "object"
                         },
                         "updatePolicy": {
-                          "type": "object"
+                          "anyOf": [
+                            {
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "type": "object"
@@ -475,13 +488,15 @@
                     "maxUnavailable": {
                       "type": [
                         "number",
-                        "string"
+                        "string",
+                        "null"
                       ]
                     },
                     "minAvailable": {
                       "type": [
                         "number",
-                        "string"
+                        "string",
+                        "null"
                       ]
                     }
                   },
@@ -507,8 +522,15 @@
                   "type": "integer"
                 },
                 "terminationGracePeriodSeconds": {
-                  "description": "Termination grace period in seconds",
-                  "type": "integer"
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Termination grace period in seconds"
                 },
                 "tolerations": {
                   "items": {
@@ -621,7 +643,10 @@
               "properties": {
                 "digest": {
                   "description": "SHA256 digest override",
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 },
                 "pullPolicy": {
                   "enum": [
@@ -644,7 +669,10 @@
                   "type": "string"
                 },
                 "tag": {
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 }
               },
               "type": "object"
@@ -833,7 +861,10 @@
                 },
                 "name": {
                   "description": "Name of the existing service account to use when create is false",
-                  "type": "string"
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 }
               },
               "type": "object"

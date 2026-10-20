@@ -482,6 +482,18 @@ Check after each step: `microk8s kubectl get nodes` shows the new version, all p
 Longhorn volume is `healthy`, and `velero backup-location get` reports `Available` (it lags until
 the object store is back up).
 
+The snap also ships Helm, and `scripts/helm-platform` uses it (`microk8s.helm3`), so a minor
+upgrade can change Helm along with Kubernetes. MicroK8s 1.36 brought Helm 3.20, which keeps
+null defaults of subcharts during schema validation and rejected every chart schema that did
+not allow them. Render the platform once after each step, before the next deploy needs it:
+
+```bash
+helm template platform ./platform -n platform > /dev/null   # schema errors show up here
+```
+
+The previous revision's Helm stays available as `/snap/microk8s/<previous-rev>/bin/helm`
+until the next refresh; both deploy scripts take it through `HELM=<path>`.
+
 The 1.35 release notes say the ingress addon moved from NGINX to Traefik. A refresh does not
 apply that: the addon keeps the NGINX controller it was enabled with, and its IngressClasses
 remain unchanged. Traefik only arrives with `microk8s disable ingress && microk8s enable

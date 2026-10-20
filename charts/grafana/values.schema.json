@@ -431,6 +431,12 @@
                 "dnsConfig": {
                   "type": "object"
                 },
+                "dnsPolicy": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
                 "enabled": {
                   "type": "boolean"
                 },
@@ -545,6 +551,16 @@
                 },
                 "priorityClassName": {
                   "type": "string"
+                },
+                "progressDeadlineSeconds": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "readinessProbe": {
                   "description": "Readiness probe of the renderer container; empty adds none",

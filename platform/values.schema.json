@@ -1189,11 +1189,17 @@
                         },
                         "key": {
                           "description": "ConfigMap key for the config file",
-                          "type": "string"
+                          "type": [
+                            "string",
+                            "null"
+                          ]
                         },
                         "name": {
                           "description": "Name of existing ConfigMap to use (when create is false)",
-                          "type": "string"
+                          "type": [
+                            "string",
+                            "null"
+                          ]
                         }
                       },
                       "type": "object"
@@ -1525,7 +1531,14 @@
                               "type": "object"
                             },
                             "updatePolicy": {
-                              "type": "object"
+                              "anyOf": [
+                                {
+                                  "type": "object"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
                             }
                           },
                           "type": "object"
@@ -1613,13 +1626,15 @@
                         "maxUnavailable": {
                           "type": [
                             "number",
-                            "string"
+                            "string",
+                            "null"
                           ]
                         },
                         "minAvailable": {
                           "type": [
                             "number",
-                            "string"
+                            "string",
+                            "null"
                           ]
                         }
                       },
@@ -1645,8 +1660,15 @@
                       "type": "integer"
                     },
                     "terminationGracePeriodSeconds": {
-                      "description": "Termination grace period in seconds",
-                      "type": "integer"
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Termination grace period in seconds"
                     },
                     "tolerations": {
                       "items": {
@@ -1759,7 +1781,10 @@
                   "properties": {
                     "digest": {
                       "description": "SHA256 digest override",
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "pullPolicy": {
                       "enum": [
@@ -1782,7 +1807,10 @@
                       "type": "string"
                     },
                     "tag": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "type": "object"
@@ -1971,7 +1999,10 @@
                     },
                     "name": {
                       "description": "Name of the existing service account to use when create is false",
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "type": "object"
@@ -3255,6 +3286,12 @@
                     "dnsConfig": {
                       "type": "object"
                     },
+                    "dnsPolicy": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "enabled": {
                       "type": "boolean"
                     },
@@ -3369,6 +3406,16 @@
                     },
                     "priorityClassName": {
                       "type": "string"
+                    },
+                    "progressDeadlineSeconds": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "readinessProbe": {
                       "description": "Readiness probe of the renderer container; empty adds none",
@@ -4604,6 +4651,13 @@
                     "autoscaling": {
                       "type": "object"
                     },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "dnsConfig": {
                       "type": "object"
                     },
@@ -4746,7 +4800,10 @@
                       "type": "string"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -4866,6 +4923,13 @@
                     },
                     "autoscaling": {
                       "type": "object"
+                    },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "dnsConfig": {
                       "type": "object"
@@ -5003,7 +5067,10 @@
                       "type": "string"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -5136,6 +5203,13 @@
                     },
                     "batchSize": {
                       "type": "integer"
+                    },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "connectionLimit": {
                       "type": "integer"
@@ -5301,7 +5375,10 @@
                       "type": "integer"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -5446,6 +5523,13 @@
                     "autoscaling": {
                       "type": "object"
                     },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "dnsConfig": {
                       "type": "object"
                     },
@@ -5582,7 +5666,10 @@
                       "type": "string"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -5712,6 +5799,13 @@
                     },
                     "autoscaling": {
                       "type": "object"
+                    },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "dnsConfig": {
                       "type": "object"
@@ -5855,7 +5949,10 @@
                       "type": "string"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -5992,6 +6089,13 @@
                     },
                     "basicAuth": {
                       "type": "object"
+                    },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "containerPort": {
                       "type": "integer"
@@ -6147,7 +6251,10 @@
                       "type": "object"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -6280,6 +6387,13 @@
                     },
                     "autoscaling": {
                       "type": "object"
+                    },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "dnsConfig": {
                       "type": "object"
@@ -6417,7 +6531,10 @@
                       "type": "string"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -6537,6 +6654,13 @@
                     },
                     "autoscaling": {
                       "type": "object"
+                    },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "dnsConfig": {
                       "type": "object"
@@ -6670,7 +6794,10 @@
                       "type": "string"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -6687,6 +6814,12 @@
                     },
                     "resources": {
                       "type": "object"
+                    },
+                    "rolloutGroupPrefix": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "selectorLabels": {
                       "additionalProperties": {
@@ -7121,6 +7254,13 @@
                 "minio": {
                   "additionalProperties": false,
                   "properties": {
+                    "address": {
+                      "description": "Address of an external MinIO, in place of the bundled one",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "buckets": {
                       "items": {
                         "type": "object"
@@ -7212,6 +7352,13 @@
                     },
                     "autoscaling": {
                       "type": "object"
+                    },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "dnsConfig": {
                       "type": "object"
@@ -7355,7 +7502,10 @@
                       "type": "string"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -7477,6 +7627,13 @@
                     "autoscaling": {
                       "type": "object"
                     },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "dnsConfig": {
                       "type": "object"
                     },
@@ -7619,7 +7776,10 @@
                       "type": "string"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -7740,6 +7900,13 @@
                     },
                     "autoscaling": {
                       "type": "object"
+                    },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "dnsConfig": {
                       "type": "object"
@@ -7874,7 +8041,10 @@
                       "type": "string"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -7991,6 +8161,13 @@
                     },
                     "autoscaling": {
                       "type": "object"
+                    },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "dnsConfig": {
                       "type": "object"
@@ -8134,7 +8311,10 @@
                       "type": "string"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -8264,6 +8444,13 @@
                     },
                     "batchSize": {
                       "type": "integer"
+                    },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "connectionLimit": {
                       "type": "integer"
@@ -8429,7 +8616,10 @@
                       "type": "integer"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -8581,6 +8771,13 @@
                     "autoscaling": {
                       "type": "object"
                     },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "dnsConfig": {
                       "type": "object"
                     },
@@ -8726,6 +8923,17 @@
                           },
                           "type": "object"
                         },
+                        "selector": {
+                          "anyOf": [
+                            {
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Label selector for binding to an existing PV"
+                        },
                         "size": {
                           "description": "Storage size",
                           "pattern": "^[0-9]+(Mi|Gi|Ti)$",
@@ -8762,7 +8970,10 @@
                       "type": "string"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -8885,6 +9096,13 @@
                     },
                     "autoscaling": {
                       "type": "object"
+                    },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "dnsConfig": {
                       "type": "object"
@@ -9028,7 +9246,10 @@
                       "type": "string"
                     },
                     "priorityClassName": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "readinessProbe": {
                       "type": "object"
@@ -9266,6 +9487,12 @@
                         "null"
                       ]
                     },
+                    "allowInstanceManagerAutomaticUpgrade": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
+                    },
                     "allowRecurringJobWhileVolumeDetached": {
                       "type": [
                         "boolean",
@@ -9414,6 +9641,12 @@
                         "null"
                       ]
                     },
+                    "dataEngineCPUIsolationEnabled": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "dataEngineCPUMask": {
                       "type": [
                         "string",
@@ -9423,6 +9656,24 @@
                     "dataEngineHugepageEnabled": {
                       "type": [
                         "boolean",
+                        "null"
+                      ]
+                    },
+                    "dataEngineInterruptModeEnabled": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "dataEngineIobufLargePoolSize": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "dataEngineIobufSmallPoolSize": {
+                      "type": [
+                        "string",
                         "null"
                       ]
                     },
@@ -9439,6 +9690,12 @@
                       ]
                     },
                     "dataEngineMemorySize": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "dataEngineNumberOfCPUCores": {
                       "type": [
                         "string",
                         "null"
@@ -9470,6 +9727,16 @@
                       "type": [
                         "string",
                         "null"
+                      ]
+                    },
+                    "defaultNvmeTcpNrIoQueues": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
                       ]
                     },
                     "defaultReplicaCount": {
@@ -9538,6 +9805,36 @@
                         "null"
                       ]
                     },
+                    "engineImagePodLivenessProbeFailureThreshold": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "engineImagePodLivenessProbePeriod": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "engineImagePodLivenessProbeTimeout": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "engineReplicaTimeout": {
                       "anyOf": [
                         {
@@ -9586,7 +9883,31 @@
                         }
                       ]
                     },
+                    "instanceManagerUpgradeStartTime": {
+                      "description": "RFC 3339; empty starts the upgrade right away",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "instanceManagerUpgradeTimeout": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Minutes one instance manager upgrade attempt may take"
+                    },
                     "kubernetesClusterAutoscalerEnabled": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
+                    },
+                    "kubernetesMetricsServerMetricsEnabled": {
                       "type": [
                         "boolean",
                         "null"
@@ -9786,6 +10107,16 @@
                       "type": [
                         "boolean",
                         "null"
+                      ]
+                    },
+                    "snapshotCountWarningThreshold": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
                       ]
                     },
                     "snapshotDataIntegrity": {
@@ -14464,42 +14795,119 @@
                       "type": "array"
                     },
                     "backupSyncPeriod": {
-                      "description": "Go duration, e.g. 168h",
-                      "pattern": "^[0-9]+(h|m|s)$",
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "description": "Go duration, e.g. 168h",
+                          "pattern": "^[0-9]+(h|m|s)$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "clientBurst": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "clientPageSize": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "clientQPS": {
+                      "type": [
+                        "number",
+                        "string",
+                        "null"
+                      ]
                     },
                     "dataMoverPrepareTimeout": {
-                      "description": "Go duration, e.g. 168h",
-                      "pattern": "^[0-9]+(h|m|s)$",
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "description": "Go duration, e.g. 168h",
+                          "pattern": "^[0-9]+(h|m|s)$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "defaultBackupStorageLocation": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "defaultBackupTTL": {
-                      "description": "Go duration, e.g. 168h",
-                      "pattern": "^[0-9]+(h|m|s)$",
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "description": "Go duration, e.g. 168h",
+                          "pattern": "^[0-9]+(h|m|s)$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "defaultItemOperationTimeout": {
-                      "description": "Go duration, e.g. 168h",
-                      "pattern": "^[0-9]+(h|m|s)$",
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "description": "Go duration, e.g. 168h",
+                          "pattern": "^[0-9]+(h|m|s)$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "defaultRepoMaintainFrequency": {
-                      "description": "Go duration, e.g. 168h",
-                      "pattern": "^[0-9]+(h|m|s)$",
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "description": "Go duration, e.g. 168h",
+                          "pattern": "^[0-9]+(h|m|s)$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "defaultSnapshotMoveData": {
                       "description": "Move CSI snapshot data to object storage by default",
                       "type": "boolean"
                     },
+                    "defaultVolumeSnapshotLocations": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "defaultVolumesToFsBackup": {
-                      "type": "boolean"
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
                     },
                     "disableControllers": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "disableInformerCache": {
                       "type": "boolean"
@@ -14521,40 +14929,113 @@
                       "type": "string"
                     },
                     "fsBackupTimeout": {
-                      "description": "Go duration, e.g. 168h",
-                      "pattern": "^[0-9]+(h|m|s)$",
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "description": "Go duration, e.g. 168h",
+                          "pattern": "^[0-9]+(h|m|s)$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "garbageCollectionFrequency": {
-                      "description": "Go duration, e.g. 168h",
-                      "pattern": "^[0-9]+(h|m|s)$",
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "description": "Go duration, e.g. 168h",
+                          "pattern": "^[0-9]+(h|m|s)$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "itemBlockWorkerCount": {
-                      "type": "integer"
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "logFormat": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "logLevel": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "metricsAddress": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "namespace": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "pluginDir": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "profilerAddress": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "repositoryMaintenanceJob": {
                       "type": "object"
                     },
                     "restoreOnlyMode": {
-                      "type": "boolean"
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
                     },
                     "restoreResourcePriorities": {
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "storeValidationFrequency": {
-                      "description": "Go duration, e.g. 168h",
-                      "pattern": "^[0-9]+(h|m|s)$",
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "description": "Go duration, e.g. 168h",
+                          "pattern": "^[0-9]+(h|m|s)$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "terminatingResourceTimeout": {
+                      "anyOf": [
+                        {
+                          "description": "Go duration, e.g. 168h",
+                          "pattern": "^[0-9]+(h|m|s)$",
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "uploaderType": {
                       "description": "Data mover: kopia or restic",
@@ -14590,7 +15071,10 @@
                     },
                     "name": {
                       "description": "Name of the secret the chart would create",
-                      "type": "string"
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "secretContents": {
                       "additionalProperties": {
