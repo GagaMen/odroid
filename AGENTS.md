@@ -177,6 +177,8 @@ the rest of userspace. Consequences that matter when touching services:
   systemd omits syscalls current glibc uses.
 - Several distribution services cannot start at all and are deliberately masked.
 - `microk8s stop` does not unmount CSI volumes and strands them on dead devices.
+- The host runs on cgroup v2 only because of an explicit kernel parameter. Kubernetes 1.35 and
+  later do not start on the vendor systemd's default hybrid layout, so the parameter must stay.
 
 Read [`host/README.md`](host/README.md) before changing anything below Kubernetes.
 
