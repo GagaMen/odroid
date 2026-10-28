@@ -19,6 +19,10 @@ spec:
       annotations:
         # Home Assistant reads the prometheus settings only at startup.
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if .Values.secrets }}
+        # secrets.yaml is a subPath mount, which kubelet does not update in place.
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
       labels:
         {{- include "home-assistant.labels" . | nindent 8 }}
     spec:
@@ -86,6 +90,12 @@ spec:
             - mountPath: /config/chart
               name: chart-config
               readOnly: true
+            {{- if .Values.secrets }}
+            - mountPath: /config/secrets.yaml
+              name: secrets
+              subPath: secrets.yaml
+              readOnly: true
+            {{- end }}
       volumes:
         - name: config
           {{- if .Values.persistence.config.enabled }}
@@ -97,6 +107,11 @@ spec:
         - name: chart-config
           configMap:
             name: {{ include "home-assistant.fullname" . }}
+        {{- if .Values.secrets }}
+        - name: secrets
+          secret:
+            secretName: {{ include "home-assistant.fullname" . }}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

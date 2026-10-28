@@ -324,6 +324,13 @@
           },
           "type": "object"
         },
+        "secrets": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Values for !secret in configuration.yaml; mounted as /config/secrets.yaml when set",
+          "type": "object"
+        },
         "service": {
           "additionalProperties": false,
           "description": "Service configuration",

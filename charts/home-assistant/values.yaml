@@ -45,6 +45,14 @@ config:
 # Additional environment variables, passed to the container verbatim.
 env: []
 
+# Values that configuration.yaml references with !secret <name>. When set, they
+# are rendered into a Kubernetes Secret and mounted read-only as
+# /config/secrets.yaml, which then belongs to the chart; a secrets.yaml on the
+# volume is hidden by the mount. Pass them through secrets/mapping.yaml, not
+# values.yaml. Leave empty to manage secrets.yaml on the volume instead.
+secrets: {}
+  # openwrt_password: ""
+
 # Persistent Volume Claim for /config: configuration, recorder database, auth
 # and the state of every integration.
 persistence:

@@ -4070,7 +4070,7 @@
             },
             "config": {
               "additionalProperties": false,
-              "description": "Settings the chart manages: time zone, http and prometheus configuration",
+              "description": "Settings the chart manages: time zone and prometheus configuration",
               "properties": {
                 "prometheus": {
                   "description": "Configuration of the prometheus integration, passed verbatim (e.g. filter, requires_auth)",
@@ -4079,13 +4079,6 @@
                 "timeZone": {
                   "description": "Time zone of the container (TZ)",
                   "type": "string"
-                },
-                "trustedProxies": {
-                  "description": "Proxies whose X-Forwarded-For is accepted (http.trusted_proxies); must cover the ingress controller's address",
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
                 }
               },
               "type": "object"
@@ -4388,6 +4381,13 @@
                   "type": "object"
                 }
               },
+              "type": "object"
+            },
+            "secrets": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Values for !secret in configuration.yaml; mounted as /config/secrets.yaml when set",
               "type": "object"
             },
             "service": {

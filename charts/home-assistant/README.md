@@ -68,6 +68,7 @@ helm install home-assistant ./charts/home-assistant -n home-assistant --create-n
 | `config.timeZone` | Time zone of the container (`TZ`) | `Europe/Berlin` |
 | `config.prometheus` | Configuration of the `prometheus` integration, passed verbatim | `{}` |
 | `env` | Additional environment variables, passed verbatim | `[]` |
+| `secrets` | Values for `!secret` in `configuration.yaml`, mounted as `/config/secrets.yaml` | `{}` |
 | `strategy.type` | Deployment update strategy | `Recreate` |
 
 ### Persistence
@@ -109,6 +110,36 @@ keeps them in its own storage and manages them in the UI. An `http:` block in YA
 imported only once, as a trial: unless it is confirmed in the UI within five minutes, Home
 Assistant reverts to the defaults, restarts, and ignores the YAML from then on. A chart value
 would therefore take effect at most once and silently do nothing afterwards.
+
+## Secrets
+
+YAML-configured integrations take passwords with `!secret <name>`, which Home Assistant looks
+up in `/config/secrets.yaml`. With `secrets` set, the chart renders that file from a
+Kubernetes Secret and mounts it read-only, so the values can come from the same place as
+every other credential instead of living only on the volume:
+
+```yaml
+home-assistant:
+  secrets:
+    router_password: <password>      # from secrets/mapping.yaml, not values.yaml
+```
+
+```yaml
+# configuration.yaml on the volume
+device_tracker:
+  - platform: ubus
+    host: 192.168.1.1
+    username: homeassistant
+    password: !secret router_password
+```
+
+- The file then belongs to the chart: a `secrets.yaml` already on the volume is hidden by
+  the mount, so move its entries into `secrets` first.
+- A changed value restarts the pod (checksum annotation). The mount uses `subPath`, which
+  kubelet does not refresh in a running container, and Home Assistant reads the file only
+  while loading YAML anyway.
+- Credentials entered in the UI, which is how most integrations are set up, are stored by
+  Home Assistant in `/config/.storage` and do not go through this file.
 
 ## Reverse Proxy
 

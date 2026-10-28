@@ -141,6 +141,8 @@ export interface Values {
   config?: Config;
   /** Additional environment variables for the container */
   env?: EnvVar[];
+  /** Values for !secret in configuration.yaml; mounted as /config/secrets.yaml when set */
+  secrets?: Record<string, string>;
   /** Persistent Volume Claim for /config */
   persistence?: {
     /** PVC for configuration, recorder database and integration state */
