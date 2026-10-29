@@ -43,6 +43,7 @@ platform/
 | actual | 1.0.0 | `actual.enabled` |
 | paperless | 1.0.0 | `paperless.enabled` |
 | home-assistant | 1.0.0 | `home-assistant.enabled` |
+| mealie | 1.0.0 | `mealie.enabled` |
 | prometheus | 1.0.0 | `prometheus.enabled` |
 | grafana | 1.0.0 | `grafana.enabled` |
 | loki | 1.0.0 | `loki.enabled` |
@@ -186,6 +187,7 @@ The platform chart creates dedicated namespaces for each service in `templates/n
 | `actual` | Personal finance manager |
 | `paperless` | Document archive |
 | `home-assistant` | Home automation |
+| `mealie` | Recipes and meal planning |
 | `monitoring` | Prometheus, Grafana, Loki, Alloy, blackbox exporter |
 | `network` | Ingresses for devices outside the cluster (external-services) |
 

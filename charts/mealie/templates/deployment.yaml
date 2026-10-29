@@ -1,0 +1,166 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mealie.fullname" . }}
+  namespace: {{ include "mealie.namespace" . }}
+  labels:
+    {{- include "mealie.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  {{- with .Values.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "mealie.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "mealie.labels" . | nindent 8 }}
+      {{- if .Values.bring.enabled }}
+      annotations:
+        # The secret is read as environment variables, which a running
+        # container does not pick up; restart the pod when it changes.
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      {{- end }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default (printf "v%s" .Chart.AppVersion) }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 9000
+              protocol: TCP
+          env:
+            - name: DB_ENGINE
+              value: sqlite
+            {{- with (include "mealie.baseUrl" .) }}
+            - name: BASE_URL
+              value: {{ . | quote }}
+            {{- end }}
+            - name: TZ
+              value: {{ .Values.config.timeZone | quote }}
+            - name: ALLOW_SIGNUP
+              value: {{ .Values.config.allowSignup | quote }}
+            {{- with (include "mealie.httpAllowList" .) }}
+            - name: HTTP_ALLOW_LIST
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.persistence.data.enabled }}
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          {{- end }}
+        {{- if .Values.bring.enabled }}
+        - name: bring
+          image: "{{ .Values.bring.image.repository }}:{{ .Values.bring.image.tag }}"
+          imagePullPolicy: {{ .Values.bring.image.pullPolicy }}
+          # With an API key the bridge checks it against Mealie on start and exits
+          # when Mealie does not answer yet, which it does not for the first
+          # minutes after a pod start. Wait for Mealie instead of crash-looping.
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until wget -q -O /dev/null http://127.0.0.1:9000/api/app/about; do sleep 5; done
+              exec python -m source.mealie_bring_api
+          env:
+            # Loopback only: the bridge has no authentication, and only Mealie in
+            # this pod has to reach it.
+            - name: HTTP_HOST
+              value: 127.0.0.1
+            - name: HTTP_PORT
+              value: {{ .Values.bring.port | quote }}
+            - name: BRING_LIST_NAME
+              value: {{ required "bring.listName is required with bring.enabled" .Values.bring.listName | quote }}
+            {{- range $key := list "BRING_USERNAME" "BRING_PASSWORD" }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mealie.fullname" $ }}
+                  key: {{ $key }}
+            {{- end }}
+            {{- if .Values.bring.mealieApiKey }}
+            - name: MEALIE_BASE_URL
+              value: http://127.0.0.1:9000
+            - name: MEALIE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mealie.fullname" . }}
+                  key: MEALIE_API_KEY
+            {{- with .Values.bring.shoppingListUuid }}
+            - name: MEALIE_SHOPPING_LIST_UUID
+              value: {{ . | quote }}
+            {{- end }}
+            {{- end }}
+          # The image would run as root; the bridge needs neither root nor a
+          # writable filesystem.
+          securityContext:
+            runAsUser: 65534
+            runAsGroup: 65534
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          # The bridge listens on loopback, which an httpGet probe from the
+          # kubelet cannot reach; ask from inside the container instead.
+          {{- $statusCheck := list "python" "-c" (printf "import urllib.request; urllib.request.urlopen('http://127.0.0.1:%v/status', timeout=5)" .Values.bring.port) }}
+          startupProbe:
+            exec:
+              command:
+                {{- toYaml $statusCheck | nindent 16 }}
+            # Covers the wait for Mealie on the first start.
+            periodSeconds: 10
+            failureThreshold: 60
+          livenessProbe:
+            exec:
+              command:
+                {{- toYaml $statusCheck | nindent 16 }}
+            periodSeconds: 60
+            timeoutSeconds: 10
+          {{- with .Values.bring.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      {{- if .Values.persistence.data.enabled }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "mealie.fullname" . }}-data
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -9,6 +9,7 @@ import type { Values as HomeAssistantValues } from "../charts/home-assistant/val
 import type { Values as HomepageValues } from "../charts/homepage/values.schema";
 import type { Values as LokiValues } from "../charts/loki/values.schema";
 import type { Values as LonghornValues } from "../charts/longhorn/values.schema";
+import type { Values as MealieValues } from "../charts/mealie/values.schema";
 import type { Values as MetallbValues } from "../charts/metallb/values.schema";
 import type { Values as NtfyValues } from "../charts/ntfy/values.schema";
 import type { Values as PaperlessValues } from "../charts/paperless/values.schema";
@@ -84,6 +85,8 @@ export interface PlatformValues {
   paperless?: PaperlessValues;
   /** home-assistant chart values */
   "home-assistant"?: HomeAssistantValues;
+  /** mealie chart values */
+  mealie?: MealieValues;
   /** prometheus chart values (wrapper: upstream values go under prometheus) */
   prometheus?: PrometheusValues;
   /** grafana chart values (wrapper: upstream values go under grafana) */

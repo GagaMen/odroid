@@ -14,6 +14,7 @@ This directory contains custom Helm charts for the Odroid home server platform. 
 | [home-assistant](home-assistant/) | Local home automation: devices, presence, calendars, automations | 1.0.0 |
 | [homepage](homepage/) | Modern, customizable application dashboard | 1.0.0 |
 | [longhorn](longhorn/) | Cloud-native distributed block storage | 1.0.0 |
+| [mealie](mealie/) | Recipe manager and meal planner with a Bring! bridge | 1.0.0 |
 | [metallb](metallb/) | LAN addresses for LoadBalancer services (layer 2) | 1.0.0 |
 | [ntfy](ntfy/) | Self-hosted push notification service | 1.0.0 |
 | [paperless](paperless/) | Document archive with OCR, full-text search and a scanner share | 1.0.0 |
@@ -40,6 +41,7 @@ adguard:
 | home-assistant | `default` |
 | homepage | `default` |
 | longhorn | `longhorn-system` (built-in) |
+| mealie | `default` |
 | metallb | release namespace (no override upstream) |
 | ntfy | `default` |
 | paperless | `default` |

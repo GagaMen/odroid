@@ -1,0 +1,141 @@
+# yaml-language-server: $schema=values.schema.json
+# Default values for mealie.
+# Secrets go into platform/values.yaml (gitignored).
+
+image:
+  repository: ghcr.io/mealie-recipes/mealie
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is "v" + the chart appVersion.
+  tag: "v3.29.0"
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Mealie keeps its database in a SQLite file on a ReadWriteOnce volume. A
+# rolling update would start the new pod while the old one still holds that
+# file, so two processes would write the same database. Recreate stops the old
+# pod first.
+strategy:
+  type: Recreate
+
+# Settings handed to the container as environment variables.
+config:
+  # Public URL without a trailing slash (BASE_URL), used in links Mealie sends
+  # out: notifications, invitations, shared recipes. Empty means it is derived
+  # from the first ingress host.
+  baseUrl: ""
+  # Time zone (TZ); the nightly maintenance jobs run at 23:45 local time.
+  timeZone: Europe/Berlin
+  # Lets anyone who reaches the login page create an account (ALLOW_SIGNUP).
+  # With it off, new users need an invitation link from an admin.
+  allowSignup: false
+  # Hosts or CIDRs Mealie may reach although they resolve to a private address
+  # (HTTP_ALLOW_LIST). Since v3.26 Mealie refuses server-side requests into
+  # private networks: URL imports, image downloads, webhooks, recipe actions.
+  # The Bring bridge's loopback address is added automatically.
+  httpAllowList: []
+
+# Additional environment variables, passed to the mealie container verbatim.
+env: []
+  # - name: TOKEN_TIME
+  #   value: "168"
+
+# Bridge to a Bring! shopping list (github.com/felixschndr/mealie-bring-api),
+# run as a sidecar on loopback. Mealie's own Bring button needs Mealie to be
+# reachable from the internet, because Bring's servers fetch the recipe from
+# it; the bridge pushes the ingredients through Bring's API instead.
+bring:
+  enabled: false
+  image:
+    repository: ghcr.io/felixschndr/mealie-bring-api
+    tag: "1.3.1"
+    pullPolicy: IfNotPresent
+  # Bring account the bridge logs in with. Set in platform/values.yaml.
+  username: ""
+  password: ""
+  # Exact name of the Bring list the ingredients go to (case-insensitive).
+  listName: ""
+  # Mealie API key, created in Mealie under Profile -> API Tokens. Only needed to
+  # move whole Mealie shopping lists to Bring; adding a single recipe works
+  # without it.
+  mealieApiKey: ""
+  # Only move items from this Mealie shopping list. Empty means all lists.
+  shoppingListUuid: ""
+  # Port on 127.0.0.1; recipe actions and notifiers in Mealie point here.
+  port: 8742
+  resources:
+    requests:
+      cpu: 10m
+      memory: 48Mi
+    limits:
+      memory: 192Mi
+
+persistence:
+  # SQLite database, recipe images, backups made in the UI.
+  data:
+    enabled: true
+    size: 2Gi
+    accessMode: ReadWriteOnce
+    labels: {}
+    # storageClass: ""
+
+service:
+  type: ClusterIP
+  # Mealie inside the container always listens on 9000.
+  port: 9000
+
+ingress:
+  enabled: true
+  className: ""
+  annotations:
+    # nginx rejects request bodies above 1m by default, which turns an upload
+    # of a recipe photo or a backup archive into "413 Request Entity Too Large".
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    # cert-manager.io/cluster-issuer: lets-encrypt
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.0.0/24,10.8.0.0/24
+  hosts:
+    - host: mealie.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: mealie-tls
+  #    hosts:
+  #      - mealie.example.com
+
+# /api/app/about answers without login once the app serves requests; the
+# image's own health check uses it as well. The first start creates and seeds
+# the database; the startup probe allows five minutes.
+startupProbe:
+  httpGet:
+    path: /api/app/about
+    port: http
+  periodSeconds: 10
+  failureThreshold: 30
+livenessProbe:
+  httpGet:
+    path: /api/app/about
+    port: http
+  periodSeconds: 30
+  timeoutSeconds: 5
+readinessProbe:
+  httpGet:
+    path: /api/app/about
+    port: http
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+# Importing a recipe (scraping, image processing) is the memory peak.
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 1Gi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

@@ -8,6 +8,7 @@ A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkern
 - **[Actual Budget](charts/actual/)** - Personal finance manager with envelope budgeting
 - **[Paperless-ngx](charts/paperless/)** - Document archive with OCR, full-text search and a scanner share
 - **[Home Assistant](charts/home-assistant/)** - Local home automation for devices, presence and calendars
+- **[Mealie](charts/mealie/)** - Recipe manager and meal planner, with a bridge to a Bring! shopping list
 - **[Homepage](charts/homepage/)** - Modern, customizable application dashboard
 - **[ntfy](charts/ntfy/)** - Self-hosted push notification service
 - **[Longhorn](charts/longhorn/)** - Cloud-native distributed storage
@@ -126,6 +127,7 @@ Create a `platform/values.yaml` file with your configuration. See the individual
 - [Actual Budget Configuration](charts/actual/README.md)
 - [Paperless-ngx Configuration](charts/paperless/README.md)
 - [Home Assistant Configuration](charts/home-assistant/README.md)
+- [Mealie Configuration](charts/mealie/README.md)
 - [Homepage Configuration](charts/homepage/README.md)
 - [ntfy Configuration](charts/ntfy/README.md)
 - [Longhorn Configuration](charts/longhorn/README.md)
@@ -176,6 +178,7 @@ scripts/helm-platform upgrade
 │   ├── homepage/                           # Application dashboard
 │   ├── loki/                               # Log aggregation
 │   ├── longhorn/                           # Distributed storage
+│   ├── mealie/                             # Mealie recipes and meal planning
 │   ├── metallb/                            # LAN addresses for LoadBalancer services
 │   ├── ntfy/                               # Push notification service
 │   ├── paperless/                          # Paperless-ngx document archive
@@ -227,6 +230,7 @@ npm run generate:home-assistant
 npm run generate:homepage
 npm run generate:loki
 npm run generate:longhorn
+npm run generate:mealie
 npm run generate:metallb
 npm run generate:ntfy
 npm run generate:paperless

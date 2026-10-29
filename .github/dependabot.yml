@@ -31,6 +31,7 @@ updates:
       - /charts/cert-manager-dns-lexicon-webhook
       - /charts/home-assistant
       - /charts/homepage
+      - /charts/mealie
       - /charts/ntfy
       - /charts/paperless
       - /charts/rustfs

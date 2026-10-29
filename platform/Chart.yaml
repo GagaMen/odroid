@@ -50,6 +50,10 @@ dependencies:
     version: 1.0.0
     repository: file://../charts/home-assistant
     condition: home-assistant.enabled
+  - name: mealie
+    version: 1.0.0
+    repository: file://../charts/mealie
+    condition: mealie.enabled
   - name: prometheus
     version: 1.0.0
     repository: file://../charts/prometheus

@@ -13,6 +13,7 @@ scope:
     - actual
     - adguard
     - home-assistant
+    - mealie
     - monitoring
     - paperless
   # PVCs carry this label; "gfs" gets all three tiers, "weekly" only the weekly one.

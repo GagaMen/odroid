@@ -1,0 +1,54 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+{{- if .Values.ingress.enabled }}
+
+Mealie is available at:
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- else }}
+
+No ingress is enabled. Reach the server with a port-forward:
+
+  $ kubectl port-forward -n {{ include "mealie.namespace" . }} deployment/{{ include "mealie.fullname" . }} 9000:9000
+{{- end }}
+
+================================================================================
+IMPORTANT: Initial Setup
+================================================================================
+
+On its first start Mealie creates an admin with a well-known login:
+
+  changeme@example.com / MyPassword
+
+Log in and change email and password before anything else -- until then,
+anyone who can reach the ingress can log in as admin.
+{{- if .Values.bring.enabled }}
+
+Bring bridge: add a recipe action in Mealie (Data Management -> Recipe Actions),
+type POST, URL:
+
+  http://127.0.0.1:{{ .Values.bring.port }}/
+{{- if .Values.bring.mealieApiKey }}
+
+To move whole shopping lists, use
+
+  http://127.0.0.1:{{ .Values.bring.port }}/move-ingredients-from-shopping-list
+
+as a second recipe action, or as notifier (household settings -> Notifiers):
+
+  json://127.0.0.1:{{ .Values.bring.port }}/move-ingredients-from-shopping-list
+{{- end }}
+{{- end }}
+{{- if not .Values.persistence.data.enabled }}
+
+WARNING: persistence is disabled. Recipes and the database live in the
+container's writable layer and are lost when the pod restarts.
+{{- end }}
