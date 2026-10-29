@@ -48,6 +48,11 @@ traefik:
         # templates/lan-only.yaml.
         middlewares:
           - lan-only@file
+        # Drops request headers whose name aliases another one, such as
+        # X_Forwarded_For: backends that derive variable names from headers
+        # (WSGI, CGI, PHP) would read it as the X-Forwarded-For Traefik sets.
+        # ingress-nginx drops headers with underscores by default as well.
+        aliasHeadersStrategy: delete
         tls:
           enabled: true
       transport:

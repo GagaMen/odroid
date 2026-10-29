@@ -44,6 +44,11 @@ watches the mounted directory: a changed list takes effect once kubelet has sync
 ConfigMap (up to a minute), without a restart. Traefik cannot build the middleware from an
 empty list, and every HTTPS router would fail, so the chart refuses to render without one.
 
+At startup Traefik logs `HTTP middleware already configured, skipping` for `lan-only`. The
+file provider also reads the hidden, timestamped directory in which kubelet keeps the
+ConfigMap's files, and so finds the same definition twice. The warning is harmless. Mounting
+the file differently to avoid it would break the reload on changes.
+
 The check uses the address the connection comes from. `hostPort` keeps the client's address
 for traffic from outside the node, so this works as long as nothing in front of the node
 (a router doing NAT for the VPN, for example) replaces it.
@@ -60,6 +65,11 @@ covers what they did for the whole entry point:
 | `whitelist-source-range` | `lan-only` middleware on `websecure` |
 | `proxy-body-size` | Traefik sets no limit on the request body |
 | `proxy-read-timeout`, `proxy-send-timeout` | `readTimeout: 0` on `websecure` |
+
+ingress-nginx also drops request headers with underscores. `aliasHeadersStrategy: delete` does
+the same on `websecure`, for every header whose name aliases another one (`X_Forwarded_For`,
+`X.Forwarded.For`). Backends that derive variable names from header names would otherwise read
+it as the `X-Forwarded-For` Traefik sets.
 
 Traefik 3 stops reading a request after 60 seconds by default. That cuts off large uploads
 over a slow connection and long-lived WebSocket connections such as Home Assistant's, hence
