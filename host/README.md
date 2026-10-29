@@ -488,8 +488,12 @@ null defaults of subcharts during schema validation and rejected every chart sch
 not allow them. Render the platform once after each step, before the next deploy needs it:
 
 ```bash
-helm template platform ./platform -n platform > /dev/null   # schema errors show up here
+scripts/secrets-values --placeholders |
+  microk8s.helm3 template platform ./platform -n platform -f - > /dev/null   # errors show up here
 ```
+
+The placeholders stand in for every secret in `secrets/mapping.yaml` without touching the
+vault. Without them, templates that require a credential stop the render before it gets far.
 
 The previous revision's Helm stays available as `/snap/microk8s/<previous-rev>/bin/helm`
 until the next refresh; both deploy scripts take it through `HELM=<path>`.

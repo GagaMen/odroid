@@ -194,7 +194,8 @@ user to unlock it; do not try yourself. **Keep secrets out of your transcript:**
 `scripts/secrets-values` on its own, and never `scripts/helm-platform template` or
 `upgrade --dry-run` — all of them print Secret contents. To preview a change, use
 `.claude/skills/dependency-updates/scripts/release_diff.py`, which only reports that a Secret
-changed.
+changed. To check that the platform renders, use `scripts/secrets-values --placeholders`
+(see [`host/README.md`](host/README.md)); it prints a dummy for every secret and needs no vault.
 
 A new secret value needs an entry in `secrets/mapping.yaml` and an item or field in the vault;
 it must not go into `platform/values.yaml`.
