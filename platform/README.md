@@ -34,6 +34,7 @@ platform/
 | cert-manager-dns-lexicon-webhook | 1.0.0 | `cert-manager-dns-lexicon-webhook.enabled` |
 | longhorn | 1.0.0 | `longhorn.enabled` |
 | metallb | 1.0.0 | `metallb.enabled` |
+| traefik | 1.0.0 | `traefik.enabled` |
 | snapshot-controller | 1.0.0 | `snapshot-controller.enabled` |
 | rustfs | 1.0.0 | `rustfs.enabled` |
 | velero | 1.0.0 | `velero.enabled` |
@@ -189,7 +190,7 @@ The platform chart creates dedicated namespaces for each service in `templates/n
 | `home-assistant` | Home automation |
 | `mealie` | Recipes and meal planning |
 | `monitoring` | Prometheus, Grafana, Loki, Alloy, blackbox exporter |
-| `network` | Ingresses for devices outside the cluster (external-services) |
+| `network` | Ingress controller (Traefik, `traefik.namespaceOverride`) and Ingresses for devices outside the cluster (external-services) |
 
 > **Important:** Each sub-chart requires `namespaceOverride` to be set in your `values.yaml` to deploy into these namespaces. Without it, charts deploy into the release namespace `platform` (except Longhorn, which defaults to `longhorn-system`).
 

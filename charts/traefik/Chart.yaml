@@ -1,0 +1,9 @@
+apiVersion: v2
+name: traefik
+description: Traefik as the cluster's ingress controller, serving every Ingress on the node's ports 80 and 443 behind one source address allow list.
+type: application
+version: 1.0.0
+dependencies:
+  - name: traefik
+    version: 42.1.3
+    repository: oci://ghcr.io/traefik/helm

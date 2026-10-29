@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=values.schema.json
+# Default values for the traefik chart wrapper.
+# The allowed source ranges and the namespace go into platform/values.yaml (gitignored).
+
+# Source address allow list, applied on the HTTPS entry point to every router --
+# every Ingress, including ones added later, without an annotation of its own.
+# Anything else gets 403. Required: an empty list fails the render.
+lanOnly:
+  # CIDRs, e.g. the home network and the VPN ("192.168.0.0/24", "10.8.0.0/24").
+  sourceRange: []
+
+traefik:
+  # Traefik's own ACME client is not used: certificates come from cert-manager
+  # as TLS Secrets referenced by the Ingresses. A single instance is enough,
+  # and with hostPorts a second one could not start on the same node anyway.
+  deployment:
+    kind: Deployment
+    replicas: 1
+
+  # The chart's default surge of one would start the new pod while the old one
+  # still holds hostPort 80/443, so the rollout would never finish.
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+
+  # Takes over the class name the MicroK8s NGINX addon used, so existing
+  # Ingresses (ingressClassName: public) move over without a change.
+  ingressClass:
+    enabled: true
+    isDefaultClass: true
+    name: public
+
+  ports:
+    web:
+      hostPort: 80
+      http:
+        redirections:
+          entryPoint:
+            to: websecure
+            scheme: https
+            permanent: true
+    websecure:
+      hostPort: 443
+      http:
+        # The file provider names the middleware <name>@file; it comes from
+        # templates/lan-only.yaml.
+        middlewares:
+          - lan-only@file
+        tls:
+          enabled: true
+      transport:
+        respondingTimeouts:
+          # Traefik 3 ends a request after 60 seconds of reading by default,
+          # which cuts off long uploads (Paperless) and long-lived WebSocket
+          # connections (Home Assistant). 0 disables the limit.
+          readTimeout: 0
+
+  # The allow list is read from a ConfigMap of this wrapper, through the file
+  # provider. The chart's own file provider cannot be used: its content is not
+  # templated, so it could not take lanOnly.sourceRange.
+  volumes:
+    - name: traefik-lan-only
+      mountPath: /etc/traefik/lan-only
+      type: configMap
+  additionalArguments:
+    - --providers.file.directory=/etc/traefik/lan-only
+    - --providers.file.watch=true
+
+  providers:
+    kubernetesIngress:
+      # Copies the Service's load balancer address into each Ingress' status.
+      # The pod is reached through hostPorts and there is no Service.
+      publishedService:
+        enabled: false
+    # IngressRoute, Middleware and the other Traefik CRDs are not used. Helm
+    # installs a subchart's crds/ only with the release that first installs
+    # the subchart's parent, never on upgrade, so they are not there either.
+    kubernetesCRD:
+      enabled: false
+
+  # The pod listens on the node's ports directly; a LoadBalancer Service
+  # would stay <pending>, MetalLB hands out addresses only on request.
+  service:
+    enabled: false
+
+  # The dashboard would only be reachable on the internal traefik entry point.
+  api:
+    dashboard: false
+
+  global:
+    # Version checks call out to Traefik Labs; Dependabot reports updates.
+    checkNewVersion: false
+    sendAnonymousUsage: false
+
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      memory: 256Mi

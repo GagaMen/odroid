@@ -16,6 +16,7 @@ import type { Values as PaperlessValues } from "../charts/paperless/values.schem
 import type { Values as PrometheusValues } from "../charts/prometheus/values.schema";
 import type { Values as RustfsValues } from "../charts/rustfs/values.schema";
 import type { Values as SnapshotControllerValues } from "../charts/snapshot-controller/values.schema";
+import type { Values as TraefikValues } from "../charts/traefik/values.schema";
 import type { Values as VeleroValues } from "../charts/velero/values.schema";
 
 interface ClusterIssuer {
@@ -67,6 +68,8 @@ export interface PlatformValues {
   longhorn?: LonghornValues;
   /** metallb chart values (wrapper: upstream values go under metallb) */
   metallb?: MetallbValues;
+  /** traefik chart values (wrapper: upstream values go under traefik) */
+  traefik?: TraefikValues;
   /** snapshot-controller chart values (wrapper: upstream values go under snapshot-controller) */
   "snapshot-controller"?: SnapshotControllerValues;
   /** rustfs chart values (wrapper: upstream values go under rustfs) */

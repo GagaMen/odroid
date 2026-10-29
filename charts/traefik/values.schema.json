@@ -1,0 +1,480 @@
+{
+  "$ref": "#/definitions/Values",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Values": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "description": "Enable/disable this chart (used by platform condition)",
+          "type": "boolean"
+        },
+        "global": {
+          "description": "Injected by Helm for sub-chart coordination",
+          "type": "object"
+        },
+        "lanOnly": {
+          "additionalProperties": false,
+          "description": "Source address allow list on the HTTPS entry point",
+          "properties": {
+            "sourceRange": {
+              "description": "CIDRs allowed to reach any router on the HTTPS entry point; required",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "traefik": {
+          "additionalProperties": false,
+          "description": "Traefik upstream chart values (see https://github.com/traefik/traefik-helm-chart/tree/master/traefik)",
+          "properties": {
+            "accessLog": {
+              "type": "object"
+            },
+            "additionalArguments": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "additionalVolumeMounts": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "affinity": {
+              "type": "object"
+            },
+            "api": {
+              "type": "object"
+            },
+            "autoscaling": {
+              "type": "object"
+            },
+            "certificatesResolvers": {
+              "type": "object"
+            },
+            "commonLabels": {
+              "type": "object"
+            },
+            "core": {
+              "type": "object"
+            },
+            "deployment": {
+              "additionalProperties": {},
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "Deployment",
+                    "DaemonSet"
+                  ],
+                  "type": "string"
+                },
+                "replicas": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "type": "object"
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "env": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "envFrom": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "experimental": {
+              "type": "object"
+            },
+            "extraObjects": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "fullnameOverride": {
+              "type": "string"
+            },
+            "gateway": {
+              "type": "object"
+            },
+            "gatewayClass": {
+              "type": "object"
+            },
+            "global": {
+              "additionalProperties": {},
+              "description": "Injected by Helm for sub-chart coordination",
+              "properties": {
+                "checkNewVersion": {
+                  "type": "boolean"
+                },
+                "sendAnonymousUsage": {
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            },
+            "hostNetwork": {
+              "type": "boolean"
+            },
+            "hub": {
+              "type": "object"
+            },
+            "image": {
+              "type": "object"
+            },
+            "imagePullSecrets": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "ingressClass": {
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "isDefaultClass": {
+                  "type": "boolean"
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "ingressRoute": {
+              "type": "object"
+            },
+            "instanceLabelOverride": {
+              "type": "string"
+            },
+            "livenessProbe": {
+              "type": "object"
+            },
+            "log": {
+              "type": "object"
+            },
+            "metrics": {
+              "type": "object"
+            },
+            "nameOverride": {
+              "type": "string"
+            },
+            "namespaceOverride": {
+              "type": "string"
+            },
+            "nodeSelector": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "oci_meta": {
+              "type": "object"
+            },
+            "ocsp": {
+              "type": "object"
+            },
+            "offering_version": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "persistence": {
+              "type": "object"
+            },
+            "podDisruptionBudget": {
+              "type": "object"
+            },
+            "podSecurityContext": {
+              "type": "object"
+            },
+            "ports": {
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {},
+                    "properties": {
+                      "containerPort": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "expose": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "default": {
+                            "type": "boolean"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "exposedPort": {
+                        "type": "number"
+                      },
+                      "hostIP": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "hostPort": {
+                        "description": "Bind this entry point on the node's port",
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      },
+                      "http": {
+                        "additionalProperties": {},
+                        "properties": {
+                          "middlewares": {
+                            "anyOf": [
+                              {
+                                "items": {
+                                  "type": "string"
+                                },
+                                "type": "array"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Middlewares applied to every router on this entry point"
+                          },
+                          "redirections": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "entryPoint": {
+                                "additionalProperties": false,
+                                "properties": {
+                                  "permanent": {
+                                    "type": "boolean"
+                                  },
+                                  "priority": {
+                                    "type": "number"
+                                  },
+                                  "scheme": {
+                                    "type": "string"
+                                  },
+                                  "to": {
+                                    "type": "string"
+                                  }
+                                },
+                                "type": "object"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "tls": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "certResolver": {
+                                "type": "string"
+                              },
+                              "domains": {
+                                "items": {
+                                  "type": "object"
+                                },
+                                "type": "array"
+                              },
+                              "enabled": {
+                                "type": "boolean"
+                              },
+                              "options": {
+                                "type": "string"
+                              }
+                            },
+                            "type": "object"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "port": {
+                        "type": "number"
+                      },
+                      "protocol": {
+                        "type": "string"
+                      },
+                      "transport": {
+                        "additionalProperties": {},
+                        "properties": {
+                          "respondingTimeouts": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "idleTimeout": {
+                                "type": [
+                                  "string",
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "readTimeout": {
+                                "description": "0 disables the limit; Traefik 3 defaults to 60s",
+                                "type": [
+                                  "string",
+                                  "number",
+                                  "null"
+                                ]
+                              },
+                              "writeTimeout": {
+                                "type": [
+                                  "string",
+                                  "number",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "type": "object"
+                          }
+                        },
+                        "type": "object"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "object"
+            },
+            "priorityClassName": {
+              "type": "string"
+            },
+            "providers": {
+              "type": "object"
+            },
+            "rbac": {
+              "type": "object"
+            },
+            "readinessProbe": {
+              "type": "object"
+            },
+            "resources": {
+              "type": "object"
+            },
+            "securityContext": {
+              "type": "object"
+            },
+            "service": {
+              "type": "object"
+            },
+            "serviceAccount": {
+              "type": "object"
+            },
+            "serviceAccountAnnotations": {
+              "type": "object"
+            },
+            "startupProbe": {
+              "type": "object"
+            },
+            "tlsOptions": {
+              "type": "object"
+            },
+            "tlsStore": {
+              "type": "object"
+            },
+            "tolerations": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "topologySpreadConstraints": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "tracing": {
+              "type": "object"
+            },
+            "updateStrategy": {
+              "additionalProperties": false,
+              "properties": {
+                "rollingUpdate": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "maxSurge": {
+                      "type": [
+                        "number",
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "maxUnavailable": {
+                      "type": [
+                        "number",
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "versionOverride": {
+              "type": "string"
+            },
+            "volumes": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "mountPath": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "ConfigMap or Secret name (passed through tpl)",
+                    "type": "string"
+                  },
+                  "type": {
+                    "enum": [
+                      "configMap",
+                      "secret"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "mountPath",
+                  "type"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  }
+}

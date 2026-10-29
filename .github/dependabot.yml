@@ -52,6 +52,7 @@ updates:
       - /charts/prometheus
       - /charts/rustfs
       - /charts/snapshot-controller
+      - /charts/traefik
       - /charts/velero
     schedule:
       interval: "monthly"

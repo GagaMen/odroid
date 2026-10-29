@@ -1,0 +1,27 @@
+{{- /*
+Dynamic configuration for Traefik's file provider: the lan-only middleware that
+the websecure entry point applies to every router. Traefik watches the mounted
+directory, so a changed list takes effect once kubelet has synced the
+ConfigMap, without a restart.
+*/ -}}
+{{- $sourceRange := .Values.lanOnly.sourceRange }}
+{{- if not $sourceRange }}
+{{- fail "lanOnly.sourceRange is required: Traefik refuses an empty allow list, and every router on the HTTPS entry point would fail with it" }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traefik-lan-only
+  namespace: {{ .Values.traefik.namespaceOverride | default .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: traefik
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  lan-only.yaml: |
+    http:
+      middlewares:
+        lan-only:
+          ipAllowList:
+            sourceRange:
+              {{- toYaml $sourceRange | nindent 14 }}
