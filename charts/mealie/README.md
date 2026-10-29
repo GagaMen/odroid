@@ -46,10 +46,7 @@ mealie:
   ingress:
     enabled: true
     annotations:
-      nginx.ingress.kubernetes.io/proxy-body-size: "100m"
       cert-manager.io/cluster-issuer: lets-encrypt
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.0.0/24,10.8.0.0/24
     hosts:
       - host: mealie.your-domain.com
         paths:
@@ -124,7 +121,7 @@ The volume takes `enabled`, `size`, `accessMode`, `storageClass` and `labels`.
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `service.port` | Service port (the container always listens on 9000) | `9000` |
-| `ingress.annotations` | Ingress annotations | `proxy-body-size: 100m` |
+| `ingress.annotations` | Ingress annotations | `{}` |
 | `startupProbe` | `GET /api/app/about`, up to five minutes | See values.yaml |
 | `livenessProbe` / `readinessProbe` | `GET /api/app/about` | See values.yaml |
 | `resources` | CPU/memory for Mealie | `100m` / `256Mi`, limit `1Gi` |

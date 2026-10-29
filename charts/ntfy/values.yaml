@@ -37,8 +37,6 @@ ingress:
   enabled: true
   className: ""
   annotations: {}
-    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    # nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.13.0/24,10.8.0.0/24
     # cert-manager.io/cluster-issuer: lets-encrypt
   hosts:
     - host: ntfy.example.com

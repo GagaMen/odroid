@@ -212,7 +212,6 @@ homepage:
     enabled: true
     annotations:
       cert-manager.io/cluster-issuer: lets-encrypt
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
       # Homepage autodiscovery annotations
       gethomepage.dev/enabled: "true"
       gethomepage.dev/name: Homepage

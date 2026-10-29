@@ -9,7 +9,7 @@ namespaceOverride: ""
 # Applies to the Ingress of every entry.
 ingress:
   className: ""
-  # Shared annotations, e.g. the cert-manager issuer and a source whitelist.
+  # Shared annotations, e.g. the cert-manager issuer.
   # An entry's own annotations are merged over these.
   annotations: {}
   # Add a TLS section per host; the certificate lands in the secret "<name>-tls".
@@ -21,8 +21,3 @@ services: []
 #      - 192.0.2.1
 #    port: 80
 #    host: router.example.com
-#    annotations:
-#      # The device speaks HTTPS only (a self-signed certificate is accepted).
-#      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-#      # The device rejects requests for a host name it does not know.
-#      nginx.ingress.kubernetes.io/upstream-vhost: 192.0.2.1

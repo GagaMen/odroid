@@ -28,8 +28,6 @@ home-assistant:
     enabled: true
     annotations:
       cert-manager.io/cluster-issuer: lets-encrypt
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.0.0/24,10.8.0.0/24
     hosts:
       - host: home-assistant.your-domain.com
         paths:
@@ -40,9 +38,6 @@ home-assistant:
         hosts:
           - home-assistant.your-domain.com
 ```
-
-Setting `ingress.annotations` in your own values merges with the chart default, so the
-WebSocket timeouts stay unless you override those keys.
 
 ### Standalone
 
@@ -85,7 +80,7 @@ helm install home-assistant ./charts/home-assistant -n home-assistant --create-n
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `service.port` | Service port (Home Assistant always listens on 8123) | `8123` |
-| `ingress.annotations` | Ingress annotations | WebSocket timeouts of one hour |
+| `ingress.annotations` | Ingress annotations | `{}` |
 | `startupProbe` | `GET /manifest.json`, up to ten minutes | See values.yaml |
 | `livenessProbe` / `readinessProbe` | `GET /manifest.json` | See values.yaml |
 | `resources` | CPU/memory requests and limits | `100m` / `512Mi`, limit `2Gi` |

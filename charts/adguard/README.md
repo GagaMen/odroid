@@ -148,7 +148,6 @@ adguard:
     enabled: true
     annotations:
       cert-manager.io/cluster-issuer: lets-encrypt
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
     hosts:
       - host: adguard.example.com
         paths:

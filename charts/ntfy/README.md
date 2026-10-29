@@ -106,8 +106,6 @@ ntfy:
     enabled: true
     annotations:
       cert-manager.io/cluster-issuer: lets-encrypt
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      nginx.ingress.kubernetes.io/proxy-body-size: "15m"
     hosts:
       - host: ntfy.example.com
         paths:

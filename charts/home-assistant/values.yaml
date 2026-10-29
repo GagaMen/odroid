@@ -74,15 +74,11 @@ service:
 ingress:
   enabled: true
   className: ""
-  annotations:
-    # The frontend keeps a WebSocket open for its whole session. nginx closes a
-    # proxied connection after 60 seconds without traffic by default, which shows
-    # up as "Connection lost" and a reconnect.
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+  # The frontend keeps a WebSocket open for its whole session. An ingress
+  # controller that times out quiet connections shows that as "Connection lost"
+  # and a reconnect, so its timeout must not cut the WebSocket off.
+  annotations: {}
     # cert-manager.io/cluster-issuer: lets-encrypt
-    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    # nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.0.0/24,10.8.0.0/24
   hosts:
     - host: home-assistant.example.com
       paths:

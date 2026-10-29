@@ -41,10 +41,7 @@ paperless:
   ingress:
     enabled: true
     annotations:
-      nginx.ingress.kubernetes.io/proxy-body-size: "100m"
       cert-manager.io/cluster-issuer: lets-encrypt
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.0.0/24,10.8.0.0/24
     hosts:
       - host: paperless.your-domain.com
         paths:
@@ -55,9 +52,6 @@ paperless:
         hosts:
           - paperless.your-domain.com
 ```
-
-Setting `ingress.annotations` in your own values merges with the chart default, so the
-`proxy-body-size` annotation stays unless you override that key.
 
 ### Standalone
 
@@ -140,7 +134,7 @@ Each volume takes `enabled`, `size`, `accessMode`, `storageClass` and `labels`.
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `service.port` | Service port (the container always listens on 8000) | `8000` |
-| `ingress.annotations` | Ingress annotations | `proxy-body-size: 100m` |
+| `ingress.annotations` | Ingress annotations | `{}` |
 | `startupProbe` | `GET /`, up to ten minutes | See values.yaml |
 | `livenessProbe` / `readinessProbe` | `GET /` | See values.yaml |
 | `resources` | CPU/memory for paperless | `250m` / `1Gi`, limit `3Gi` |
@@ -216,9 +210,10 @@ consistent copy of the whole archive when one is needed, e.g. before a migration
 
 ### Upload Size
 
-nginx rejects request bodies over 1 MB by default, and a larger upload fails with
-`413 Request Entity Too Large` before it reaches paperless. The chart sets
-`nginx.ingress.kubernetes.io/proxy-body-size: 100m` for that reason.
+Documents are uploaded through the ingress. An ingress controller with a body size limit of
+its own rejects a larger upload with `413 Request Entity Too Large` before it reaches
+paperless; ingress-nginx, for one, allows 1 MB by default. Traefik sets no limit. With a
+controller that does, raise it through `ingress.annotations`.
 
 ### Recreate, Not RollingUpdate
 

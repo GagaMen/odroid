@@ -30,8 +30,6 @@ external-services:
     className: public
     annotations:
       cert-manager.io/cluster-issuer: lets-encrypt
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.1.0/24
   services:
     - name: router
       addresses:
@@ -62,30 +60,25 @@ helm install external-services ./charts/external-services -n network --create-na
 
 ## Restrict Access
 
-These are usually administration interfaces. If the ingress controller is reachable from the
-internet, limit each Ingress to the local networks, for ingress-nginx with
-`nginx.ingress.kubernetes.io/whitelist-source-range` in `ingress.annotations`. An entry that sets
-the same annotation replaces the shared value instead of extending it.
+These are usually administration interfaces. If the ingress controller is reachable from
+networks that should not reach them, limit access to the local networks: the
+[Traefik chart](../traefik/README.md) does that for every Ingress on its HTTPS entry point. With
+a controller that filters per Ingress, put its annotation in `ingress.annotations`. An entry
+that sets the same annotation replaces the shared value instead of extending it.
 
 ## Devices With Special Needs
 
-Per-entry annotations cover the usual cases with ingress-nginx:
+The chart expects a device that answers plain HTTP for any host name. Two kinds of device do
+not:
 
-```yaml
-services:
-  - name: nas
-    addresses:
-      - 192.168.1.10
-    port: 443
-    host: nas.example.com
-    annotations:
-      # The device speaks HTTPS only. nginx does not verify the upstream
-      # certificate by default, so a self-signed one is fine.
-      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-      # The device rejects requests for a host name it does not know
-      # (DNS rebinding protection); send its own address instead.
-      nginx.ingress.kubernetes.io/upstream-vhost: 192.168.1.10
-```
+- **HTTPS only**, often with a self-signed certificate. Traefik learns the scheme from an
+  annotation on the Service (`traefik.ingress.kubernetes.io/service.serversscheme`) and needs a
+  servers transport to accept the certificate.
+- **Rejecting unknown host names** (DNS rebinding protection). The request has to arrive with
+  the device's own address as host, which takes a headers middleware.
+
+The chart renders neither: `annotations` reach the Ingress only. Such a device needs the chart
+extended first.
 
 ## Schema
 

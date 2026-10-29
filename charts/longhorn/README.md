@@ -118,13 +118,12 @@ longhorn:
       
     ingress:
       enabled: true
-      ingressClassName: nginx
+      ingressClassName: public
       host: longhorn.example.com
       tls: true
       tlsSecret: longhorn-tls
       annotations:
         cert-manager.io/cluster-issuer: lets-encrypt
-        nginx.ingress.kubernetes.io/ssl-redirect: "true"
 ```
 
 ## Backup Secret

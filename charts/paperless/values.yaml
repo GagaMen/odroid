@@ -133,13 +133,9 @@ service:
 ingress:
   enabled: true
   className: ""
-  annotations:
-    # nginx rejects request bodies above 1m by default, which turns every
-    # larger upload into a "413 Request Entity Too Large".
-    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+  # Documents are uploaded through the ingress; see "Upload Size" in README.md.
+  annotations: {}
     # cert-manager.io/cluster-issuer: lets-encrypt
-    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    # nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.0.0/24,10.8.0.0/24
   hosts:
     - host: paperless.example.com
       paths:
