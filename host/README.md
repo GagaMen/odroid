@@ -498,13 +498,13 @@ vault. Without them, templates that require a credential stop the render before 
 The previous revision's Helm stays available as `/snap/microk8s/<previous-rev>/bin/helm`
 until the next refresh; both deploy scripts take it through `HELM=<path>`.
 
-The 1.35 release notes say the ingress addon moved from NGINX to Traefik. A refresh does not
-apply that: the addon keeps the NGINX controller it was enabled with, and its IngressClasses
-remain unchanged. Traefik only arrives with `microk8s disable ingress && microk8s enable
-ingress`. Treat that as a migration of its own -- every Ingress relies on
-`nginx.ingress.kubernetes.io/whitelist-source-range`, and Traefik translates NGINX annotations
-through its `kubernetesIngressNginx` provider. Test it from an allowed and from a disallowed
-source before relying on it.
+The 1.35 release notes say the ingress addon moved from NGINX to Traefik. The cluster does not
+use the addon: Traefik comes from the platform chart (see
+[`charts/traefik`](../charts/traefik/README.md)), and the `ingress` addon stays disabled. Do not
+enable it -- it binds the same host ports and creates the same IngressClass. A refresh does not
+update the addon definitions either: `microk8s enable` reads them from the addon repository
+under `/var/snap/microk8s/common/addons/`, which keeps the version from installation until
+`microk8s addons repo update` is run.
 
 ### Recovering stranded volumes
 

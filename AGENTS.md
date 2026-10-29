@@ -206,7 +206,7 @@ it must not go into `platform/values.yaml`.
 - **Package Manager:** Helm 3
 - **Charts:** Custom charts + dependencies
 - **Storage:** Longhorn (cloud-native distributed storage); CSI snapshots via snapshot-controller
-- **Ingress:** MicroK8s Ingress Controller
+- **Ingress:** Traefik from the platform chart (`charts/traefik`); the MicroK8s ingress addon stays disabled
 - **TLS:** cert-manager with DNS-01 challenge (Lexicon Webhook)
 
 ## 📋 Useful Commands
