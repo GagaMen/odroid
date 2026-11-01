@@ -74,7 +74,7 @@ helm install mealie ./charts/mealie -n mealie --create-namespace -f values.yaml
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `image.repository` | Container image repository | `ghcr.io/mealie-recipes/mealie` |
-| `image.tag` | Container image tag | `v3.29.0` |
+| `image.tag` | Container image tag | `v3.30.0` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 
 ### Server

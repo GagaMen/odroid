@@ -3,4 +3,4 @@ name: mealie
 description: Recipe manager and meal planner with URL import, shopping lists and households.
 type: application
 version: 1.0.0
-appVersion: "3.29.0"
+appVersion: "3.30.0"
