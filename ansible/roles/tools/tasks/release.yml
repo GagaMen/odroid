@@ -1,0 +1,57 @@
+# Installs one binary from a release tarball, verified against the release's checksum file.
+# Skipped when the installed binary already reports the pinned version. Download and unpack
+# happen in a scratch directory and also run in check mode, so --check reports the install.
+# Only the install itself counts as a change; the scratch steps are bookkeeping.
+- name: Read the installed version of {{ release.name }}
+  ansible.builtin.command:
+    argv: "{{ [tools_bin_dir ~ '/' ~ release.name] + release.version_args }}"
+  register: tools_installed
+  check_mode: false
+  changed_when: false
+  failed_when: false
+
+- name: Install the pinned version of {{ release.name }}
+  when: release.version not in tools_installed.stdout | default('')
+  block:
+    - name: Create a scratch directory for {{ release.name }}
+      ansible.builtin.tempfile:
+        state: directory
+      register: tools_scratch
+      check_mode: false
+      changed_when: false
+
+    - name: Download {{ release.name }}
+      ansible.builtin.get_url:
+        url: "{{ release.url }}"
+        dest: "{{ tools_scratch.path }}/release.tar.gz"
+        checksum: "sha256:{{ release.checksums }}"
+        mode: "0644"
+      check_mode: false
+      changed_when: false
+
+    - name: Unpack {{ release.name }}
+      ansible.builtin.unarchive:
+        src: "{{ tools_scratch.path }}/release.tar.gz"
+        dest: "{{ tools_scratch.path }}"
+        remote_src: true
+        include: ["{{ release.member }}"]
+      check_mode: false
+      changed_when: false
+
+    - name: Install the binary of {{ release.name }}
+      become: true
+      ansible.builtin.copy:
+        src: "{{ tools_scratch.path }}/{{ release.member }}"
+        dest: "{{ tools_bin_dir }}/{{ release.name }}"
+        remote_src: true
+        owner: root
+        group: root
+        mode: "0755"
+  always:
+    - name: Remove the scratch directory for {{ release.name }}
+      ansible.builtin.file:
+        path: "{{ tools_scratch.path }}"
+        state: absent
+      check_mode: false
+      changed_when: false
+      when: tools_scratch.path is defined

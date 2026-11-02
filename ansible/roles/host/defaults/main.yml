@@ -1,0 +1,28 @@
+host_timezone: Etc/UTC
+
+host_packages:
+  - curl
+  - git
+  - rsync
+  - vim
+  - zsh
+  # Disk health, read by hand with smartctl.
+  - smartmontools
+  # Longhorn attaches its volumes over iSCSI and serves RWX volumes over NFS.
+  - open-iscsi
+  - nfs-common
+  # Builds the watchdog overlay in the boot role.
+  - device-tree-compiler
+  # Used by node-exporter-apt.
+  - python3-apt
+
+# Units that cannot run on the vendor systemd; see "Services that cannot run here" in the
+# README. Distribution masks such as sudo.service or rc.service are left alone.
+host_masked_units:
+  - fwupd.service
+  - fwupd-refresh.service
+  - fwupd-refresh.timer
+  - polkit.service
+  - udisks2.service
+  - systemd-binfmt.service
+  - ModemManager.service

@@ -18,7 +18,7 @@ A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkern
 - **[Velero](charts/velero/)** - Encrypted PVC backups to S3, locally and off-site
 - **[cert-manager DNS Lexicon Webhook](charts/cert-manager-dns-lexicon-webhook/)** - DNS-01 ACME challenge solver
 - **[WireGuard VPN](wireguard/)** - Secure remote access to your home network
-- **[Host Configuration](host/)** - Kernel, systemd, logging and update hardening
+- **[Host Configuration](ansible/)** - Ansible playbook for the host: kernel, systemd, storage, MicroK8s and shell
 - **[Prometheus](charts/prometheus/)** - Metrics collection and storage (incl. node-exporter & kube-state-metrics)
 - **[Grafana](charts/grafana/)** - Dashboards, visualization, and alerting (with ntfy integration)
 - **[Loki](charts/loki/)** - Log aggregation
@@ -33,82 +33,20 @@ A Kubernetes-based home server setup running on [ODROID-M2](https://www.hardkern
 
 ## 🛠️ Installation
 
-### 1. Install MicroK8s
-
-Use this command to install the latest version:
-
-```bash
-snap install microk8s --classic
-```
-
-To install a specific version see [MicroK8s Snap Channels](https://microk8s.io/docs/setting-snap-channel).
-
-### 2. Enable Basic Addons
+The host is set up by an Ansible playbook: packages, kernel and systemd hardening, the data
+disk, MicroK8s with its addons, the shell and the command-line tools. It runs on the machine
+itself, starting from a freshly flashed image:
 
 ```bash
-microk8s enable dns
-microk8s enable ingress
-microk8s enable cert-manager
-microk8s enable metrics-server
+sudo apt install ansible git
+git clone https://github.com/GagaMen/odroid.git
+cd odroid/ansible
+cp host_vars/odroid.yml.example host_vars/odroid.yml   # then fill it in
+ansible-playbook site.yml -K
 ```
 
-> **Also apply the host configuration.** See [host/README.md](host/README.md) for kernel,
-> systemd, logging and update settings that are not managed by Kubernetes.
-
-### 3. Configure Shell (zsh)
-
-Add kubectl aliases and enable autocompletion:
-
-```bash
-alias kubectl="microk8s.kubectl"
-alias k="kubectl"
-source <(kubectl completion zsh | sed "s/kubectl/microk8s.kubectl/g")
-source <(k completion zsh | sed "s/k/microk8s.kubectl/g")
-```
-
-Add helm alias and enable autocompletion:
-
-```bash
-alias helm="microk8s.helm3"
-source <(helm completion zsh | sed "s/helm/microk8s.helm3/g")
-```
-
-### 4. Install k9s (Optional)
-
-[k9s](https://k9scli.io/) is a terminal-based UI for managing Kubernetes clusters.
-
-Go to the [release page](https://github.com/derailed/k9s/releases), download the latest arm64 binary:
-
-```bash
-wget https://github.com/derailed/k9s/releases/download/v0.40.10/k9s_Linux_arm64.tar.gz
-tar -xvzf k9s_Linux_arm64.tar.gz
-sudo mv k9s /usr/local/bin
-
-# Clean up
-rm k9s_Linux_arm64.tar.gz README.md LICENSE 
-```
-
-#### Configure kubectl for k9s Shell Access
-
-To use shell access in pods via k9s, create a kubectl wrapper:
-
-```bash
-sudo tee /usr/local/bin/kubectl > /dev/null << 'EOF'
-#!/bin/bash
-exec /snap/bin/microk8s.kubectl "$@"
-EOF
-sudo chmod +x /usr/local/bin/kubectl
-```
-
-> **Note:** A symbolic link doesn't work in this case.
-
-### 5. Export KUBECONFIG Environment Variable
-
-Add this to your `.zshrc` or `.bashrc`:
-
-```bash
-export KUBECONFIG=/var/snap/microk8s/current/credentials/client.config
-```
+See [ansible/README.md](ansible/README.md) for the details, and
+[ansible/roles/host/README.md](ansible/roles/host/README.md) for why each host setting exists.
 
 ## 📦 Deploy the Platform
 

@@ -1,0 +1,24 @@
+- name: Regenerate the boot script
+  become: true
+  ansible.builtin.command: flash-kernel
+  changed_when: true
+  notify: Check the boot script
+
+# Rebooting with a boot script that lacks the parameter is the failure this guards against.
+- name: Check the boot script
+  ansible.builtin.command:
+    argv: [grep, -aq, systemd.unified_cgroup_hierarchy=1, /boot/boot.scr]
+  changed_when: false
+
+- name: Re-execute systemd
+  become: true
+  ansible.builtin.systemd_service:
+    daemon_reexec: true
+
+- name: Note a reboot for cgroup v2
+  ansible.builtin.set_fact:
+    boot_reboot_reasons: "{{ boot_reboot_reasons | default([]) + ['cgroup v2'] }}"
+
+- name: Note a reboot for the watchdog
+  ansible.builtin.set_fact:
+    boot_reboot_reasons: "{{ boot_reboot_reasons | default([]) + ['watchdog overlay'] }}"

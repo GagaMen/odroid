@@ -1,0 +1,14 @@
+shell_user: "{{ ansible_user_id }}"
+shell_home: "{{ ansible_user_dir }}"
+
+shell_omz_plugins:
+  - git
+
+# Additional exports for ~/.zshrc, as a name-to-value mapping. Personal values belong in
+# host_vars, not here.
+shell_extra_env: {}
+
+# Refs for a fresh clone. An existing checkout is left alone: Oh My Zsh updates itself, and
+# Powerlevel10k is updated with git pull.
+shell_omz_version: 17a2b4c3a5855524ad4772a17ada0dc474e2fdf3
+shell_p10k_version: 8fa10f43a0f65a5e15417128be63e68e1d5b1f66

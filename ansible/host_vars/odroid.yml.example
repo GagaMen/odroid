@@ -1,0 +1,27 @@
+# Copy to odroid.yml (ignored by git) and fill in. Nothing in here is a credential; it is
+# kept out of the repository because it identifies the machine and its owner.
+
+host_hostname: odroid
+host_timezone: Europe/Berlin
+
+# Data disks, mounted by UUID. The playbook never formats: create the filesystem by hand
+# first, then read the UUID with "blkid". When the machine already has the entry in
+# /etc/fstab, copy src, opts and passno from it exactly -- quotes included -- or the run
+# rewrites the line and remounts.
+storage_disks:
+  - path: /mnt/data
+    src: UUID=00000000-0000-0000-0000-000000000000
+    fstype: ext4
+    opts: defaults,noatime
+    passno: 2
+
+# Bind mounts, created after the disks. MicroK8s keeps its state and container images under
+# /var/snap/microk8s; binding that onto the data disk keeps them off the boot medium. It has
+# to exist before MicroK8s is installed.
+storage_binds:
+  - src: /mnt/data/microk8s
+    path: /var/snap/microk8s
+
+# Extra exports for ~/.zshrc.
+shell_extra_env: {}
+#  EXAMPLE_VARIABLE: value

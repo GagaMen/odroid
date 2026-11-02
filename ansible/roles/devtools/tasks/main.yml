@@ -1,0 +1,38 @@
+# Every step only fills a gap. Updates after that are the tools' own business: "n" and Claude
+# Code both update themselves.
+
+# Any existing n counts, including the symlink "npm install -g n" leaves behind.
+- name: Check for n
+  ansible.builtin.stat:
+    path: /usr/local/bin/n
+    follow: false
+  register: devtools_n
+
+- name: Install n
+  become: true
+  ansible.builtin.get_url:
+    url: "https://raw.githubusercontent.com/tj/n/{{ devtools_n_version }}/bin/n"
+    dest: /usr/local/bin/n
+    mode: "0755"
+  when: not devtools_n.stat.exists
+
+- name: Check for Node.js
+  ansible.builtin.stat:
+    path: /usr/local/bin/node
+  register: devtools_node
+
+- name: Install Node.js {{ devtools_node_version }}
+  become: true
+  ansible.builtin.command: n {{ devtools_node_version }}
+  environment:
+    PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
+  when: not devtools_node.stat.exists
+  changed_when: true
+
+# The official installer puts Claude Code under ~/.local and keeps it updated from there.
+- name: Install Claude Code
+  ansible.builtin.shell:
+    cmd: set -o pipefail && curl -fsSL https://claude.ai/install.sh | bash
+    executable: /bin/bash
+    creates: "{{ ansible_user_dir }}/.local/bin/claude"
+  when: devtools_claude_code

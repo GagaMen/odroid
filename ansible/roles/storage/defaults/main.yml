@@ -1,0 +1,3 @@
+# Both lists come from host_vars; see host_vars/odroid.yml.example.
+storage_disks: []
+storage_binds: []

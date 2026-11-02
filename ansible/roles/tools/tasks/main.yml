@@ -1,0 +1,22 @@
+- name: Install release binaries
+  ansible.builtin.include_tasks: release.yml
+  loop: "{{ tools_releases }}"
+  loop_control:
+    loop_var: release
+    label: "{{ release.name }}"
+
+# Private, as k9s creates it itself.
+- name: Create the k9s config directory
+  ansible.builtin.file:
+    path: "{{ tools_k9s_config_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: Write the k9s config
+  ansible.builtin.template:
+    src: "k9s/{{ item }}.j2"
+    dest: "{{ tools_k9s_config_dir }}/{{ item }}"
+    mode: "0600"
+  loop:
+    - config.yaml
+    - aliases.yaml

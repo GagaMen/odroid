@@ -1,0 +1,7 @@
+# The playbook configures the machine it runs on. To run it from another machine instead,
+# replace ansible_connection with ansible_host (and ansible_user) for the target.
+all:
+  hosts:
+    odroid:
+      ansible_connection: local
+      ansible_python_interpreter: /usr/bin/python3

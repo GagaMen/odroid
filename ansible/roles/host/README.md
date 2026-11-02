@@ -4,17 +4,23 @@ Configuration of the ODROID-M2 below Kubernetes: kernel, systemd, logging and up
 discipline. These are the settings that Helm charts cannot manage because they apply to the
 machine itself.
 
+The [playbook](../../README.md) applies all of it; this document explains why each piece
+exists. Every "Applying" section names the role that does the work and the tag that runs it on
+its own. Commands are left in here only for what a playbook should not do unattended: one-off
+repairs, tests that reset the board, and the drain around snap refreshes. `ansible-playbook`
+runs from `ansible/`; every other command runs from the repository root.
+
 ## Layout
 
-Every file under `files/` sits at its **target-faithful path**. Installing means copying:
+Every file under a role's `files/` sits at its **target-faithful path**:
 
 ```
-files/etc/systemd/system/rsyslog.service.d/10-faccessat2.conf
+ansible/roles/host/files/etc/systemd/system/rsyslog.service.d/10-faccessat2.conf
   -> /etc/systemd/system/rsyslog.service.d/10-faccessat2.conf
 ```
 
-This mirrors the `files/` directory of an Ansible role. If the setup is automated later, the
-directory moves to `ansible/roles/host/files/` without a single file needing to change.
+The exception is the watchdog overlay source, `ansible/roles/boot/files/watchdog.dts`, which is
+compiled rather than copied.
 
 ## Logging
 
@@ -63,17 +69,14 @@ reboot — precisely when they matter most. `Storage=persistent` fails visibly i
 
 ### Applying
 
-```bash
-sudo install -Dm644 host/files/etc/systemd/system/rsyslog.service.d/10-faccessat2.conf \
-  /etc/systemd/system/rsyslog.service.d/10-faccessat2.conf
-sudo install -Dm644 host/files/etc/systemd/system/fstrim.service.d/10-faccessat2.conf \
-  /etc/systemd/system/fstrim.service.d/10-faccessat2.conf
-sudo install -Dm644 host/files/etc/systemd/journald.conf.d/10-limits.conf \
-  /etc/systemd/journald.conf.d/10-limits.conf
+The `host` role (`--tags host`) installs both drop-ins and the journald limits, reloads
+systemd, restarts journald and starts rsyslog.
 
-sudo systemctl daemon-reload
+On a machine that has been running without them, clear the failed state and the journal once by
+hand:
+
+```bash
 sudo systemctl reset-failed rsyslog.service syslog.socket fstrim.service
-sudo systemctl start rsyslog.service
 
 sudo journalctl --verify                    # record the state before cleaning up
 sudo rm -f /var/log/journal/*/*.journal~     # drop corrupted journal files
@@ -144,10 +147,9 @@ apt's version comparison to install an apparently older package, on the componen
 machine. It is worth doing only with console access and a bootable recovery medium at hand, and
 it is deliberately not part of this configuration.
 
-```bash
-sudo systemctl mask fwupd.service fwupd-refresh.service fwupd-refresh.timer \
-  polkit.service udisks2.service systemd-binfmt.service ModemManager.service
-```
+The `host` role masks the units listed in `host_masked_units` (`--tags host`). Units the
+distribution masks itself, such as `sudo.service` or `rc.service`, are not on that list and are
+left alone.
 
 `ModemManager` is on the list as a consequence, not a cause: it declares `Requires=polkit.service`,
 so once polkit is masked it can no longer start. Check what a unit pulls along before masking it:
@@ -211,13 +213,15 @@ The switch needs a reboot, so drain the node first as described under
 makes it the version to switch on: the cgroup change and the Kubernetes upgrade can then be done
 and rolled back separately.
 
+The `boot` role (`--tags boot`) appends the parameter to `LINUX_KERNEL_CMDLINE` unless it is
+already there, keeping a timestamped backup of the file next to it. It then runs `flash-kernel`
+and fails if the regenerated `/boot/boot.scr` does not contain the parameter. It does not
+reboot; the summary at the end of the run says that a reboot is due.
+
 ```bash
-sudo cp -n /etc/default/flash-kernel /etc/default/flash-kernel.bak
 sudo cp /boot/boot.scr /boot/boot.scr.pre-cgroupv2
-sudo sed -i 's/^LINUX_KERNEL_CMDLINE="\(.*\)"/LINUX_KERNEL_CMDLINE="\1 systemd.unified_cgroup_hierarchy=1"/' \
-  /etc/default/flash-kernel
-sudo flash-kernel
-strings /boot/boot.scr | grep unified_cgroup    # must show the parameter -- do not reboot otherwise
+ansible-playbook site.yml -K --tags boot --check --diff   # shows the one-line change
+ansible-playbook site.yml -K --tags boot
 sudo reboot
 ```
 
@@ -232,8 +236,11 @@ microk8s kubectl top pods -A | head             # resource metrics still arrive
 
 ### Rolling back
 
+Take the parameter out of the `boot` role first; otherwise the next playbook run adds it again.
+Then restore the backup the role kept (`/etc/default/flash-kernel.<timestamp>~`):
+
 ```bash
-sudo cp /etc/default/flash-kernel.bak /etc/default/flash-kernel
+sudo cp /etc/default/flash-kernel.<timestamp>~ /etc/default/flash-kernel
 sudo flash-kernel
 sudo reboot
 ```
@@ -280,31 +287,25 @@ a device tree overlay does. See `files/boot/overlays/watchdog.dts`.
 
 ### Applying
 
-```bash
-sudo install -Dm644 host/files/etc/sysctl.d/99-lockup-recovery.conf \
-  /etc/sysctl.d/99-lockup-recovery.conf
-sudo sysctl --system
+The `host` role installs the sysctls and applies them (`--tags host`). The `boot` role
+(`--tags boot`) handles the rest:
 
-# Back up the boot config before touching it -- a broken one means booting from
-# removable media to repair it.
-sudo cp -n /boot/config.ini /boot/config.ini.bak
+1. Compiles `watchdog.dts` in a scratch directory and applies the result offline to the
+   board's device tree. If `/watchdog@feaf0000` does not come out as `okay`, the role stops
+   before anything under `/boot` changes. This check costs nothing and turns a failed boot into
+   a caught mistake.
+2. Installs the overlay into the overlay directory of the running kernel.
+3. Appends `watchdog` to the `overlays=` line under `[generic]` in `/boot/config.ini`, keeping
+   a timestamped backup. The file has an `overlays=` line in every section; only that one
+   changes. A broken `config.ini` means booting from removable media to repair it.
+4. Installs `10-watchdog.conf` and re-executes systemd.
 
-dtc -I dts -O dtb -o /tmp/watchdog.dtbo host/files/boot/overlays/watchdog.dts
-sudo install -Dm644 /tmp/watchdog.dtbo \
-  /boot/dtbs/$(uname -r)/rockchip/overlays/odroidm2/watchdog.dtbo
-# Append the overlay name to the overlays= line under [generic] -- note there is a
-# second overlays= line further down that must stay untouched.
-sudo nano /boot/config.ini
+It does not reboot. Reboot once the run is through.
 
-sudo install -Dm644 host/files/etc/systemd/system.conf.d/10-watchdog.conf \
-  /etc/systemd/system.conf.d/10-watchdog.conf
-sudo reboot
-```
-
-Verify the overlay offline before rebooting — it costs nothing and turns a failed boot into a
-caught mistake:
+The same offline check by hand:
 
 ```bash
+dtc -I dts -O dtb -o /tmp/watchdog.dtbo ansible/roles/boot/files/watchdog.dts
 fdtoverlay -i "$(readlink -f /boot/dtb)" -o /tmp/merged.dtb /tmp/watchdog.dtbo
 fdtget /tmp/merged.dtb /watchdog@feaf0000 status     # -> okay
 ```
@@ -353,12 +354,12 @@ systemctl show -p RuntimeWatchdogUSec               # -> back to 2min
 
 `/boot/overlays` points into a version-specific directory that a kernel update replaces, and the
 `.dtbo` files belong to no package. An update therefore removes the overlay silently, taking the
-only self-heal with it. Re-install it and reboot:
+only self-heal with it. After rebooting into the new kernel, install the overlay again and
+reboot once more:
 
 ```bash
-dtc -I dts -O dtb -o /tmp/watchdog.dtbo host/files/boot/overlays/watchdog.dts
-sudo install -Dm644 /tmp/watchdog.dtbo \
-  /boot/dtbs/$(uname -r)/rockchip/overlays/odroidm2/watchdog.dtbo
+ansible-playbook site.yml -K --tags boot
+sudo reboot
 ```
 
 The "watchdog not active" alert exists to catch this when the step is forgotten.
@@ -383,9 +384,16 @@ grep ^base /snap/microk8s/current/meta/snap.yaml
 
 ### Applying
 
+The `microk8s` role (`--tags microk8s`) holds `microk8s`, the base it reads from the snap's
+`meta/snap.yaml` (`core22` today) and `snapd`. The command it runs is:
+
 ```bash
 sudo snap refresh --hold microk8s core22 snapd
 ```
+
+The role never refreshes MicroK8s itself. It installs the channel in `microk8s_channel` only if
+the snap is missing. If the installed snap tracks a different channel, the role stops and points
+here.
 
 The hold is indefinite and blocks both automatic refreshes and a blanket `snap refresh`.
 A targeted `snap refresh microk8s` still works, which is the intended path for controlled
@@ -470,7 +478,9 @@ not apply, and etcd 3.6 dropped `etcdctl snapshot status`, which moved to `etcdu
 the snap does not ship. `snapshot save` verifies the file's checksum itself.
 
 Then run the drain procedure above with `sudo snap refresh microk8s --channel=<version>/stable`
-in place of the plain refresh.
+in place of the plain refresh. Afterwards set `microk8s_channel` in
+`ansible/roles/microk8s/defaults/main.yml` to the new channel. Until then the playbook refuses
+to run the `microk8s` role, because the installed channel no longer matches.
 
 All three parts are needed because a revert is incomplete. `snap revert microk8s` brings back
 the previous binaries and the revision-specific `$SNAP_DATA` (`/var/snap/microk8s/<rev>`), but
@@ -500,7 +510,7 @@ until the next refresh; both deploy scripts take it through `HELM=<path>`.
 
 The 1.35 release notes say the ingress addon moved from NGINX to Traefik. The cluster does not
 use the addon: Traefik comes from the platform chart (see
-[`charts/traefik`](../charts/traefik/README.md)), and the `ingress` addon stays disabled. Do not
+[`charts/traefik`](../../../charts/traefik/README.md)), and the `ingress` addon stays disabled. Do not
 enable it -- it binds the same host ports and creates the same IngressClass. A refresh does not
 update the addon definitions either: `microk8s enable` reads them from the addon repository
 under `/var/snap/microk8s/common/addons/`, which keeps the version from installation until
@@ -576,16 +586,17 @@ volumes through its own tooling.
 
 ### Applying
 
-Because the timer may fire a long-delayed catch-up run — `fstrim.timer` has `Persistent=true`,
-so a run missed while the service was broken is executed at the next opportunity — mask the
-timer first and do the initial pass by hand, watching it:
+The `host` role installs the drop-in (`--tags host`). On a fresh install that is all there is
+to it.
+
+On a machine where TRIM has not run for a long time, do the first pass by hand. The timer may
+fire a long-delayed catch-up run: `fstrim.timer` has `Persistent=true`, so a run missed while
+the service was broken is executed at the next opportunity. Mask the timer before the playbook
+installs the drop-in, then run the initial pass by hand and watch it:
 
 ```bash
 sudo systemctl mask fstrim.timer
-
-sudo install -Dm644 host/files/etc/systemd/system/fstrim.service.d/20-scope.conf \
-  /etc/systemd/system/fstrim.service.d/20-scope.conf
-sudo systemctl daemon-reload
+ansible-playbook site.yml -K --tags host
 
 # One device at a time. The first pass after a long gap has the most work to do.
 time sudo fstrim --verbose /
@@ -643,11 +654,11 @@ leaves `multipathd` running for any device that is not a Longhorn volume.
 
 ### Applying
 
-```bash
-sudo install -Dm644 host/files/etc/multipath.conf /etc/multipath.conf
-sudo multipathd reconfigure
+The `host` role installs the configuration and runs `multipathd reconfigure` (`--tags host`).
+A disk that was already claimed before that stays claimed. Release it by hand; the CSI driver
+mounts it on its next retry:
 
-# Release a disk that is already claimed; the CSI driver mounts it on its next retry.
+```bash
 sudo multipath -f mpatha
 ```
 
@@ -727,16 +738,10 @@ Both scripts write atomically, because node_exporter may read a file at any mome
 
 ### Applying
 
-```bash
-sudo install -Dm755 host/files/usr/local/bin/node-exporter-apt  /usr/local/bin/node-exporter-apt
-sudo install -Dm755 host/files/usr/local/bin/node-exporter-snap /usr/local/bin/node-exporter-snap
-sudo install -Dm644 host/files/etc/systemd/system/node-exporter-textfile.service \
-  /etc/systemd/system/node-exporter-textfile.service
-sudo install -Dm644 host/files/etc/systemd/system/node-exporter-textfile.timer \
-  /etc/systemd/system/node-exporter-textfile.timer
+The `host` role installs both scripts, the service and the timer, and enables the timer
+(`--tags host`). The timer's first run comes within the hour; to get the files right away:
 
-sudo systemctl daemon-reload
-sudo systemctl enable --now node-exporter-textfile.timer
+```bash
 sudo systemctl start node-exporter-textfile.service
 ```
 

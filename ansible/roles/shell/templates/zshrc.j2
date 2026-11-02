@@ -1,0 +1,39 @@
+# {{ ansible_managed }}
+
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="powerlevel10k/powerlevel10k"
+plugins=({{ shell_omz_plugins | join(' ') }})
+source $ZSH/oh-my-zsh.sh
+
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+# MicroK8s ships kubectl and Helm under its own names.
+alias kubectl="microk8s.kubectl"
+alias k="kubectl"
+source <(kubectl completion zsh | sed "s/kubectl/microk8s.kubectl/g")
+source <(k completion zsh | sed "s/k/microk8s.kubectl/g")
+alias helm="microk8s.helm3"
+source <(helm completion zsh | sed "s/helm/microk8s.helm3/g")
+export KUBECONFIG=/var/snap/microk8s/current/credentials/client.config
+
+# Lets gpg ask for a passphrase on this terminal, e.g. when signing commits.
+export GPG_TTY=$(tty)
+{% if shell_extra_env %}
+
+{% for name, value in shell_extra_env.items() %}
+export {{ name }}={{ value | quote }}
+{% endfor %}
+{% endif %}
+
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+export PATH="$HOME/.local/bin:$PATH"

@@ -1,0 +1,99 @@
+- name: Read the installed snaps
+  ansible.builtin.command: snap list
+  register: microk8s_snaps
+  check_mode: false
+  changed_when: false
+
+- name: Find the installed MicroK8s
+  ansible.builtin.set_fact:
+    # Columns: Name Version Rev Tracking Publisher Notes
+    microk8s_installed: "{{ microk8s_snaps.stdout_lines | map('split') | selectattr('0', 'eq', 'microk8s') | first | default([]) }}"
+
+# A refresh restarts containerd and kubelite under mounted volumes; see "Snap update
+# discipline" in roles/host/README.md. Refuse rather than refresh.
+- name: Refuse to move an installed MicroK8s to another channel
+  ansible.builtin.assert:
+    that: microk8s_installed[3] == microk8s_channel
+    fail_msg: >-
+      MicroK8s tracks {{ microk8s_installed[3] }}, the playbook expects {{ microk8s_channel }}.
+      Upgrade through the drain procedure in roles/host/README.md, then set microk8s_channel.
+    quiet: true
+  when: microk8s_installed | length > 0
+
+- name: Install MicroK8s
+  become: true
+  community.general.snap:
+    name: microk8s
+    classic: true
+    channel: "{{ microk8s_channel }}"
+  when: microk8s_installed | length == 0
+
+- name: Read the MicroK8s base snap
+  ansible.builtin.slurp:
+    src: /snap/microk8s/current/meta/snap.yaml
+  register: microk8s_snap_yaml
+  when: not ansible_check_mode or microk8s_installed | length > 0
+
+- name: Re-read the installed snaps
+  ansible.builtin.command: snap list
+  register: microk8s_snaps
+  check_mode: false
+  changed_when: false
+
+# Held indefinitely: no automatic refresh, no blanket "snap refresh". A targeted
+# "snap refresh microk8s" still works.
+- name: Hold MicroK8s, its base and snapd
+  become: true
+  ansible.builtin.command: snap refresh --hold {{ item }}
+  loop:
+    - microk8s
+    - "{{ (microk8s_snap_yaml.content | b64decode | from_yaml).base }}"
+    - snapd
+  when:
+    - microk8s_snap_yaml.content is defined
+    # Notes is the last column, a comma-separated list such as "classic,held".
+    - "'held' not in (microk8s_snaps.stdout_lines | map('split') | selectattr('0', 'eq', item) | map('last') | first | default('')).split(',')"
+  changed_when: true
+
+- name: Give the user access to the cluster
+  become: true
+  ansible.builtin.user:
+    name: "{{ microk8s_user }}"
+    groups: microk8s
+    append: true
+  when: not ansible_check_mode or microk8s_installed | length > 0
+
+- name: Wait for the cluster
+  become: true
+  ansible.builtin.command: microk8s status --wait-ready --timeout 300
+  check_mode: false
+  changed_when: false
+  when: not ansible_check_mode or microk8s_installed | length > 0
+
+- name: Read the enabled addons
+  become: true
+  ansible.builtin.command: microk8s status --format yaml
+  register: microk8s_status
+  check_mode: false
+  changed_when: false
+  when: not ansible_check_mode or microk8s_installed | length > 0
+
+- name: Enable addons
+  become: true
+  ansible.builtin.command: microk8s enable {{ item }}
+  loop: "{{ microk8s_addons }}"
+  when:
+    - microk8s_status.stdout is defined
+    - item not in (microk8s_status.stdout | from_yaml).addons | selectattr('status', 'eq', 'enabled') | map(attribute='name')
+  changed_when: true
+
+# k9s runs "kubectl exec" for its shell feature and needs a real binary on PATH; a symlink to
+# the snap's kubectl does not work.
+- name: Install the kubectl wrapper
+  become: true
+  ansible.builtin.copy:
+    dest: /usr/local/bin/kubectl
+    content: |
+      #!/bin/bash
+      exec /snap/bin/microk8s.kubectl "$@"
+    mode: "0755"

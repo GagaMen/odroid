@@ -1,0 +1,14 @@
+# The channel a fresh install gets. An installed snap is never moved by the playbook: minor
+# upgrades go through the drain procedure in roles/host/README.md, after which this value is
+# updated to match.
+microk8s_channel: 1.36/stable
+
+# The ingress addon stays disabled: Traefik comes from the platform chart.
+microk8s_addons:
+  - dns
+  - cert-manager
+  - metrics-server
+  - helm3
+
+# The user who gets access to the cluster without sudo.
+microk8s_user: "{{ ansible_user_id }}"

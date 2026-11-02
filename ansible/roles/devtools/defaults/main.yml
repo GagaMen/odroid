@@ -1,0 +1,6 @@
+# Node.js runs the schema generation in this repository (values.schema.ts). "n" manages the
+# Node.js version under /usr/local.
+devtools_n_version: v10.2.0
+devtools_node_version: "24"
+
+devtools_claude_code: true

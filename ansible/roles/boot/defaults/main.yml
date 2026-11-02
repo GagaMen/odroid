@@ -1,0 +1,2 @@
+# Where the board's boot script looks for overlays named in /boot/config.ini.
+boot_overlay_dir: "/boot/dtbs/{{ ansible_kernel }}/rockchip/overlays/odroidm2"

@@ -24,3 +24,6 @@ crash_report.md
 
 # Personal planning notes (no credentials; agents may read them, see AGENTS.md)
 notes/
+
+# Ansible host variables (hostname, disk UUIDs, personal shell exports)
+ansible/host_vars/*.yml

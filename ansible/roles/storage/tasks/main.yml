@@ -1,0 +1,44 @@
+# Mounts are written to /etc/fstab and mounted; the playbook never formats a disk. Each entry
+# must match the existing fstab line field by field: a difference rewrites the line and
+# remounts, which on a running node pulls the filesystem from under MicroK8s. Run with
+# --check --diff first.
+#
+# Disks come before bind mounts, so a bind source on a data disk exists by the time it is
+# bound.
+- name: Mount data disks
+  become: true
+  ansible.posix.mount:
+    path: "{{ item.path }}"
+    src: "{{ item.src }}"
+    fstype: "{{ item.fstype }}"
+    opts: "{{ item.opts | default('defaults') }}"
+    dump: "{{ item.dump | default(0) }}"
+    passno: "{{ item.passno | default(2) }}"
+    state: mounted
+  loop: "{{ storage_disks }}"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Create bind mount sources
+  become: true
+  ansible.builtin.file:
+    path: "{{ item.src }}"
+    state: directory
+    mode: "0755"
+  loop: "{{ storage_binds }}"
+  loop_control:
+    label: "{{ item.src }}"
+
+- name: Bind directories into place
+  become: true
+  ansible.posix.mount:
+    path: "{{ item.path }}"
+    src: "{{ item.src }}"
+    fstype: none
+    opts: bind
+    dump: 0
+    passno: 0
+    state: mounted
+  loop: "{{ storage_binds }}"
+  loop_control:
+    label: "{{ item.path }}"

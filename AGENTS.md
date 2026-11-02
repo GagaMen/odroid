@@ -10,6 +10,7 @@ This repository contains Helm charts and Kubernetes configurations for a self-ho
 
 - `charts/` - Individual Helm charts for various services
 - `platform/` - Umbrella chart for orchestrating all charts
+- `ansible/` - Playbook for the host below Kubernetes (packages, kernel, systemd, storage, MicroK8s, shell)
 - `wireguard/` - WireGuard VPN configuration
 
 ## ⚠️ CRITICAL: File Access and Security
@@ -33,6 +34,7 @@ platform/charts/
 
 # Sensitive Configuration
 platform/values.yaml
+ansible/host_vars/*.yml
 ```
 
 **Reason:** Ignored files may contain sensitive data such as:
@@ -180,7 +182,10 @@ the rest of userspace. Consequences that matter when touching services:
 - The host runs on cgroup v2 only because of an explicit kernel parameter. Kubernetes 1.35 and
   later do not start on the vendor systemd's default hybrid layout, so the parameter must stay.
 
-Read [`host/README.md`](host/README.md) before changing anything below Kubernetes.
+Read [`ansible/roles/host/README.md`](ansible/roles/host/README.md) before changing anything below
+Kubernetes. Host changes go into the playbook under `ansible/`, not onto the machine by hand.
+`ansible/host_vars/*.yml` is ignored and holds the machine's identifying values; only the
+`.example` file is versioned.
 
 ### Secrets come from Bitwarden, not from values.yaml
 
@@ -195,7 +200,7 @@ user to unlock it; do not try yourself. **Keep secrets out of your transcript:**
 `upgrade --dry-run` — all of them print Secret contents. To preview a change, use
 `.claude/skills/dependency-updates/scripts/release_diff.py`, which only reports that a Secret
 changed. To check that the platform renders, use `scripts/secrets-values --placeholders`
-(see [`host/README.md`](host/README.md)); it prints a dummy for every secret and needs no vault.
+(see [`ansible/roles/host/README.md`](ansible/roles/host/README.md)); it prints a dummy for every secret and needs no vault.
 
 A new secret value needs an entry in `secrets/mapping.yaml` and an item or field in the vault;
 it must not go into `platform/values.yaml`.

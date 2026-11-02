@@ -1,0 +1,79 @@
+# cgroup v2 -- see "cgroup v2" in roles/host/README.md. flash-kernel regenerates
+# /boot/boot.scr from this file, so the parameter goes here and not into boot.scr.
+- name: Boot into the unified cgroup hierarchy
+  become: true
+  ansible.builtin.replace:
+    path: /etc/default/flash-kernel
+    regexp: '^(LINUX_KERNEL_CMDLINE="(?![^"]*systemd\.unified_cgroup_hierarchy=1)[^"]*)"'
+    replace: '\1 systemd.unified_cgroup_hierarchy=1"'
+    backup: true
+  notify:
+    - Regenerate the boot script
+    - Note a reboot for cgroup v2
+
+# Hardware watchdog -- see "Deadlock recovery" in roles/host/README.md. The overlay is built
+# and checked in a scratch directory first, so a broken overlay never reaches /boot.
+- name: Create a scratch directory for the overlay
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: .overlay
+  register: boot_scratch
+  check_mode: false
+  changed_when: false
+
+- name: Build the watchdog overlay
+  ansible.builtin.command:
+    argv: [dtc, -q, -I, dts, -O, dtb, -o, "{{ boot_scratch.path }}/watchdog.dtbo", "{{ role_path }}/files/watchdog.dts"]
+  check_mode: false
+  changed_when: false
+
+- name: Apply the overlay to the board's device tree offline
+  ansible.builtin.command:
+    argv: [fdtoverlay, -i, /boot/dtb, -o, "{{ boot_scratch.path }}/merged.dtb", "{{ boot_scratch.path }}/watchdog.dtbo"]
+  check_mode: false
+  changed_when: false
+
+- name: Read the watchdog status from the merged device tree
+  ansible.builtin.command:
+    argv: [fdtget, "{{ boot_scratch.path }}/merged.dtb", /watchdog@feaf0000, status]
+  register: boot_watchdog_status
+  check_mode: false
+  changed_when: false
+  failed_when: boot_watchdog_status.stdout != "okay"
+
+- name: Install the watchdog overlay
+  become: true
+  ansible.builtin.copy:
+    src: "{{ boot_scratch.path }}/watchdog.dtbo"
+    dest: "{{ boot_overlay_dir }}/watchdog.dtbo"
+    remote_src: true
+    mode: "0644"
+  notify: Note a reboot for the watchdog
+
+- name: Remove the scratch directory
+  ansible.builtin.file:
+    path: "{{ boot_scratch.path }}"
+    state: absent
+  check_mode: false
+  changed_when: false
+
+# /boot/config.ini has an overlays= line in every section; only the one under [generic] is
+# used for normal boots.
+- name: Load the watchdog overlay at boot
+  become: true
+  ansible.builtin.replace:
+    path: /boot/config.ini
+    after: '\[generic\]'
+    before: '\n\['
+    regexp: '^(overlays="(?![^"]*\bwatchdog\b)[^"]*)"$'
+    replace: '\1 watchdog"'
+    backup: true
+  notify: Note a reboot for the watchdog
+
+- name: Let systemd feed the watchdog
+  become: true
+  ansible.builtin.copy:
+    src: etc/systemd/system.conf.d/10-watchdog.conf
+    dest: /etc/systemd/system.conf.d/10-watchdog.conf
+    mode: "0644"
+  notify: Re-execute systemd

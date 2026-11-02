@@ -1,0 +1,43 @@
+# Brings a freshly flashed ODROID-M2 up to a running MicroK8s with the host configuration
+# described in roles/host/README.md. Deploying the platform afterwards is a separate step:
+# scripts/helm-platform upgrade.
+#
+# Nothing here reboots. Tasks that need a reboot to take effect say so in the summary at the
+# end; reboot by hand once the run is through.
+- name: Configure the ODROID host
+  hosts: odroid
+  pre_tasks:
+    - name: Check that the host variables exist
+      ansible.builtin.assert:
+        that:
+          - host_hostname is defined
+        fail_msg: >-
+          Host variables are missing. Copy host_vars/odroid.yml.example to
+          host_vars/odroid.yml and fill it in.
+        quiet: true
+      tags: always
+
+  roles:
+    - role: host
+      tags: host
+    - role: boot
+      tags: boot
+    - role: storage
+      tags: storage
+    - role: microk8s
+      tags: microk8s
+    - role: shell
+      tags: shell
+    - role: tools
+      tags: tools
+    - role: devtools
+      tags: devtools
+
+  post_tasks:
+    - name: Report a pending reboot
+      ansible.builtin.debug:
+        msg: >-
+          Reboot required for: {{ boot_reboot_reasons | join(', ') }}.
+          Drain the node first, see "Snap update discipline" in roles/host/README.md.
+      when: boot_reboot_reasons | default([]) | length > 0
+      tags: always

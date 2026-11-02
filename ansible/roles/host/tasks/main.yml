@@ -1,0 +1,90 @@
+- name: Set the hostname
+  become: true
+  ansible.builtin.hostname:
+    name: "{{ host_hostname }}"
+    use: systemd
+
+- name: Set the timezone
+  become: true
+  community.general.timezone:
+    name: "{{ host_timezone }}"
+
+- name: Install base packages
+  become: true
+  ansible.builtin.apt:
+    name: "{{ host_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install systemd units and drop-ins
+  become: true
+  ansible.builtin.copy:
+    src: "etc/systemd/system/{{ item }}"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop:
+    - rsyslog.service.d/10-faccessat2.conf
+    - fstrim.service.d/10-faccessat2.conf
+    - fstrim.service.d/20-scope.conf
+    - node-exporter-textfile.service
+    - node-exporter-textfile.timer
+  notify: Reload systemd
+
+- name: Install journald limits
+  become: true
+  ansible.builtin.copy:
+    src: etc/systemd/journald.conf.d/10-limits.conf
+    dest: /etc/systemd/journald.conf.d/10-limits.conf
+    mode: "0644"
+  notify: Restart journald
+
+- name: Install lockup recovery sysctls
+  become: true
+  ansible.builtin.copy:
+    src: etc/sysctl.d/99-lockup-recovery.conf
+    dest: /etc/sysctl.d/99-lockup-recovery.conf
+    mode: "0644"
+  notify: Apply sysctls
+
+- name: Install the multipath blacklist for Longhorn volumes
+  become: true
+  ansible.builtin.copy:
+    src: etc/multipath.conf
+    dest: /etc/multipath.conf
+    mode: "0644"
+  notify: Reconfigure multipathd
+
+- name: Install the textfile collector scripts
+  become: true
+  ansible.builtin.copy:
+    src: "usr/local/bin/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: "0755"
+  loop:
+    - node-exporter-apt
+    - node-exporter-snap
+
+- name: Mask units that cannot run on the vendor systemd
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    masked: true
+  loop: "{{ host_masked_units }}"
+
+- name: Apply unit changes before starting anything
+  ansible.builtin.meta: flush_handlers
+
+- name: Run rsyslog
+  become: true
+  ansible.builtin.systemd_service:
+    name: rsyslog.service
+    state: started
+    enabled: true
+
+- name: Collect update metrics hourly
+  become: true
+  ansible.builtin.systemd_service:
+    name: node-exporter-textfile.timer
+    state: started
+    enabled: true
