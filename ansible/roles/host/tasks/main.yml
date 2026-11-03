@@ -24,11 +24,22 @@
     dest: "/etc/systemd/system/{{ item }}"
     mode: "0644"
   loop:
-    - rsyslog.service.d/10-faccessat2.conf
-    - fstrim.service.d/10-faccessat2.conf
     - fstrim.service.d/20-scope.conf
     - node-exporter-textfile.service
     - node-exporter-textfile.timer
+  notify: Reload systemd
+
+# The vendor systemd omits faccessat2 from its filter groups; see "Logging" in the README.
+- name: Allow faccessat2 for services the vendor systemd would kill
+  become: true
+  ansible.builtin.copy:
+    src: "etc/systemd/system/{{ item }}"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop:
+    - rsyslog.service.d/10-faccessat2.conf
+    - fstrim.service.d/10-faccessat2.conf
+  when: host_vendor_systemd
   notify: Reload systemd
 
 - name: Install journald limits
@@ -70,7 +81,15 @@
   ansible.builtin.systemd_service:
     name: "{{ item }}"
     masked: true
-  loop: "{{ host_masked_units }}"
+  loop: "{{ host_vendor_systemd_masked_units }}"
+  when: host_vendor_systemd
+
+- name: Mask systemd-binfmt on a kernel without binfmt_misc
+  become: true
+  ansible.builtin.systemd_service:
+    name: systemd-binfmt.service
+    masked: true
+  when: not host_has_binfmt_misc
 
 - name: Apply unit changes before starting anything
   ansible.builtin.meta: flush_handlers

@@ -41,6 +41,18 @@ failures in individual services.
 
 The consequence is a userspace built against systemd 255 running on systemd 245.
 
+Only machines that reached their release this way are affected. The vendor's later images do
+not ship its systemd at all: the Ubuntu 26.04 image comes with Ubuntu's own systemd 259 and a
+6.1 kernel. Check which one a machine runs:
+
+```bash
+systemctl --version | head -1     # "systemd 245 (5:245.4-...~focal)" -- the epoch marks the vendor build
+```
+
+The playbook makes the same check. It applies the workarounds that exist because of the vendor
+systemd -- the `faccessat2` drop-ins, the masked units and the cgroup parameter -- only where
+that build is installed. Those that depend on the kernel follow what the kernel offers.
+
 ### The seccomp symptom
 
 systemd 245 predates the `faccessat2` syscall (439 on arm64) and therefore omits it from the
@@ -69,8 +81,8 @@ reboot — precisely when they matter most. `Storage=persistent` fails visibly i
 
 ### Applying
 
-The `host` role (`--tags host`) installs both drop-ins and the journald limits, reloads
-systemd, restarts journald and starts rsyslog.
+The `host` role (`--tags host`) installs the journald limits and, on the vendor systemd, both
+drop-ins. It then reloads systemd, restarts journald and starts rsyslog.
 
 On a machine that has been running without them, clear the failed state and the journal once by
 hand:
@@ -147,9 +159,11 @@ apt's version comparison to install an apparently older package, on the componen
 machine. It is worth doing only with console access and a bootable recovery medium at hand, and
 it is deliberately not part of this configuration.
 
-The `host` role masks the units listed in `host_masked_units` (`--tags host`). Units the
-distribution masks itself, such as `sudo.service` or `rc.service`, are not on that list and are
-left alone.
+The `host` role (`--tags host`) masks the units listed in `host_vendor_systemd_masked_units`,
+and only on the vendor systemd. On any other systemd they start normally. It masks
+`systemd-binfmt` only when the kernel lacks `binfmt_misc`, which shows as a missing
+`/proc/sys/fs/binfmt_misc`. Units the distribution masks itself, such as `sudo.service` or
+`rc.service`, are left alone.
 
 `ModemManager` is on the list as a consequence, not a cause: it declares `Requires=polkit.service`,
 so once polkit is masked it can no longer start. Check what a unit pulls along before masking it:
@@ -213,6 +227,9 @@ The switch needs a reboot, so drain the node first as described under
 makes it the version to switch on: the cgroup change and the Kubernetes upgrade can then be done
 and rolled back separately.
 
+The parameter is needed only on the vendor systemd, and the `boot` role adds it only there.
+Ubuntu's own systemd boots into v2 by default, and since systemd 258 it supports nothing else.
+
 The `boot` role (`--tags boot`) appends the parameter to `LINUX_KERNEL_CMDLINE` unless it is
 already there, keeping a timestamped backup of the file next to it. It then runs `flash-kernel`
 and fails if the regenerated `/boot/boot.scr` does not contain the parameter. It does not
@@ -252,9 +269,11 @@ the hybrid layout.
 
 ### The problem
 
-This vendor kernel is built without any lockup detector — `CONFIG_DETECT_HUNG_TASK`,
+The vendor's 5.10 kernel is built without any lockup detector — `CONFIG_DETECT_HUNG_TASK`,
 `CONFIG_SOFTLOCKUP_DETECTOR` and `CONFIG_PSI` are all disabled, and there is no hardware
-watchdog device by default. A machine that deadlocks in uninterruptible sleep therefore stays
+watchdog device by default. Its 6.1 kernel adds `CONFIG_DETECT_HUNG_TASK`, which reports tasks
+stuck in uninterruptible sleep but does not act on them unless `kernel.hung_task_panic` is set.
+The other two are still missing there. A machine that deadlocks in uninterruptible sleep therefore stays
 up, answers pings, and serves nothing — indefinitely, with nothing to notice or end it.
 
 Check what a given kernel offers:
@@ -283,22 +302,25 @@ grep -E "CONFIG_(WATCHDOG|DW_WATCHDOG)=" /boot/config-$(uname -r)
 ```
 
 A node reading `disabled` next to a compiled-in driver means only the node needs enabling, which
-a device tree overlay does. See `files/boot/overlays/watchdog.dts`.
+a device tree overlay does. Newer vendor kernels ship one for this as `wdt.dtbo` in their own
+package. For kernels without it, `ansible/roles/boot/files/watchdog.dts` does the same.
 
 ### Applying
 
 The `host` role installs the sysctls and applies them (`--tags host`). The `boot` role
 (`--tags boot`) handles the rest:
 
-1. Compiles `watchdog.dts` in a scratch directory and applies the result offline to the
-   board's device tree. If `/watchdog@feaf0000` does not come out as `okay`, the role stops
-   before anything under `/boot` changes. This check costs nothing and turns a failed boot into
-   a caught mistake.
-2. Installs the overlay into the overlay directory of the running kernel.
-3. Appends `watchdog` to the `overlays=` line under `[generic]` in `/boot/config.ini`, keeping
-   a timestamped backup. The file has an `overlays=` line in every section; only that one
+1. Picks the overlay: the kernel's own `wdt.dtbo` if the overlay directory of the running
+   kernel has it, otherwise `watchdog.dts`, compiled in a scratch directory.
+2. Applies it offline to the board's device tree. If `/watchdog@feaf0000` does not come out as
+   `okay`, the role stops before anything under `/boot` changes. This check costs nothing and
+   turns a failed boot into a caught mistake.
+3. Installs the compiled overlay into the overlay directory of the running kernel. The
+   kernel's own overlay is already there.
+4. Appends the overlay name (`wdt` or `watchdog`) to the `overlays=` line under `[generic]` in
+   `/boot/config.ini`, keeping a timestamped backup. The file has an `overlays=` line in every section; only that one
    changes. A broken `config.ini` means booting from removable media to repair it.
-4. Installs `10-watchdog.conf` and re-executes systemd.
+5. Installs `10-watchdog.conf` and re-executes systemd.
 
 It does not reboot. Reboot once the run is through.
 
@@ -352,9 +374,12 @@ systemctl show -p RuntimeWatchdogUSec               # -> back to 2min
 
 ### After every kernel update
 
+This applies to the compiled overlay only. A kernel that ships `wdt.dtbo` brings it along with
+every update.
+
 `/boot/overlays` points into a version-specific directory that a kernel update replaces, and the
-`.dtbo` files belong to no package. An update therefore removes the overlay silently, taking the
-only self-heal with it. After rebooting into the new kernel, install the overlay again and
+compiled `.dtbo` belongs to no package. An update therefore removes it silently, taking the only
+self-heal with it. After rebooting into the new kernel, install the overlay again and
 reboot once more:
 
 ```bash

@@ -17,12 +17,13 @@ host_packages:
   - python3-apt
 
 # Units that cannot run on the vendor systemd; see "Services that cannot run here" in the
-# README. Distribution masks such as sudo.service or rc.service are left alone.
-host_masked_units:
+# README. Masked only where that systemd is installed. systemd-binfmt depends on the kernel
+# instead and is handled separately. Distribution masks such as sudo.service or rc.service
+# are left alone.
+host_vendor_systemd_masked_units:
   - fwupd.service
   - fwupd-refresh.service
   - fwupd-refresh.timer
   - polkit.service
   - udisks2.service
-  - systemd-binfmt.service
   - ModemManager.service

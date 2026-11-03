@@ -1,4 +1,5 @@
-# cgroup v2 -- see "cgroup v2" in roles/host/README.md. flash-kernel regenerates
+# cgroup v2 -- see "cgroup v2" in roles/host/README.md. Only the vendor systemd boots into
+# the hybrid layout; current systemd knows nothing else. flash-kernel regenerates
 # /boot/boot.scr from this file, so the parameter goes here and not into boot.scr.
 - name: Boot into the unified cgroup hierarchy
   become: true
@@ -7,12 +8,25 @@
     regexp: '^(LINUX_KERNEL_CMDLINE="(?![^"]*systemd\.unified_cgroup_hierarchy=1)[^"]*)"'
     replace: '\1 systemd.unified_cgroup_hierarchy=1"'
     backup: true
+  when: host_vendor_systemd
   notify:
     - Regenerate the boot script
     - Note a reboot for cgroup v2
 
-# Hardware watchdog -- see "Deadlock recovery" in roles/host/README.md. The overlay is built
-# and checked in a scratch directory first, so a broken overlay never reaches /boot.
+# Hardware watchdog -- see "Deadlock recovery" in roles/host/README.md. Newer kernels ship
+# an overlay for it (wdt.dtbo) in their own package, so it survives kernel updates. Older
+# ones do not, and get one built from files/watchdog.dts.
+- name: Look for the kernel's own watchdog overlay
+  ansible.builtin.stat:
+    path: "{{ boot_overlay_dir }}/wdt.dtbo"
+  register: boot_vendor_overlay
+
+- name: Choose the watchdog overlay
+  ansible.builtin.set_fact:
+    boot_watchdog_overlay: "{{ 'wdt' if boot_vendor_overlay.stat.exists else 'watchdog' }}"
+
+# Every overlay is checked against the board's device tree in a scratch directory first, so
+# a broken one never reaches /boot.
 - name: Create a scratch directory for the overlay
   ansible.builtin.tempfile:
     state: directory
@@ -26,10 +40,17 @@
     argv: [dtc, -q, -I, dts, -O, dtb, -o, "{{ boot_scratch.path }}/watchdog.dtbo", "{{ role_path }}/files/watchdog.dts"]
   check_mode: false
   changed_when: false
+  when: boot_watchdog_overlay == 'watchdog'
 
 - name: Apply the overlay to the board's device tree offline
   ansible.builtin.command:
-    argv: [fdtoverlay, -i, /boot/dtb, -o, "{{ boot_scratch.path }}/merged.dtb", "{{ boot_scratch.path }}/watchdog.dtbo"]
+    argv:
+      - fdtoverlay
+      - -i
+      - /boot/dtb
+      - -o
+      - "{{ boot_scratch.path }}/merged.dtb"
+      - "{{ boot_overlay_dir if boot_vendor_overlay.stat.exists else boot_scratch.path }}/{{ boot_watchdog_overlay }}.dtbo"
   check_mode: false
   changed_when: false
 
@@ -48,6 +69,7 @@
     dest: "{{ boot_overlay_dir }}/watchdog.dtbo"
     remote_src: true
     mode: "0644"
+  when: boot_watchdog_overlay == 'watchdog'
   notify: Note a reboot for the watchdog
 
 - name: Remove the scratch directory
@@ -65,8 +87,8 @@
     path: /boot/config.ini
     after: '\[generic\]'
     before: '\n\['
-    regexp: '^(overlays="(?![^"]*\bwatchdog\b)[^"]*)"$'
-    replace: '\1 watchdog"'
+    regexp: '^(overlays="(?![^"]*\b{{ boot_watchdog_overlay }}\b)[^"]*)"$'
+    replace: '\1 {{ boot_watchdog_overlay }}"'
     backup: true
   notify: Note a reboot for the watchdog
 

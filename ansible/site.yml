@@ -17,6 +17,31 @@
         quiet: true
       tags: always
 
+    # Several workarounds exist only for the board vendor's older images, whose systemd and
+    # kernel lag behind the rest of userspace (see "How the system got here" in
+    # roles/host/README.md). Detect what they depend on rather than the release, so a
+    # fresh image gets none of them.
+    - name: Read the systemd version
+      ansible.builtin.command: systemctl --version
+      register: host_systemd_version
+      check_mode: false
+      changed_when: false
+      tags: always
+
+    - name: Check the kernel for binfmt_misc
+      ansible.builtin.stat:
+        path: /proc/sys/fs/binfmt_misc
+      register: host_binfmt_misc
+      tags: always
+
+    - name: Record what the workarounds depend on
+      ansible.builtin.set_fact:
+        # The vendor build carries the epoch that outranks Ubuntu's own package, and
+        # systemctl prints it: "systemd 245 (5:245.4-4ubuntu3+...~focal)".
+        host_vendor_systemd: "{{ '(5:' in host_systemd_version.stdout_lines[0] }}"
+        host_has_binfmt_misc: "{{ host_binfmt_misc.stat.exists }}"
+      tags: always
+
   roles:
     - role: host
       tags: host

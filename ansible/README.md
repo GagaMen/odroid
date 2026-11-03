@@ -13,8 +13,10 @@ Why each host setting exists, and the manual procedures around it, is in
 
 ## Bootstrap
 
-Starting from the vendor's Ubuntu image, upgraded to 24.04 (see "How the system got here" in
-the host README):
+Starting from a freshly flashed vendor image. The playbook also runs on machines upgraded from
+the vendor's older images. It detects whether the machine has the vendor systemd and whether
+the kernel ships its own watchdog overlay, and applies only the workarounds that machine needs
+(see "How the system got here" in the host README).
 
 ```bash
 sudo apt install ansible git
@@ -82,8 +84,9 @@ Some tasks deliberately do nothing on a machine that is already set up:
 
 ## After a kernel update
 
-A kernel update replaces the directory that holds the watchdog overlay. After rebooting into
-the new kernel, put the overlay back and reboot again:
+Only on kernels without their own watchdog overlay (`wdt.dtbo`), where the playbook installs a
+compiled one: a kernel update replaces the directory that holds it. After rebooting into the
+new kernel, put the overlay back and reboot again:
 
 ```bash
 ansible-playbook site.yml -K --tags boot
