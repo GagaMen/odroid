@@ -100,6 +100,7 @@ If new files with sensitive data are found, add them to `.gitignore`!
 
 - **Default Values** (`values.yaml` in charts): Contain only placeholders or safe defaults
 - **Production Values** (`platform/values.yaml`): Personal configuration (domains, addresses) → is ignored! Credentials are not in it; they come from Bitwarden
+- **Personal files in the vault:** `platform/values.yaml` and `ansible/host_vars/odroid.yml` have a copy in the vault, kept by `scripts/personal-files push`; remind the user to push after either changes. The script needs an unlocked vault, so the user runs it
 - New charts should follow this pattern
 
 ### Secrets in Templates

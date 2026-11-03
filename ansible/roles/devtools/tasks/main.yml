@@ -1,5 +1,5 @@
-# Every step only fills a gap. Updates after that are the tools' own business: "n" and Claude
-# Code both update themselves.
+# n and Claude Code only fill a gap and update themselves afterwards. Node.js follows the
+# version package.json requires.
 
 # Any existing n counts, including the symlink "npm install -g n" leaves behind.
 - name: Check for n
@@ -16,17 +16,20 @@
     mode: "0755"
   when: not devtools_n.stat.exists
 
-- name: Check for Node.js
-  ansible.builtin.stat:
-    path: /usr/local/bin/node
+- name: Read the installed Node.js version
+  ansible.builtin.command: /usr/local/bin/node --version
   register: devtools_node
+  check_mode: false
+  changed_when: false
+  failed_when: false
 
+# Follows package.json: a bumped engines.node is installed on the next run.
 - name: Install Node.js {{ devtools_node_version }}
   become: true
   ansible.builtin.command: n {{ devtools_node_version }}
   environment:
     PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
-  when: not devtools_node.stat.exists
+  when: devtools_node.stdout | default('') != 'v' ~ devtools_node_version
   changed_when: true
 
 # The official installer puts Claude Code under ~/.local and keeps it updated from there.

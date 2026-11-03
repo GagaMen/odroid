@@ -1,0 +1,191 @@
+#!/usr/bin/env python3
+"""Keep the repository's personal files in the Bitwarden vault.
+
+Usage (from anywhere): scripts/personal-files push|pull [--force]
+
+A few files are ignored by git because they identify the machine or its owner,
+yet rebuilding the machine needs them. Each one is kept as the only attachment
+of a secure note in the vault that holds the platform's credentials, so a fresh
+clone plus a pull is enough to set everything up again:
+
+  push   upload every file whose copy in the vault differs from the local one
+  pull   write every file that is missing locally; a local file that differs
+         is reported and kept, unless --force is given
+
+Nothing is ever printed but the file name and what happened to it. The vault
+must be unlocked:
+
+  export BW_SESSION=$(npx bw unlock --raw)
+
+push creates a missing note in the organization and collections of the items
+named in secrets/mapping.yaml.
+"""
+import base64
+import json
+import os
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+import yaml
+
+ROOT = Path(__file__).resolve().parent.parent
+MAPPING = ROOT / "secrets" / "mapping.yaml"
+
+# Repository path -> name of the secure note that carries it.
+FILES = {
+    "platform/values.yaml": "odroid-platform-values",
+    "ansible/host_vars/odroid.yml": "odroid-host-vars",
+}
+
+NOTE = "Managed by scripts/personal-files in the odroid repository. The attachment is the file."
+
+
+def bw(*args):
+    result = subprocess.run(
+        ["npx", "--no-install", "bw", "--nointeraction", *args],
+        cwd=ROOT, capture_output=True, text=True)
+    if result.returncode:
+        sys.exit(f"bw {' '.join(args[:2])} failed: {result.stderr.strip()}")
+    return result.stdout
+
+
+def mapping_items(node):
+    if isinstance(node, dict) and set(node) == {"item", "field"}:
+        yield node["item"]
+    elif isinstance(node, dict):
+        for child in node.values():
+            yield from mapping_items(child)
+    elif isinstance(node, list):
+        for child in node:
+            yield from mapping_items(child)
+
+
+def placement(items):
+    """Organization and collections of the platform's credentials."""
+    for name in mapping_items(yaml.safe_load(MAPPING.read_text())):
+        for item in items.get(name, []):
+            if item.get("organizationId"):
+                return item["organizationId"], item.get("collectionIds") or []
+    sys.exit(f"none of the items in {MAPPING.name} belongs to an organization; "
+             "create the secure notes by hand: " + ", ".join(FILES.values()))
+
+
+def note(items, name):
+    found = items.get(name, [])
+    if len(found) > 1:
+        sys.exit(f"{len(found)} Bitwarden items are named {name!r}; names must be unique")
+    return found[0] if found else None
+
+
+def create_note(items, name):
+    organization, collections = placement(items)
+    template = {
+        "organizationId": organization,
+        "collectionIds": collections,
+        "folderId": None,
+        "type": 2,
+        "name": name,
+        "notes": NOTE,
+        "favorite": False,
+        "fields": [],
+        "secureNote": {"type": 0},
+        "reprompt": 0,
+    }
+    encoded = base64.b64encode(json.dumps(template).encode()).decode()
+    return json.loads(bw("create", "item", encoded))
+
+
+def vault_copy(item, scratch):
+    """Contents of the note's attachment, or None if it has none."""
+    attachments = item.get("attachments") or []
+    if not attachments:
+        return None
+    if len(attachments) > 1:
+        sys.exit(f"item {item['name']!r} has {len(attachments)} attachments; expected one")
+    target = Path(scratch) / "vault-copy"
+    bw("get", "attachment", attachments[0]["id"], "--itemid", item["id"], "--output", str(target))
+    contents = target.read_bytes()
+    target.unlink()
+    return contents
+
+
+def push(path, name, items, scratch):
+    local = ROOT / path
+    if not local.exists():
+        print(f"{path}: missing locally, skipped")
+        return True
+    item = note(items, name)
+    created = item is None
+    if created:
+        item = create_note(items, name)
+    contents = local.read_bytes()
+    if vault_copy(item, scratch) == contents:
+        print(f"{path}: unchanged")
+        return True
+    # Upload first, then drop the old attachment, so the vault never lacks a copy.
+    upload = Path(scratch) / local.name
+    upload.write_bytes(contents)
+    bw("create", "attachment", "--file", str(upload), "--itemid", item["id"])
+    upload.unlink()
+    for old in item.get("attachments") or []:
+        bw("delete", "attachment", old["id"], "--itemid", item["id"])
+    print(f"{path}: {'created' if created else 'updated'}")
+    return True
+
+
+def pull(path, name, items, scratch, force):
+    item = note(items, name)
+    contents = vault_copy(item, scratch) if item else None
+    if contents is None:
+        print(f"{path}: not in the vault")
+        return False
+    local = ROOT / path
+    if local.exists():
+        if local.read_bytes() == contents:
+            print(f"{path}: unchanged")
+            return True
+        if not force:
+            print(f"{path}: differs from the vault, kept (use --force to overwrite)")
+            return False
+    local.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary = tempfile.mkstemp(dir=local.parent, prefix=f".{local.name}.")
+    with os.fdopen(descriptor, "wb") as handle:
+        handle.write(contents)
+    os.chmod(temporary, 0o600)
+    os.replace(temporary, local)
+    print(f"{path}: written")
+    return True
+
+
+def main():
+    args = sys.argv[1:]
+    force = "--force" in args
+    args = [arg for arg in args if arg != "--force"]
+    if len(args) != 1 or args[0] not in ("push", "pull") or (force and args[0] != "pull"):
+        sys.exit(__doc__.split("\n\n")[1])
+
+    status = json.loads(bw("status"))["status"]
+    if status == "unauthenticated":
+        sys.exit("Bitwarden CLI is not logged in; run: npx bw login")
+    if status != "unlocked":
+        sys.exit(f"Bitwarden vault is {status}; run: export BW_SESSION=$(npx bw unlock --raw)")
+    bw("sync")
+
+    items = {}
+    for item in json.loads(bw("list", "items")):
+        items.setdefault(item["name"], []).append(item)
+
+    ok = True
+    with tempfile.TemporaryDirectory() as scratch:
+        for path, name in FILES.items():
+            if args[0] == "push":
+                ok &= push(path, name, items, scratch)
+            else:
+                ok &= pull(path, name, items, scratch, force)
+    sys.exit(0 if ok else 1)
+
+
+if __name__ == "__main__":
+    main()

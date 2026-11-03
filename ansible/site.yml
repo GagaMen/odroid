@@ -12,10 +12,12 @@
         that:
           - host_hostname is defined
         fail_msg: >-
-          Host variables are missing. Copy host_vars/odroid.yml.example to
-          host_vars/odroid.yml and fill it in.
+          Host variables are missing. Restore them with scripts/personal-files pull, or copy
+          host_vars/odroid.yml.example to host_vars/odroid.yml and fill it in.
         quiet: true
-      tags: always
+      # Not "always": the devtools role needs no host variables, and a fresh machine runs it
+      # first to get the Node.js that the Bitwarden CLI restoring them depends on.
+      tags: [host, boot, storage, microk8s, shell, tools]
 
     # Several workarounds exist only for the board vendor's older images, whose systemd and
     # kernel lag behind the rest of userspace (see "How the system got here" in

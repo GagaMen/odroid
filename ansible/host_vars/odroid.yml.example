@@ -1,5 +1,6 @@
 # Copy to odroid.yml (ignored by git) and fill in. Nothing in here is a credential; it is
-# kept out of the repository because it identifies the machine and its owner.
+# kept out of the repository because it identifies the machine and its owner. Keep a copy in
+# the vault with scripts/personal-files push.
 
 host_hostname: odroid
 host_timezone: Europe/Berlin

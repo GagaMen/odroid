@@ -172,6 +172,29 @@ npx bw lock
 The wrapper syncs the vault first, so a change made in another client takes effect without
 further steps.
 
+### Personal files
+
+`values.yaml` holds no credentials but is still kept out of git, because its domains and
+addresses identify the installation. The same goes for the playbook's
+`ansible/host_vars/odroid.yml`. A rebuild needs both, so the vault keeps a copy of each:
+[`scripts/personal-files`](../scripts/personal-files) stores every file as the only attachment
+of a secure note (`odroid-platform-values`, `odroid-host-vars`). It creates a missing note
+next to the platform's credentials, in the organization and collections of the items named in
+`secrets/mapping.yaml`.
+
+```bash
+export BW_SESSION=$(npx bw unlock --raw)
+scripts/personal-files push     # after changing either file
+scripts/personal-files pull     # on a fresh clone; --force overwrites local files that differ
+npx bw lock
+```
+
+The script prints only the file name and what happened to it (`unchanged`, `updated`,
+`written`, ...), never the contents. `pull` writes the files with mode `0600`.
+
+Attachments need a server that allows them. Vaultwarden always does; on bitwarden.com they
+require a paid plan. The CLI user needs edit access to the collection.
+
 ## Configuration
 
 ### Namespaces

@@ -1,6 +1,7 @@
-# Node.js runs the schema generation in this repository (values.schema.ts). "n" manages the
-# Node.js version under /usr/local.
+# Node.js runs the Bitwarden CLI and the schema generation in this repository. "n" manages
+# the Node.js version under /usr/local. The version is the one package.json requires: .npmrc
+# sets engine-strict, so npm refuses to install with any other.
 devtools_n_version: v10.2.0
-devtools_node_version: "24"
+devtools_node_version: "{{ (lookup('ansible.builtin.file', playbook_dir ~ '/../package.json') | from_json).engines.node }}"
 
 devtools_claude_code: true

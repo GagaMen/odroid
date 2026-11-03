@@ -45,7 +45,9 @@ cp host_vars/odroid.yml.example host_vars/odroid.yml   # then fill it in
 ansible-playbook site.yml -K
 ```
 
-See [ansible/README.md](ansible/README.md) for the details, and
+To rebuild a machine whose `host_vars` and `platform/values.yaml` are kept in the vault,
+restore them first with `scripts/personal-files pull`. See
+[ansible/README.md](ansible/README.md) for the details, and
 [ansible/roles/host/README.md](ansible/roles/host/README.md) for why each host setting exists.
 
 ## 📦 Deploy the Platform

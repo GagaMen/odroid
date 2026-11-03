@@ -21,13 +21,35 @@ the kernel ships its own watchdog overlay, and applies only the workarounds that
 ```bash
 sudo apt install ansible git
 git clone https://github.com/GagaMen/odroid.git
-cd odroid/ansible
-cp host_vars/odroid.yml.example host_vars/odroid.yml
+cd odroid
 ```
 
-Fill in `host_vars/odroid.yml`. It is ignored by git: nothing in it is a credential, but the
-hostname, disk UUIDs and personal shell exports identify the machine and its owner. The example
-file documents every value.
+The playbook needs `host_vars/odroid.yml`. The file is ignored by git: nothing in it is a
+credential, but the hostname, disk UUIDs and personal shell exports identify the machine and
+its owner. The example file documents every value.
+
+**Rebuilding a machine** whose files are in the vault (see "Personal files" in
+[platform/README.md](../platform/README.md#personal-files)): the Bitwarden CLI that restores
+them runs on Node.js, which the `devtools` role installs. That role needs no host variables, so
+it goes first:
+
+```bash
+(cd ansible && ansible-playbook site.yml -K --tags devtools)
+hash -r                                   # pick up the new node and npm
+npm ci                                    # installs the Bitwarden CLI
+npx bw config server https://<server>     # skip for bitwarden.com
+npx bw login
+export BW_SESSION=$(npx bw unlock --raw)
+scripts/personal-files pull               # host_vars/odroid.yml and platform/values.yaml
+cd ansible
+```
+
+**Setting up a new machine:** copy the example and fill it in:
+
+```bash
+cd ansible
+cp host_vars/odroid.yml.example host_vars/odroid.yml
+```
 
 The data disk must already carry a filesystem. The playbook mounts it and never formats it.
 
@@ -80,7 +102,8 @@ Some tasks deliberately do nothing on a machine that is already set up:
   README, after which the variable is updated.
 - **Oh My Zsh and Powerlevel10k** are cloned once at the pinned commit and then left alone.
   Oh My Zsh updates itself.
-- **Node.js, n and Claude Code** are installed only when missing; they update themselves.
+- **n and Claude Code** are installed only when missing; they update themselves. Node.js is
+  kept at the version `package.json` requires, because `.npmrc` makes npm refuse any other.
 
 ## After a kernel update
 
