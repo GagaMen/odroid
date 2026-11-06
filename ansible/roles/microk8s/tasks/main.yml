@@ -87,13 +87,68 @@
   changed_when: false
   when: not ansible_check_mode or microk8s_installed | length > 0
 
+# A fresh install comes up with ha-cluster: dqlite as the datastore and Calico. Without it,
+# MicroK8s runs etcd and flannel, which on a single node writes far less. Disabling it resets
+# the cluster, so it only happens while nothing but MicroK8s' own namespaces exists.
+- name: Check whether the cluster still runs in HA mode
+  ansible.builtin.set_fact:
+    microk8s_switch_from_ha: "{{ (microk8s_status.stdout | from_yaml)['high-availability'].enabled | bool and not microk8s_ha_cluster }}"
+  when: microk8s_status.stdout is defined
+
+- name: Read the namespaces before resetting the cluster
+  become: true
+  ansible.builtin.command: microk8s kubectl get namespaces -o name
+  register: microk8s_namespaces
+  check_mode: false
+  changed_when: false
+  when: microk8s_switch_from_ha | default(false)
+
+- name: Refuse to reset a cluster in use
+  ansible.builtin.assert:
+    that: microk8s_namespaces.stdout_lines | map('regex_replace', '^namespace/', '') | difference(microk8s_fresh_namespaces) | length == 0
+    fail_msg: >-
+      MicroK8s runs with ha-cluster, but leaving it resets the cluster, and it is in use
+      (namespaces: {{ microk8s_namespaces.stdout_lines | map('regex_replace', '^namespace/', '') | difference(microk8s_fresh_namespaces) | join(', ') }}).
+      Back up, then run "microk8s disable ha-cluster --force" by hand, or set microk8s_ha_cluster: true.
+    quiet: true
+  when: microk8s_namespaces.stdout_lines is defined
+
+- name: Switch to etcd and flannel
+  become: true
+  ansible.builtin.command: microk8s disable ha-cluster --force
+  register: microk8s_ha_disabled
+  when: microk8s_namespaces.stdout_lines is defined
+  changed_when: true
+
+- name: Wait for the cluster after the switch
+  become: true
+  ansible.builtin.command: microk8s status --wait-ready --timeout 120
+  register: microk8s_ready_after_switch
+  until: microk8s_ready_after_switch.rc == 0
+  retries: 5
+  delay: 20
+  changed_when: false
+  when: microk8s_ha_disabled is changed
+
+- name: Read the enabled addons after the switch
+  become: true
+  ansible.builtin.command: microk8s status --format yaml
+  register: microk8s_status_after_switch
+  until: microk8s_status_after_switch.rc == 0
+  retries: 5
+  delay: 20
+  changed_when: false
+  when: microk8s_ha_disabled is changed
+
 - name: Enable addons
   become: true
   ansible.builtin.command: microk8s enable {{ item }}
   loop: "{{ microk8s_addons }}"
+  vars:
+    microk8s_current_status: "{{ microk8s_status_after_switch.stdout | default(microk8s_status.stdout | default('')) }}"
   when:
-    - microk8s_status.stdout is defined
-    - item not in (microk8s_status.stdout | from_yaml).addons | selectattr('status', 'eq', 'enabled') | map(attribute='name')
+    - microk8s_current_status | length > 0
+    - item not in (microk8s_current_status | from_yaml).addons | selectattr('status', 'eq', 'enabled') | map(attribute='name')
   changed_when: true
 
 # k9s runs "kubectl exec" for its shell feature and needs a real binary on PATH; a symlink to

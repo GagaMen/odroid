@@ -3,6 +3,20 @@
 # updated to match.
 microk8s_channel: 1.36/stable
 
+# false: etcd and flannel. true: what a fresh install brings, dqlite and Calico. dqlite writes
+# far more and has stalled on slow storage until kubelite restarted with empty caches. A fresh
+# install is switched over by the role; an existing cluster is never reset.
+microk8s_ha_cluster: false
+
+# Namespaces of a cluster with nothing deployed; switching away from ha-cluster is allowed
+# only while these are all there is.
+microk8s_fresh_namespaces:
+  - default
+  - kube-node-lease
+  - kube-public
+  - kube-system
+  - cert-manager
+
 # The ingress addon stays disabled: Traefik comes from the platform chart.
 microk8s_addons:
   - dns

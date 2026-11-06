@@ -498,9 +498,21 @@ sudo tar -C /var/snap/microk8s -czf "$B/snap-data-$(readlink /var/snap/microk8s/
 sudo chown "$USER": "$B"/*.tgz && chmod 0600 "$B"/*
 ```
 
-The datastore on this arm64 build is etcd (alongside flannel), not dqlite: `microk8s dbctl` does
-not apply, and etcd 3.6 dropped `etcdctl snapshot status`, which moved to `etcdutl` -- a binary
-the snap does not ship. `snapshot save` verifies the file's checksum itself.
+The datastore is etcd (alongside flannel), not dqlite: `microk8s dbctl` does not apply, and etcd
+3.6 dropped `etcdctl snapshot status`, which moved to `etcdutl` -- a binary the snap does not
+ship. `snapshot save` verifies the file's checksum itself.
+
+etcd is not the MicroK8s default. A fresh install enables the `ha-cluster` addon, which runs
+dqlite and Calico; disabling it switches to etcd and flannel and resets the cluster. On a single
+node there is nothing to gain from HA, and dqlite writes far more: on slow storage it stalled
+often enough for kubelite to restart, after which the kubelet never found its own node again.
+The `microk8s` role therefore disables `ha-cluster` right after a fresh install
+(`microk8s_ha_cluster: false`). It refuses to on a cluster that holds anything beyond MicroK8s'
+own namespaces, since the switch would wipe it.
+
+Either datastore needs fast storage. On an SD card even etcd fell behind once Longhorn started
+creating its objects, with the same restarts. `/var/snap/microk8s` therefore lives on the NVMe
+drive (see the storage role).
 
 Then run the drain procedure above with `sudo snap refresh microk8s --channel=<version>/stable`
 in place of the plain refresh. Afterwards set `microk8s_channel` in
