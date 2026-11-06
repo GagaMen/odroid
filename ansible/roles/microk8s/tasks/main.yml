@@ -63,9 +63,15 @@
     append: true
   when: not ansible_check_mode or microk8s_installed | length > 0
 
+# The first start writes a lot, and the datastore can stall on slow storage. The status
+# command then fails outright instead of waiting, so give it a few attempts.
 - name: Wait for the cluster
   become: true
-  ansible.builtin.command: microk8s status --wait-ready --timeout 300
+  ansible.builtin.command: microk8s status --wait-ready --timeout 120
+  register: microk8s_ready
+  until: microk8s_ready.rc == 0
+  retries: 5
+  delay: 20
   check_mode: false
   changed_when: false
   when: not ansible_check_mode or microk8s_installed | length > 0
@@ -74,6 +80,9 @@
   become: true
   ansible.builtin.command: microk8s status --format yaml
   register: microk8s_status
+  until: microk8s_status.rc == 0
+  retries: 5
+  delay: 20
   check_mode: false
   changed_when: false
   when: not ansible_check_mode or microk8s_installed | length > 0

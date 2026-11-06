@@ -111,6 +111,13 @@
     backup: true
   notify: Note a reboot for the watchdog
 
+- name: Create the systemd manager drop-in directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/systemd/system.conf.d
+    state: directory
+    mode: "0755"
+
 - name: Let systemd feed the watchdog
   become: true
   ansible.builtin.copy:

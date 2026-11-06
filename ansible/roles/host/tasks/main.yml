@@ -4,6 +4,14 @@
     name: "{{ host_hostname }}"
     use: systemd
 
+# The hostname module leaves /etc/hosts alone, which keeps resolving the image's old name.
+- name: Resolve the hostname locally
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127\.0\.1\.1\s'
+    line: "127.0.1.1\t{{ host_hostname }}"
+
 - name: Set the timezone
   become: true
   community.general.timezone:
@@ -16,6 +24,15 @@
     state: present
     update_cache: true
     cache_valid_time: 3600
+
+# copy creates no parent directories, and a fresh system has none of these.
+- name: Create drop-in directories
+  become: true
+  ansible.builtin.file:
+    path: "/etc/systemd/{{ item }}"
+    state: directory
+    mode: "0755"
+  loop: "{{ ['system/fstrim.service.d', 'journald.conf.d'] + (['system/rsyslog.service.d'] if host_vendor_systemd else []) }}"
 
 - name: Install systemd units and drop-ins
   become: true
