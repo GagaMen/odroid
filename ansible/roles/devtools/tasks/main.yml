@@ -28,7 +28,7 @@
   become: true
   ansible.builtin.command: n {{ devtools_node_version }}
   environment:
-    PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
+    PATH: "/usr/local/bin:{{ ansible_facts['env'].PATH }}"
   when: devtools_node.stdout | default('') != 'v' ~ devtools_node_version
   changed_when: true
 
@@ -37,5 +37,5 @@
   ansible.builtin.shell:
     cmd: set -o pipefail && curl -fsSL https://claude.ai/install.sh | bash
     executable: /bin/bash
-    creates: "{{ ansible_user_dir }}/.local/bin/claude"
+    creates: "{{ ansible_facts['user_dir'] }}/.local/bin/claude"
   when: devtools_claude_code

@@ -11,4 +11,4 @@ microk8s_addons:
   - helm3
 
 # The user who gets access to the cluster without sudo.
-microk8s_user: "{{ ansible_user_id }}"
+microk8s_user: "{{ ansible_facts['user_id'] }}"

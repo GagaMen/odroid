@@ -1,5 +1,5 @@
-shell_user: "{{ ansible_user_id }}"
-shell_home: "{{ ansible_user_dir }}"
+shell_user: "{{ ansible_facts['user_id'] }}"
+shell_home: "{{ ansible_facts['user_dir'] }}"
 
 shell_omz_plugins:
   - git

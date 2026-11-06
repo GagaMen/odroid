@@ -11,8 +11,6 @@ host_packages:
   # Longhorn attaches its volumes over iSCSI and serves RWX volumes over NFS.
   - open-iscsi
   - nfs-common
-  # Builds the watchdog overlay in the boot role.
-  - device-tree-compiler
   # Used by node-exporter-apt.
   - python3-apt
 

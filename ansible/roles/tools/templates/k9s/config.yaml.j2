@@ -1,6 +1,6 @@
 k9s:
   liveViewAutoRefresh: false
-  screenDumpDir: {{ ansible_user_dir }}/.local/state/k9s/screen-dumps
+  screenDumpDir: {{ ansible_facts['user_dir'] }}/.local/state/k9s/screen-dumps
   refreshRate: 2
   maxConnRetry: 5
   readOnly: false

@@ -101,9 +101,17 @@
     state: started
     enabled: true
 
+- name: Check for the textfile collector timer
+  ansible.builtin.stat:
+    path: /etc/systemd/system/node-exporter-textfile.timer
+  register: host_textfile_timer
+
+# A dry run on a fresh machine has not written the unit yet, and systemd cannot enable what it
+# does not know.
 - name: Collect update metrics hourly
   become: true
   ansible.builtin.systemd_service:
     name: node-exporter-textfile.timer
     state: started
     enabled: true
+  when: not ansible_check_mode or host_textfile_timer.stat.exists

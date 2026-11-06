@@ -25,6 +25,23 @@
   ansible.builtin.set_fact:
     boot_watchdog_overlay: "{{ 'wdt' if boot_vendor_overlay.stat.exists else 'watchdog' }}"
 
+- name: Install the device tree tools
+  become: true
+  ansible.builtin.apt:
+    name: device-tree-compiler
+    state: present
+
+# A dry run on a fresh machine has not installed them yet. A real run always has, and fails
+# here rather than touch /boot unchecked.
+- name: Look for the device tree tools
+  ansible.builtin.stat:
+    path: /usr/bin/fdtoverlay
+  register: boot_dt_tools
+
+- name: Decide whether the overlay can be checked
+  ansible.builtin.set_fact:
+    boot_check_overlay: "{{ boot_dt_tools.stat.exists or not ansible_check_mode }}"
+
 # Every overlay is checked against the board's device tree in a scratch directory first, so
 # a broken one never reaches /boot.
 - name: Create a scratch directory for the overlay
@@ -40,7 +57,7 @@
     argv: [dtc, -q, -I, dts, -O, dtb, -o, "{{ boot_scratch.path }}/watchdog.dtbo", "{{ role_path }}/files/watchdog.dts"]
   check_mode: false
   changed_when: false
-  when: boot_watchdog_overlay == 'watchdog'
+  when: boot_check_overlay and boot_watchdog_overlay == 'watchdog'
 
 - name: Apply the overlay to the board's device tree offline
   ansible.builtin.command:
@@ -53,6 +70,7 @@
       - "{{ boot_overlay_dir if boot_vendor_overlay.stat.exists else boot_scratch.path }}/{{ boot_watchdog_overlay }}.dtbo"
   check_mode: false
   changed_when: false
+  when: boot_check_overlay
 
 - name: Read the watchdog status from the merged device tree
   ansible.builtin.command:
@@ -61,6 +79,7 @@
   check_mode: false
   changed_when: false
   failed_when: boot_watchdog_status.stdout != "okay"
+  when: boot_check_overlay
 
 - name: Install the watchdog overlay
   become: true
@@ -69,7 +88,7 @@
     dest: "{{ boot_overlay_dir }}/watchdog.dtbo"
     remote_src: true
     mode: "0644"
-  when: boot_watchdog_overlay == 'watchdog'
+  when: boot_check_overlay and boot_watchdog_overlay == 'watchdog'
   notify: Note a reboot for the watchdog
 
 - name: Remove the scratch directory

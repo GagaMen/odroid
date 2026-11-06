@@ -5,3 +5,8 @@ all:
     odroid:
       ansible_connection: local
       ansible_python_interpreter: /usr/bin/python3
+      # Ubuntu 25.10 and later install sudo-rs as sudo. Ansible does not recognise its password
+      # prompt and times out waiting for it, unless a cached authentication skips the prompt.
+      # The original sudo stays installed as sudo.ws. The check runs on the controller, which
+      # with a local connection is the target.
+      ansible_become_exe: "{{ '/usr/bin/sudo.ws' if '/usr/bin/sudo.ws' is file else 'sudo' }}"
