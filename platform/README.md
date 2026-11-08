@@ -198,6 +198,12 @@ npx bw lock
 The script prints only the file name and what happened to it (`unchanged`, `updated`,
 `written`, ...), never the contents. `pull` writes the files with mode `0600`.
 
+`pull` also restores the machine's SSH key, used to push to GitHub, from an item of
+Bitwarden's SSH key type named `odroid-ssh-key`. It writes the key pair to `~/.ssh`, named
+after the key type (`id_ed25519`, ...), so ssh finds it without any configuration. The item is
+maintained in Bitwarden itself: generate or import the key there and register its public key
+with GitHub. `push` does not touch it, and without the item `pull` skips the key.
+
 Attachments need a server that allows them. Vaultwarden always does; on bitwarden.com they
 require a paid plan. The CLI user needs edit access to the collection.
 

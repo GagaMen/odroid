@@ -39,3 +39,50 @@
     executable: /bin/bash
     creates: "{{ ansible_facts['user_dir'] }}/.local/bin/claude"
   when: devtools_claude_code
+
+# The private key is not the playbook's business: scripts/personal-files pull writes it from
+# the vault. Pinned host keys spare the first push the interactive fingerprint prompt.
+- name: Create ~/.ssh
+  ansible.builtin.file:
+    path: "{{ ansible_facts['user_dir'] }}/.ssh"
+    state: directory
+    mode: "0700"
+
+- name: Trust GitHub's SSH host keys
+  ansible.builtin.known_hosts:
+    name: github.com
+    key: "github.com {{ item }}"
+    path: "{{ ansible_facts['user_dir'] }}/.ssh/known_hosts"
+  loop: "{{ devtools_github_host_keys }}"
+  loop_control:
+    label: "{{ item.split()[0] }}"
+
+- name: Set the git identity
+  community.general.git_config:
+    scope: global
+    name: "user.{{ item.key }}"
+    value: "{{ item.value }}"
+  loop:
+    - { key: name, value: "{{ devtools_git_user_name }}" }
+    - { key: email, value: "{{ devtools_git_user_email }}" }
+  loop_control:
+    label: "user.{{ item.key }}"
+  when: item.value | length > 0
+
+- name: Read the repository's origin URL
+  community.general.git_config_info:
+    scope: local
+    path: "{{ playbook_dir }}/.."
+    name: remote.origin.url
+  register: devtools_origin
+  when: devtools_git_ssh_push
+
+- name: Push to GitHub over SSH
+  community.general.git_config:
+    scope: local
+    repo: "{{ playbook_dir }}/.."
+    name: remote.origin.pushurl
+    value: "{{ devtools_origin.config_value | regex_replace('^https://github\\.com/', 'git@github.com:') }}"
+  when:
+    - devtools_git_ssh_push
+    - devtools_origin.config_value | default('') is match('https://github\\.com/')

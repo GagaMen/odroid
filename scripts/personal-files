@@ -12,6 +12,10 @@ clone plus a pull is enough to set everything up again:
   pull   write every file that is missing locally; a local file that differs
          is reported and kept, unless --force is given
 
+pull also writes the machine's SSH key pair to ~/.ssh, from an item of the
+vault's SSH key type. That item is kept in Bitwarden itself, so push leaves it
+alone; without it, pull skips the key.
+
 Nothing is ever printed but the file name and what happened to it. The vault
 must be unlocked:
 
@@ -40,6 +44,13 @@ FILES = {
 }
 
 NOTE = "Managed by scripts/personal-files in the odroid repository. The attachment is the file."
+
+# Name of the SSH key item -> directory for its key pair. The file name follows the key type
+# (id_ed25519, id_ecdsa, id_rsa), which ssh tries without any configuration.
+SSH_KEYS = {
+    "odroid-ssh-key": Path.home() / ".ssh",
+}
+SSH_KEY_TYPE = 5
 
 
 def bw(*args):
@@ -72,7 +83,7 @@ def placement(items):
              "create the secure notes by hand: " + ", ".join(FILES.values()))
 
 
-def note(items, name):
+def single_item(items, name):
     found = items.get(name, [])
     if len(found) > 1:
         sys.exit(f"{len(found)} Bitwarden items are named {name!r}; names must be unique")
@@ -116,7 +127,7 @@ def push(path, name, items, scratch):
     if not local.exists():
         print(f"{path}: missing locally, skipped")
         return True
-    item = note(items, name)
+    item = single_item(items, name)
     created = item is None
     if created:
         item = create_note(items, name)
@@ -135,28 +146,63 @@ def push(path, name, items, scratch):
     return True
 
 
-def pull(path, name, items, scratch, force):
-    item = note(items, name)
-    contents = vault_copy(item, scratch) if item else None
-    if contents is None:
-        print(f"{path}: not in the vault")
-        return False
-    local = ROOT / path
+def write(local, contents, label, force, mode=0o600):
+    """Put the vault's copy in place unless a different local file is in the way."""
     if local.exists():
         if local.read_bytes() == contents:
-            print(f"{path}: unchanged")
+            print(f"{label}: unchanged")
             return True
         if not force:
-            print(f"{path}: differs from the vault, kept (use --force to overwrite)")
+            print(f"{label}: differs from the vault, kept (use --force to overwrite)")
             return False
     local.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary = tempfile.mkstemp(dir=local.parent, prefix=f".{local.name}.")
     with os.fdopen(descriptor, "wb") as handle:
         handle.write(contents)
-    os.chmod(temporary, 0o600)
+    os.chmod(temporary, mode)
     os.replace(temporary, local)
-    print(f"{path}: written")
+    print(f"{label}: written")
     return True
+
+
+def pull(path, name, items, scratch, force):
+    item = single_item(items, name)
+    contents = vault_copy(item, scratch) if item else None
+    if contents is None:
+        print(f"{path}: not in the vault")
+        return False
+    return write(ROOT / path, contents, path, force)
+
+
+def key_file(public_key, name):
+    kind = public_key.split(maxsplit=1)[0] if public_key else ""
+    if kind == "ssh-ed25519":
+        return "id_ed25519"
+    if kind.startswith("ecdsa-sha2-"):
+        return "id_ecdsa"
+    if kind == "ssh-rsa":
+        return "id_rsa"
+    sys.exit(f"item {name!r} holds a key of unknown type {kind!r}")
+
+
+def pull_ssh_key(name, directory, items, force):
+    item = single_item(items, name)
+    label = str(directory).replace(str(Path.home()), "~", 1)
+    if item is None:
+        print(f"{label}: no item {name!r} in the vault, skipped")
+        return True
+    key = item.get("sshKey") or {}
+    if item.get("type") != SSH_KEY_TYPE or not key.get("privateKey") or not key.get("publicKey"):
+        sys.exit(f"item {name!r} is not an SSH key item with a private and a public key")
+    # ssh refuses a private key whose last line has no line break.
+    private = key["privateKey"].strip() + "\n"
+    public = key["publicKey"].strip() + "\n"
+    base = key_file(public, name)
+    directory.mkdir(mode=0o700, exist_ok=True)
+    os.chmod(directory, 0o700)
+    ok = write(directory / base, private.encode(), f"{label}/{base}", force)
+    ok &= write(directory / f"{base}.pub", public.encode(), f"{label}/{base}.pub", force, 0o644)
+    return ok
 
 
 def main():
@@ -184,6 +230,9 @@ def main():
                 ok &= push(path, name, items, scratch)
             else:
                 ok &= pull(path, name, items, scratch, force)
+    if args[0] == "pull":
+        for name, directory in SSH_KEYS.items():
+            ok &= pull_ssh_key(name, directory, items, force)
     sys.exit(0 if ok else 1)
 
 

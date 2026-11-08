@@ -23,6 +23,10 @@ storage_binds:
   - src: /mnt/data/microk8s
     path: /var/snap/microk8s
 
+# Git identity for commits made on this machine. Left empty, the playbook does not set it.
+devtools_git_user_name: ""
+devtools_git_user_email: ""
+
 # Extra exports for ~/.zshrc.
 shell_extra_env: {}
 #  EXAMPLE_VARIABLE: value

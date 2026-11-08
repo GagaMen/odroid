@@ -40,7 +40,7 @@ npm ci                                    # installs the Bitwarden CLI
 npx bw config server https://<server>     # skip for bitwarden.com
 npx bw login
 export BW_SESSION=$(npx bw unlock --raw)
-scripts/personal-files pull               # host_vars/odroid.yml and platform/values.yaml
+scripts/personal-files pull               # host_vars/odroid.yml, platform/values.yaml, SSH key
 cd ansible
 ```
 
@@ -69,11 +69,11 @@ something an earlier task would install, such as the MicroK8s addons. On a machi
 already set up it should report (almost) nothing as changed. Every change it shows is
 either drift on the machine or a mistake in the playbook, and worth a look before the real run.
 
-The clone uses HTTPS, which needs no key. To push from the machine later, switch the remote:
-
-```bash
-git remote set-url --push origin git@github.com:GagaMen/odroid.git
-```
+The clone uses HTTPS, which needs no key. Pushing goes over SSH: the `devtools` role points the
+repository's push URL at the SSH address, trusts GitHub's host keys, and sets the git identity
+from `host_vars`. The key itself comes from the vault through `scripts/personal-files pull`
+(see "Personal files" in [platform/README.md](../platform/README.md#personal-files)); its
+public half has to be registered with GitHub.
 
 ## Reboots
 
@@ -95,7 +95,7 @@ one.
 | `microk8s` | Installs MicroK8s if missing, holds the snaps, grants the user access, enables addons, kubectl wrapper for k9s |
 | `shell` | zsh as login shell, Oh My Zsh, Powerlevel10k, `~/.zshrc`, `~/.p10k.zsh` |
 | `tools` | k9s and velero from their release tarballs, checksum-verified; k9s config |
-| `devtools` | Node.js through `n`, Claude Code |
+| `devtools` | Node.js through `n`, Claude Code, git identity, GitHub host keys and push URL |
 
 Versions are pinned in each role's `defaults/main.yml`. Dependabot does not track them.
 
