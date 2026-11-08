@@ -2,8 +2,8 @@
 
 Brings a freshly flashed ODROID-M2 up to a running MicroK8s: packages, kernel and systemd
 hardening, the data disk, MicroK8s with its addons, the shell and the command-line tools.
-Deploying the platform on top is a separate step, `scripts/helm-platform upgrade` (see
-[platform/README.md](../platform/README.md)).
+Deploying the platform on top is a separate step, `scripts/helm-platform install` on a new
+machine and `upgrade` after that (see [platform/README.md](../platform/README.md#installation)).
 
 The playbook runs on the machine it configures (`ansible_connection: local` in
 `inventory.yml`). To run it from another machine instead, set `ansible_host` there.
@@ -52,6 +52,10 @@ cp host_vars/odroid.yml.example host_vars/odroid.yml
 ```
 
 The data disk must already carry a filesystem. The playbook mounts it and never formats it.
+
+Give the machine its final IP address (a static address or a DHCP reservation) before the
+playbook installs MicroK8s. The kubelet's certificate records the address at install time and
+is not renewed when it changes; see "Changing the node's address" in the host README.
 
 Then run the playbook, first as a dry run:
 

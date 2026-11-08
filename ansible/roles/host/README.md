@@ -22,11 +22,7 @@ ansible/roles/host/files/etc/systemd/system/rsyslog.service.d/10-faccessat2.conf
 The exception is the watchdog overlay source, `ansible/roles/boot/files/watchdog.dts`, which is
 compiled rather than copied.
 
-## Logging
-
-### The problem
-
-### How the system got here
+## How the system got here
 
 The board vendor shipped an Ubuntu 20.04 image. Moving to a current LTS meant two consecutive
 `do-release-upgrade` runs, 20.04 to 22.04 to 24.04. Userspace moved with them; the vendor's
@@ -52,6 +48,19 @@ systemctl --version | head -1     # "systemd 245 (5:245.4-...~focal)" -- the epo
 The playbook makes the same check. It applies the workarounds that exist because of the vendor
 systemd -- the `faccessat2` drop-ins, the masked units and the cgroup parameter -- only where
 that build is installed. Those that depend on the kernel follow what the kernel offers.
+
+This machine has since been rebuilt from the 26.04 image rather than upgraded a third time,
+since `do-release-upgrade` would have carried the pinned systemd along once more. It now runs
+Ubuntu's systemd 259 on the vendor's 6.1 kernel, so none of the systemd workarounds apply to it.
+The sections below keep them documented for machines that still run the vendor build.
+
+The rebuild started from an empty cluster and brought the volume data back from a Velero
+backup. Everything else a rebuilt cluster needs comes from the repository: the playbook, the
+platform chart, and the personal files and secrets in the vault. The Let's Encrypt
+certificates, Longhorn's webhook certificates and the CSI driver deployments are recreated by
+their controllers.
+
+## Logging
 
 ### The seccomp symptom
 
@@ -121,8 +130,10 @@ be analysed at all.
 
 ## Services that cannot run here
 
-Seven units fail on every boot. Four of them are collateral damage from the same pinned systemd
-described above; the fifth asks for a kernel feature this build does not have.
+On the vendor systemd, seven units fail on every boot. Five of them are collateral damage from
+the pinned systemd described above, one follows from masking polkit, and `systemd-binfmt` asks
+for a kernel feature the vendor's 5.10 kernel does not have. On Ubuntu's own systemd with the
+6.1 kernel, all seven start normally.
 
 | Unit | What it is for | Why it fails |
 |---|---|---|
@@ -585,6 +596,58 @@ close that gap.
 snap list --all microk8s core22 snapd   # the Notes column shows "held"
 snap refresh --time                     # hold is reflected in the schedule
 ```
+
+## Changing the node's address
+
+MicroK8s issues two certificates that name the node's IP addresses. The API server's
+`server.crt` is checked on every start and reissued when the addresses change. The kubelet's
+serving certificate, `kubelet.crt`, is issued once at installation and never again; `microk8s
+refresh-certs` does not cover it either.
+
+After the address changes, the API server can no longer verify the kubelet. Everything that
+goes through the kubelet fails, while the pods themselves keep running:
+
+```
+error: unable to upgrade connection: error dialing backend: tls: failed to verify certificate:
+x509: certificate is valid for <old-ip>, ..., not <new-ip>
+```
+
+That covers `kubectl exec`, `logs` and `port-forward`, and metrics-server, so `kubectl top`
+has no data. Compare the certificate with the current addresses:
+
+```bash
+openssl x509 -in /var/snap/microk8s/current/certs/kubelet.crt -noout -subject -ext subjectAltName
+ip -br addr
+```
+
+Reissue it with the same key and CA, the same way MicroK8s does at install time. Take the
+subject and the list of names from the old certificate and replace only the address that
+changed. `openssl` prints `IP Address:`, the configuration expects `IP:`. The block keeps the
+old certificate, verifies the new one, and swaps the files only afterwards:
+
+```bash
+sudo bash -c 'set -euo pipefail
+D=/var/snap/microk8s/current/certs
+N=$(hostname | tr "[:upper:]" "[:lower:]")
+SAN="DNS:$N, IP:<new-ip>"                 # plus every other address of the old certificate
+cp -a $D/kubelet.crt $D/kubelet.crt.pre-ipchange
+openssl req -new -sha256 -subj "/CN=system:node:$N/O=system:nodes" -key $D/kubelet.key \
+    -addext "subjectAltName = $SAN" \
+  | openssl x509 -req -sha256 -CA $D/ca.crt -CAkey $D/ca.key -CAcreateserial -days 3650 \
+      -extfile <(echo "subjectAltName = $SAN") -out $D/kubelet.crt.new
+openssl verify -CAfile $D/ca.crt $D/kubelet.crt.new
+openssl x509 -in $D/kubelet.crt.new -noout -ext subjectAltName
+chown --reference=$D/kubelet.crt $D/kubelet.crt.new
+chmod --reference=$D/kubelet.crt $D/kubelet.crt.new
+mv $D/kubelet.crt.new $D/kubelet.crt'
+sudo snap restart microk8s.daemon-kubelite
+```
+
+Restarting kubelite leaves the containers running and the volumes mounted. Afterwards `kubectl
+exec` and `kubectl top nodes` work again.
+
+The simpler path is to avoid the change: give the machine its final address before MicroK8s is
+installed.
 
 ## TRIM scope
 

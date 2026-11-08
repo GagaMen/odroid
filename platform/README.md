@@ -56,9 +56,14 @@ platform/
 
 ### 1. Update Dependencies
 
+The wrapper charts under `charts/` pull their upstream charts in as archives, and the umbrella
+bundles the wrappers. Both levels are ignored by git, so a fresh clone has neither. Vendor every
+chart first, then the umbrella; the other way round, the umbrella bundles wrappers without their
+upstream charts, and the render fails with a nil pointer inside a wrapper's template:
+
 ```bash
-cd platform
-helm dependency update
+for chart in charts/*/; do helm dependency update "$chart"; done
+helm dependency update platform/
 ```
 
 ### 2. Create values.yaml
@@ -100,12 +105,13 @@ no `namespaceOverride` (the snapshot controller, later Velero and RustFS) deploy
 release namespace, which is why it must not be `default`.
 
 ```bash
-kubectl create namespace platform
-scripts/helm-platform install
+scripts/helm-platform install --create-namespace
 ```
 
 The namespace is created outside the chart on purpose: `templates/namespace.yaml` must not
-own the namespace that holds the release history.
+own the namespace that holds the release history. `--create-namespace` has Helm create it
+without making it part of the release; `kubectl create namespace platform` beforehand does the
+same.
 
 ### 4. Upgrade
 

@@ -136,6 +136,15 @@ between a dependency's declared version and the vendored archive makes Helm sile
 dependency's `alias`, so values addressed through the alias never arrive. Check the status with
 `helm dependency list charts/<name>` — it must say `ok`, not `wrong version`.
 
+A fresh clone has none of these archives, because they are ignored. Repackaging the umbrella
+alone then bundles wrappers without their upstream charts, and the render fails with a nil
+pointer inside a wrapper's template. Vendor every chart first, then the umbrella:
+
+```bash
+for chart in charts/*/; do helm dependency update "$chart"; done
+helm dependency update platform/
+```
+
 Verify what will actually be deployed by looking inside the archive, not at the working tree:
 
 ```bash
@@ -173,15 +182,21 @@ restart.
 
 ### The host is not a stock Ubuntu
 
-The kernel and systemd come from the board vendor and are pinned to a much older version than
-the rest of userspace. Consequences that matter when touching services:
+The machine runs the board vendor's Ubuntu 26.04 image. Userspace and systemd are Ubuntu's own,
+but the kernel is the vendor's 6.1 BSP build, with its own gaps: no soft-lockup detector, no
+PSI, and the hardware watchdog only through a device tree overlay. Consequences that matter when
+touching services:
 
-- A unit with a `SystemCallFilter` may be killed by seccomp with SIGSYS, because the older
-  systemd omits syscalls current glibc uses.
-- Several distribution services cannot start at all and are deliberately masked.
-- `microk8s stop` does not unmount CSI volumes and strands them on dead devices.
-- The host runs on cgroup v2 only because of an explicit kernel parameter. Kubernetes 1.35 and
-  later do not start on the vendor systemd's default hybrid layout, so the parameter must stay.
+- `microk8s stop` does not unmount CSI volumes and strands them on dead devices. Drain first.
+- MicroK8s runs on etcd and flannel, not on the default dqlite and Calico. `microk8s dbctl`
+  does not apply; cluster state is backed up with `etcdctl`.
+- The kubelet's serving certificate names the node's IP address and is issued only at install
+  time. After an address change, `kubectl exec`, `logs` and metrics-server fail with an x509
+  error until it is reissued.
+
+Older vendor images pinned the vendor's systemd 245 below the rest of userspace. The playbook
+still detects that build and applies its workarounds only there: `faccessat2` seccomp drop-ins,
+masked units, and the cgroup v2 kernel parameter.
 
 Read [`ansible/roles/host/README.md`](ansible/roles/host/README.md) before changing anything below
 Kubernetes. Host changes go into the playbook under `ansible/`, not onto the machine by hand.

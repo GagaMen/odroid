@@ -54,9 +54,12 @@ restore them first with `scripts/personal-files pull`. See
 
 ### 1. Update Helm Dependencies
 
+Vendor every chart's upstream dependencies first, then the umbrella (see
+[platform/README.md](platform/README.md#1-update-dependencies) for why the order matters):
+
 ```bash
-cd platform
-helm dependency update
+for chart in charts/*/; do helm dependency update "$chart"; done
+helm dependency update platform/
 ```
 
 ### 2. Create Your values.yaml
