@@ -13,7 +13,7 @@ least two nodes for erasure coding and has nothing to spread across on a single 
 | Key | Default | Description |
 |-----|---------|-------------|
 | `bucket.name` | `velero` | Bucket created by a post-install hook |
-| `bucket.image` | `rclone/rclone:1.75.1` | S3 client used by that hook |
+| `bucket.image` | `rclone/rclone:1.76.0` | S3 client used by that hook |
 | `rustfs.storageclass.name` | `longhorn-retain` | StorageClass of the data volume |
 | `rustfs.storageclass.dataStorageSize` | `20Gi` | Volume size |
 | `rustfs.ingress.enabled` | `false` | No ingress: whoever reaches RustFS can delete the local backups |
