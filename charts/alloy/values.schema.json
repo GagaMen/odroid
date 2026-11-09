@@ -648,6 +648,10 @@
                     "null"
                   ]
                 },
+                "distroless": {
+                  "description": "Append \"-distroless\" to the tag; ignored when a digest is set (chart 1.15.0+, experimental)",
+                  "type": "boolean"
+                },
                 "pullPolicy": {
                   "enum": [
                     "Always",

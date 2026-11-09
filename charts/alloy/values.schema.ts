@@ -333,6 +333,8 @@ interface AlloyImage {
   registry?: string;
   repository?: string;
   tag?: string | null;
+  /** Append "-distroless" to the tag; ignored when a digest is set (chart 1.15.0+, experimental) */
+  distroless?: boolean;
   /** SHA256 digest override */
   digest?: string | null;
   pullPolicy?: PullPolicy;
