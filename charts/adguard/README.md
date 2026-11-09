@@ -53,7 +53,7 @@ helm install adguard ./charts/adguard -f values.yaml
 |-----------|-------------|---------|
 | `adguardHome.enabled` | Deploy AdGuard Home itself; `false` deploys only the exporter | `true` |
 | `image.repository` | Container image repository | `adguard/adguardhome` |
-| `image.tag` | Container image tag | `v0.107.79` |
+| `image.tag` | Container image tag | `v0.107.80` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 
 ### Network
