@@ -98,6 +98,11 @@ traefik:
     # Version checks call out to Traefik Labs; Dependabot reports updates.
     checkNewVersion: false
     sendAnonymousUsage: false
+    # Drop request headers whose name holds anything but letters, digits and
+    # dashes. Go keeps X_Forwarded_For apart from X-Forwarded-For, but WSGI and
+    # similar backends read both as HTTP_X_FORWARDED_FOR, so a client could
+    # spoof a header Traefik sets. Headers spelled with dashes are untouched.
+    aliasHeadersStrategy: delete
 
   resources:
     requests:
