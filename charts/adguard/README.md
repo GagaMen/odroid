@@ -178,7 +178,7 @@ The chart includes an optional [AdGuard Exporter](https://github.com/henrywhitak
 |-----------|-------------|---------|
 | `prometheusExporter.enabled` | Enable the Prometheus exporter | `false` |
 | `prometheusExporter.image.repository` | Exporter image repository | `ghcr.io/henrywhitaker3/adguard-exporter` |
-| `prometheusExporter.image.tag` | Exporter image tag | `v1.2.1` |
+| `prometheusExporter.image.tag` | Exporter image tag | `v1.2.3` |
 | `prometheusExporter.image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `prometheusExporter.service.type` | Service type | `ClusterIP` |
 | `prometheusExporter.service.port` | Metrics port | `9618` |

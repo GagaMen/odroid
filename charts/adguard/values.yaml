@@ -158,7 +158,7 @@ prometheusExporter:
     # This sets the pull policy for images.
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
-    tag: v1.2.1
+    tag: v1.2.3
   service:
     type: ClusterIP
     port: 9618
