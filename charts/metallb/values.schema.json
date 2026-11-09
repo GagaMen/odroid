@@ -82,6 +82,11 @@
                 "resources": {
                   "type": "object"
                 },
+                "revisionHistoryLimit": {
+                  "description": "Old ReplicaSets/ControllerRevisions kept for rollback (chart 0.16.2+)",
+                  "minimum": 0,
+                  "type": "integer"
+                },
                 "runtimeClassName": {
                   "type": "string"
                 },
@@ -142,6 +147,10 @@
                 },
                 "namespace": {
                   "type": "string"
+                },
+                "secretPassthrough": {
+                  "description": "Hand BGP secret references to an external frr-k8s unresolved (chart 0.16.2+)",
+                  "type": "boolean"
                 }
               },
               "type": "object"
@@ -217,6 +226,17 @@
                 "frrMetrics": {
                   "type": "object"
                 },
+                "gratuitousARPInterval": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "description": "Seconds between periodic gratuitous ARP/NDP announcements; unset or 0 disables them (chart 0.16.2+)"
+                },
                 "ignoreExcludeLB": {
                   "type": "boolean"
                 },
@@ -280,6 +300,11 @@
                 },
                 "resources": {
                   "type": "object"
+                },
+                "revisionHistoryLimit": {
+                  "description": "Old ReplicaSets/ControllerRevisions kept for rollback (chart 0.16.2+)",
+                  "minimum": 0,
+                  "type": "integer"
                 },
                 "runtimeClassName": {
                   "type": "string"

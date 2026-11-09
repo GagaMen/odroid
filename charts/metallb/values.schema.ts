@@ -1,3 +1,6 @@
+/** @asType integer */
+type IntegerType = number;
+
 // ---------------------------------------------------------------------------
 // Wrapper-owned values
 // ---------------------------------------------------------------------------
@@ -41,6 +44,12 @@ interface Workload {
   livenessProbe?: object;
   readinessProbe?: object;
   extraContainers?: object[];
+  /**
+   * Old ReplicaSets/ControllerRevisions kept for rollback (chart 0.16.2+)
+   * @asType integer
+   * @minimum 0
+   */
+  revisionHistoryLimit?: number;
 }
 
 interface Controller extends Workload {
@@ -54,6 +63,8 @@ interface Speaker extends Workload {
   excludeInterfaces?: { enabled?: boolean };
   ignoreExcludeLB?: boolean;
   bgpDebounceTimeout?: number | null;
+  /** Seconds between periodic gratuitous ARP/NDP announcements; unset or 0 disables them (chart 0.16.2+) */
+  gratuitousARPInterval?: IntegerType | null;
   updateStrategy?: object;
   startupProbe?: object;
   /** FRR sidecar for BGP (not used in layer 2 mode) */
@@ -83,7 +94,13 @@ interface MetallbUpstream {
     validationFailurePolicy?: "Fail" | "Ignore";
   };
   /** frr-k8s BGP stack (not used in layer 2 mode) */
-  frrk8s?: { enabled?: boolean; external?: boolean; namespace?: string };
+  frrk8s?: {
+    enabled?: boolean;
+    external?: boolean;
+    namespace?: string;
+    /** Hand BGP secret references to an external frr-k8s unresolved (chart 0.16.2+) */
+    secretPassthrough?: boolean;
+  };
   "frr-k8s"?: object;
   networkpolicies?: object;
 }
