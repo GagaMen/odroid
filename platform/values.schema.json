@@ -6462,6 +6462,10 @@
                   },
                   "type": "object"
                 },
+                "enabled": {
+                  "description": "Unused by the chart; lets a parent chart use `<alias>.enabled` as its condition",
+                  "type": "boolean"
+                },
                 "enterprise": {
                   "description": "Enterprise configuration",
                   "type": "object"
@@ -6513,6 +6517,10 @@
                         "null"
                       ]
                     },
+                    "configs": {
+                      "description": "Extra configuration files mounted into the gateway",
+                      "type": "object"
+                    },
                     "containerPort": {
                       "type": "integer"
                     },
@@ -6528,6 +6536,14 @@
                     "enabled": {
                       "description": "Deploy this component at all",
                       "type": "boolean"
+                    },
+                    "envoy": {
+                      "description": "Image of the envoy gateway",
+                      "type": "object"
+                    },
+                    "envoyConfig": {
+                      "description": "Configuration of the envoy gateway",
+                      "type": "object"
                     },
                     "extraArgs": {
                       "anyOf": [
@@ -6754,6 +6770,10 @@
                       "type": "array"
                     },
                     "trafficDistribution": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "description": "Proxy that runs the gateway: nginx or envoy",
                       "type": "string"
                     },
                     "verboseLogging": {
@@ -7320,6 +7340,10 @@
                     "string",
                     "null"
                   ]
+                },
+                "listenerSet": {
+                  "description": "Gateway API ListenerSets",
+                  "type": "object"
                 },
                 "loki": {
                   "additionalProperties": false,
@@ -9149,6 +9173,796 @@
                   "type": "object"
                 },
                 "ruler": {
+                  "type": "object"
+                },
+                "rulerQuerier": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "affinity": {
+                      "type": "object"
+                    },
+                    "annotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "appProtocol": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "automountServiceAccountToken": {
+                      "type": "boolean"
+                    },
+                    "autoscaling": {
+                      "type": "object"
+                    },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "dnsConfig": {
+                      "type": "object"
+                    },
+                    "enabled": {
+                      "description": "Deploy this component at all",
+                      "type": "boolean"
+                    },
+                    "extraArgs": {
+                      "anyOf": [
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      ]
+                    },
+                    "extraContainers": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "extraEnv": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "extraEnvFrom": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "extraVolumeMounts": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "extraVolumes": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "fullnameOverride": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hostAliases": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "hostUsers": {
+                      "type": [
+                        "boolean",
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "image": {
+                      "type": "object"
+                    },
+                    "initContainers": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "kedaAutoscaling": {
+                      "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                      "type": "object"
+                    },
+                    "kind": {
+                      "description": "Workload kind -- Deployment or StatefulSet",
+                      "type": "string"
+                    },
+                    "labels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "lifecycle": {
+                      "type": "object"
+                    },
+                    "livenessProbe": {
+                      "type": "object"
+                    },
+                    "maxUnavailable": {
+                      "type": [
+                        "number",
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "nodeSelector": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "persistence": {
+                      "type": "object"
+                    },
+                    "podAnnotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "podDisruptionBudget": {
+                      "type": "object"
+                    },
+                    "podLabels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "podManagementPolicy": {
+                      "type": "string"
+                    },
+                    "priorityClassName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "readinessProbe": {
+                      "type": "object"
+                    },
+                    "replicas": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "resizePolicy": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "resources": {
+                      "type": "object"
+                    },
+                    "selectorLabels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "service": {
+                      "type": "object"
+                    },
+                    "serviceAccount": {
+                      "type": "object"
+                    },
+                    "serviceAnnotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "serviceLabels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "serviceType": {
+                      "type": "string"
+                    },
+                    "sidecar": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "object"
+                        }
+                      ],
+                      "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                    },
+                    "startupProbe": {
+                      "type": "object"
+                    },
+                    "statefulSetRecreateJob": {
+                      "description": "Job that recreates the StatefulSet when an immutable field changes",
+                      "type": "object"
+                    },
+                    "strategy": {
+                      "type": "object"
+                    },
+                    "terminationGracePeriodSeconds": {
+                      "type": "integer"
+                    },
+                    "tolerations": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "topologySpreadConstraints": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "trafficDistribution": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "rulerQueryFrontend": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "affinity": {
+                      "type": "object"
+                    },
+                    "annotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "appProtocol": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "automountServiceAccountToken": {
+                      "type": "boolean"
+                    },
+                    "autoscaling": {
+                      "type": "object"
+                    },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "dnsConfig": {
+                      "type": "object"
+                    },
+                    "enabled": {
+                      "description": "Deploy this component at all",
+                      "type": "boolean"
+                    },
+                    "extraArgs": {
+                      "anyOf": [
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      ]
+                    },
+                    "extraContainers": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "extraEnv": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "extraEnvFrom": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "extraVolumeMounts": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "extraVolumes": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "fullnameOverride": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hostAliases": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "hostUsers": {
+                      "type": [
+                        "boolean",
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "image": {
+                      "type": "object"
+                    },
+                    "initContainers": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "kedaAutoscaling": {
+                      "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                      "type": "object"
+                    },
+                    "kind": {
+                      "description": "Workload kind -- Deployment or StatefulSet",
+                      "type": "string"
+                    },
+                    "labels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "lifecycle": {
+                      "type": "object"
+                    },
+                    "livenessProbe": {
+                      "type": "object"
+                    },
+                    "loadBalancer": {
+                      "type": "object"
+                    },
+                    "maxSurge": {
+                      "type": [
+                        "number",
+                        "string"
+                      ]
+                    },
+                    "maxUnavailable": {
+                      "type": [
+                        "number",
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "nodeSelector": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "persistence": {
+                      "type": "object"
+                    },
+                    "podAnnotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "podDisruptionBudget": {
+                      "type": "object"
+                    },
+                    "podLabels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "podManagementPolicy": {
+                      "type": "string"
+                    },
+                    "priorityClassName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "readinessProbe": {
+                      "type": "object"
+                    },
+                    "replicas": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "resizePolicy": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "resources": {
+                      "type": "object"
+                    },
+                    "selectorLabels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "service": {
+                      "type": "object"
+                    },
+                    "serviceAccount": {
+                      "type": "object"
+                    },
+                    "serviceAnnotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "serviceLabels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "serviceType": {
+                      "type": "string"
+                    },
+                    "shutdownDelay": {
+                      "description": "Delay before shutdown so in-flight pushes drain",
+                      "type": [
+                        "number",
+                        "string"
+                      ]
+                    },
+                    "sidecar": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "object"
+                        }
+                      ],
+                      "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                    },
+                    "startupProbe": {
+                      "type": "object"
+                    },
+                    "statefulSetRecreateJob": {
+                      "description": "Job that recreates the StatefulSet when an immutable field changes",
+                      "type": "object"
+                    },
+                    "strategy": {
+                      "type": "object"
+                    },
+                    "terminationGracePeriodSeconds": {
+                      "type": "integer"
+                    },
+                    "tolerations": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "topologySpreadConstraints": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "trafficDistribution": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "rulerQueryScheduler": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "affinity": {
+                      "type": "object"
+                    },
+                    "annotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "appProtocol": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object"
+                        }
+                      ]
+                    },
+                    "automountServiceAccountToken": {
+                      "type": "boolean"
+                    },
+                    "autoscaling": {
+                      "type": "object"
+                    },
+                    "command": {
+                      "description": "Command to run instead of the image's entrypoint",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "dnsConfig": {
+                      "type": "object"
+                    },
+                    "enabled": {
+                      "description": "Deploy this component at all",
+                      "type": "boolean"
+                    },
+                    "extraArgs": {
+                      "anyOf": [
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        }
+                      ]
+                    },
+                    "extraContainers": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "extraEnv": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "extraEnvFrom": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "extraVolumeMounts": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "extraVolumes": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "fullnameOverride": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hostAliases": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "hostUsers": {
+                      "type": [
+                        "boolean",
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "image": {
+                      "type": "object"
+                    },
+                    "initContainers": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "kedaAutoscaling": {
+                      "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
+                      "type": "object"
+                    },
+                    "kind": {
+                      "description": "Workload kind -- Deployment or StatefulSet",
+                      "type": "string"
+                    },
+                    "labels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "lifecycle": {
+                      "type": "object"
+                    },
+                    "livenessProbe": {
+                      "type": "object"
+                    },
+                    "maxUnavailable": {
+                      "type": [
+                        "number",
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "nodeSelector": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "persistence": {
+                      "type": "object"
+                    },
+                    "podAnnotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "podDisruptionBudget": {
+                      "type": "object"
+                    },
+                    "podLabels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "podManagementPolicy": {
+                      "type": "string"
+                    },
+                    "priorityClassName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "readinessProbe": {
+                      "type": "object"
+                    },
+                    "replicas": {
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "resizePolicy": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "resources": {
+                      "type": "object"
+                    },
+                    "selectorLabels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "service": {
+                      "type": "object"
+                    },
+                    "serviceAccount": {
+                      "type": "object"
+                    },
+                    "serviceAnnotations": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "serviceLabels": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "serviceType": {
+                      "type": "string"
+                    },
+                    "sidecar": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "object"
+                        }
+                      ],
+                      "description": "Mount the config-reloading sidecar; a bare true takes the chart defaults"
+                    },
+                    "startupProbe": {
+                      "type": "object"
+                    },
+                    "statefulSetRecreateJob": {
+                      "description": "Job that recreates the StatefulSet when an immutable field changes",
+                      "type": "object"
+                    },
+                    "strategy": {
+                      "type": "object"
+                    },
+                    "terminationGracePeriodSeconds": {
+                      "type": "integer"
+                    },
+                    "tolerations": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "topologySpreadConstraints": {
+                      "items": {
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "trafficDistribution": {
+                      "type": "string"
+                    }
+                  },
                   "type": "object"
                 },
                 "serviceAccount": {

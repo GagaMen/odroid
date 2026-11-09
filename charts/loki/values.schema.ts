@@ -292,6 +292,14 @@ interface LokiGateway extends LokiComponentBase {
   basicAuth?: object;
   nginxConfig?: object;
   ingress?: object;
+  /** Proxy that runs the gateway: nginx or envoy */
+  type?: string;
+  /** Extra configuration files mounted into the gateway */
+  configs?: object;
+  /** Image of the envoy gateway */
+  envoy?: object;
+  /** Configuration of the envoy gateway */
+  envoyConfig?: object;
 }
 
 // ---------------------------------------------------------------------------
@@ -360,6 +368,8 @@ interface LokiIndexGateway extends LokiComponentBase {
 // Full upstream values
 // ---------------------------------------------------------------------------
 interface LokiUpstream {
+  /** Unused by the chart; lets a parent chart use `<alias>.enabled` as its condition */
+  enabled?: boolean;
   kubeVersionOverride?: string | null;
   /** Global configuration */
   global?: object;
@@ -402,6 +412,10 @@ interface LokiUpstream {
   bloomBuilder?: object;
   bloomPlanner?: object;
   ruler?: object;
+  // Dedicated query path for rule evaluation
+  rulerQuerier?: LokiComponentBase;
+  rulerQueryFrontend?: LokiDistributorComponent;
+  rulerQueryScheduler?: LokiQueryScheduler;
   patternIngester?: object;
   overridesExporter?: object;
   rollout_operator?: object;
@@ -415,6 +429,8 @@ interface LokiUpstream {
   memcachedExporter?: object;
   // Ingress
   ingress?: object;
+  /** Gateway API ListenerSets */
+  listenerSet?: object;
   // MinIO sub-chart
   minio?: MinioConfig;
   /** Built-in Promtail configuration */
