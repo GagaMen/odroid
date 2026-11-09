@@ -66,7 +66,7 @@ helm install paperless ./charts/paperless -n paperless --create-namespace -f val
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `image.repository` | Container image repository | `ghcr.io/paperless-ngx/paperless-ngx` |
-| `image.tag` | Container image tag | `3.3.3` |
+| `image.tag` | Container image tag | `3.4.2` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 
 ### Server
