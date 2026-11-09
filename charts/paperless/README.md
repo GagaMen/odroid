@@ -102,7 +102,7 @@ user. Change the password in the UI instead.
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `broker.image` | Valkey image | `valkey/valkey:9.1.2-alpine` |
+| `broker.image` | Valkey image | `valkey/valkey:9.1.3-alpine` |
 | `broker.resources` | CPU/memory for the broker | `10m` / `16Mi`, limit `128Mi` |
 
 ### Scan Share
