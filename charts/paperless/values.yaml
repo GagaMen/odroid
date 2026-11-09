@@ -75,7 +75,7 @@ scanShare:
   image:
     repository: ghcr.io/servercontainers/samba
     # smbd only: no avahi or wsdd2, since the scanner is given the address.
-    tag: "smbd-only-a3.24.2-s4.23.8-r0"
+    tag: "smbd-only-a3.24.4-s4.23.8-r0"
     pullPolicy: IfNotPresent
   # Share name as the scanner sees it: \\<address>\consume
   shareName: consume
