@@ -31,6 +31,14 @@ prometheus:
         readOnly: true
         optional: true
 
+  # The config reloader v0.95.1 that chart 29.47.0 ships is published for amd64
+  # only, so the pod never starts on arm64. v0.94.2 is a multi-arch build. Drop
+  # this pin once the chart's reloader has an arm64 image again.
+  configmapReload:
+    prometheus:
+      image:
+        tag: v0.94.2
+
   # -- Disable Alertmanager (we use Grafana Alerting instead)
   alertmanager:
     enabled: false
