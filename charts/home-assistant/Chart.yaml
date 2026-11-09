@@ -3,4 +3,4 @@ name: home-assistant
 description: Home automation platform that runs locally and integrates devices and services.
 type: application
 version: 1.0.0
-appVersion: "2026.10.2"
+appVersion: "2026.11.1"

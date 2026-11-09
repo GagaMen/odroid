@@ -52,7 +52,7 @@ helm install home-assistant ./charts/home-assistant -n home-assistant --create-n
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `image.repository` | Container image repository | `ghcr.io/home-assistant/home-assistant` |
-| `image.tag` | Container image tag | `2026.10.2` |
+| `image.tag` | Container image tag | `2026.11.1` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 
 ### Server
