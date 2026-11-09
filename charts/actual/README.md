@@ -55,7 +55,7 @@ helm install actual ./charts/actual -f values.yaml
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `image.repository` | Container image repository | `actualbudget/actual-server` |
-| `image.tag` | Container image tag | `26.10.0` |
+| `image.tag` | Container image tag | `26.11.0` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 
 ### Server
