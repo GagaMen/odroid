@@ -224,6 +224,10 @@
                 "dnsPolicy": {
                   "type": "string"
                 },
+                "enableGzipEncoding": {
+                  "description": "Gzip scrape responses when the client accepts it",
+                  "type": "boolean"
+                },
                 "enabled": {
                   "type": "boolean"
                 },
@@ -284,6 +288,11 @@
                   "type": "array"
                 },
                 "metricLabelsAllowlist": {
+                  "items": {},
+                  "type": "array"
+                },
+                "metricOptInList": {
+                  "description": "Opt-in metrics to enable on top of the allow and deny lists",
                   "items": {},
                   "type": "array"
                 },
@@ -384,6 +393,10 @@
                   "items": {},
                   "type": "array"
                 },
+                "trackUnscheduledPods": {
+                  "description": "Collect only pods not yet assigned to a node; experimental",
+                  "type": "boolean"
+                },
                 "verticalPodAutoscaler": {
                   "type": "object"
                 },
@@ -429,8 +442,16 @@
                     "allowPrivilegeEscalation": {
                       "type": "boolean"
                     },
+                    "capabilities": {
+                      "description": "Dropped and added Linux capabilities; chart 5.0.0+ drops ALL by default",
+                      "type": "object"
+                    },
                     "readOnlyRootFilesystem": {
                       "type": "boolean"
+                    },
+                    "seccompProfile": {
+                      "description": "Seccomp profile; chart 5.0.0+ defaults to RuntimeDefault",
+                      "type": "object"
                     }
                   },
                   "type": "object"

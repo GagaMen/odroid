@@ -121,6 +121,12 @@ interface KubeStateMetrics {
   namespacesDenylist?: string | object;
   metricAllowlist?: any[];
   metricDenylist?: any[];
+  /** Opt-in metrics to enable on top of the allow and deny lists */
+  metricOptInList?: any[];
+  /** Gzip scrape responses when the client accepts it */
+  enableGzipEncoding?: boolean;
+  /** Collect only pods not yet assigned to a node; experimental */
+  trackUnscheduledPods?: boolean;
   metricAnnotationsAllowList?: any[];
   metricLabelsAllowlist?: any[];
   customResourceState?: object;
@@ -142,6 +148,10 @@ interface NetworkPolicy {
 interface NodeExporterContainerSecurityContext {
   allowPrivilegeEscalation?: boolean;
   readOnlyRootFilesystem?: boolean;
+  /** Dropped and added Linux capabilities; chart 5.0.0+ drops ALL by default */
+  capabilities?: object;
+  /** Seccomp profile; chart 5.0.0+ defaults to RuntimeDefault */
+  seccompProfile?: object;
 }
 
 interface NodeExporterRbac {
