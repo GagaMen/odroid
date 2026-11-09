@@ -15,7 +15,8 @@ cluster's API versions nor `lookup`, so it reports false differences
 
 Output: changed, added and removed resources, then the changed lines per
 resource with chart/version labels filtered out. Secret contents are never
-printed, only the fact that a Secret changed. Hooks and tests are absent
+printed, only whether a Secret's content or just its metadata (such as the
+version label) changed. Hooks and tests are absent
 from the stored manifest and never show up as added.
 """
 import difflib
@@ -89,7 +90,11 @@ def main():
 
     for key in changed:
         if key[0] == "Secret":
-            print(f"\n{label(key)}: content changed (not shown)")
+            # Compare everything but metadata, so a version label bump is not
+            # mistaken for a changed credential. Values are never printed.
+            payload = [{k: v for k, v in doc.items() if k != "metadata"} for doc in (live[key], new[key])]
+            what = "content changed" if digest(payload[0]) != digest(payload[1]) else "metadata only"
+            print(f"\n{label(key)}: {what} (not shown)")
             continue
         lines = [
             line for line in difflib.unified_diff(
