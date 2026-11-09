@@ -26,6 +26,20 @@ schedule's TTL.
 Expected noise: snapshot-controller logs `failed to get snapshotContent` / `not found` for
 snapshots Velero already deleted after the upload. That is a cleanup race, not a failure.
 
+## RustFS
+
+RustFS is the backup target, so it is verified the same way, with one wait in front: Velero
+validates the backup storage location once a minute, and a validation that falls into the
+RustFS restart marks it `Unavailable`. A backup started then ends in `FailedValidation` without
+touching RustFS. Wait for `Available` first:
+
+```bash
+velero -n platform backup-location get
+```
+
+Expected noise: Velero logs `ListObjectsV2 ... request send failed` and `BackupStorageLocation
+is in unavailable state` for the minute RustFS was down.
+
 ## Grafana
 
 - Log free of `plugin.notRegistered`, `unlinkat`, `read-only file system` (see the
