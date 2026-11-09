@@ -303,25 +303,6 @@ interface LokiGateway extends LokiComponentBase {
 }
 
 // ---------------------------------------------------------------------------
-// MinIO sub-chart
-// ---------------------------------------------------------------------------
-interface MinioConfig {
-  enabled?: boolean;
-  /** @asType integer */
-  replicas?: number;
-  /** @asType integer */
-  drivesPerNode?: number;
-  rootUser?: string;
-  rootPassword?: string;
-  buckets?: object[];
-  users?: object[];
-  resources?: object;
-  persistence?: object;
-  /** Address of an external MinIO, in place of the bundled one */
-  address?: string | null;
-}
-
-// ---------------------------------------------------------------------------
 // Ingester (extends base with zone-aware replication)
 // ---------------------------------------------------------------------------
 interface LokiIngester extends LokiComponentBase {
@@ -360,7 +341,6 @@ interface LokiQueryScheduler extends LokiComponentBase {}
 // IndexGateway / BloomGateway / Compactor
 // ---------------------------------------------------------------------------
 interface LokiIndexGateway extends LokiComponentBase {
-  joinMemberlist?: boolean;
   updateStrategy?: object;
 }
 
@@ -383,8 +363,6 @@ interface LokiUpstream {
   commonLabels?: { [key: string]: string };
   /** Values merged into every component before its own settings apply */
   defaults?: object;
-  /** Silence the warning about the bundled minio subchart */
-  ignoreMinioDeprecation?: boolean;
   podDisruptionBudget?: object;
   route?: object;
   "rollout-operator"?: object;
@@ -431,8 +409,6 @@ interface LokiUpstream {
   ingress?: object;
   /** Gateway API ListenerSets */
   listenerSet?: object;
-  // MinIO sub-chart
-  minio?: MinioConfig;
   /** Built-in Promtail configuration */
   // Auth & RBAC
   serviceAccount?: object;

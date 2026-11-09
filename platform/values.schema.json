@@ -5425,9 +5425,6 @@
                       },
                       "type": "array"
                     },
-                    "joinMemberlist": {
-                      "type": "boolean"
-                    },
                     "kedaAutoscaling": {
                       "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
                       "type": "object"
@@ -6023,9 +6020,6 @@
                         "type": "object"
                       },
                       "type": "array"
-                    },
-                    "joinMemberlist": {
-                      "type": "boolean"
                     },
                     "kedaAutoscaling": {
                       "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
@@ -6786,10 +6780,6 @@
                   "description": "Global configuration",
                   "type": "object"
                 },
-                "ignoreMinioDeprecation": {
-                  "description": "Silence the warning about the bundled minio subchart",
-                  "type": "boolean"
-                },
                 "imagePullSecrets": {
                   "items": {
                     "type": "object"
@@ -6908,9 +6898,6 @@
                         "type": "object"
                       },
                       "type": "array"
-                    },
-                    "joinMemberlist": {
-                      "type": "boolean"
                     },
                     "kedaAutoscaling": {
                       "description": "Scale on Loki metrics via KEDA instead of a plain HPA",
@@ -7689,52 +7676,6 @@
                   "type": "object"
                 },
                 "migrate": {
-                  "type": "object"
-                },
-                "minio": {
-                  "additionalProperties": false,
-                  "properties": {
-                    "address": {
-                      "description": "Address of an external MinIO, in place of the bundled one",
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "buckets": {
-                      "items": {
-                        "type": "object"
-                      },
-                      "type": "array"
-                    },
-                    "drivesPerNode": {
-                      "type": "integer"
-                    },
-                    "enabled": {
-                      "type": "boolean"
-                    },
-                    "persistence": {
-                      "type": "object"
-                    },
-                    "replicas": {
-                      "type": "integer"
-                    },
-                    "resources": {
-                      "type": "object"
-                    },
-                    "rootPassword": {
-                      "type": "string"
-                    },
-                    "rootUser": {
-                      "type": "string"
-                    },
-                    "users": {
-                      "items": {
-                        "type": "object"
-                      },
-                      "type": "array"
-                    }
-                  },
                   "type": "object"
                 },
                 "monitoring": {

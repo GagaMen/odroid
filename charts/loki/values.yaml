@@ -36,10 +36,6 @@ loki:
       size: 10Gi
       storageClass: longhorn
 
-  # Disable minio (we use filesystem storage)
-  minio:
-    enabled: false
-
   # Disable components not needed in single-binary mode
   read:
     replicas: 0
