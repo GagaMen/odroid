@@ -90,7 +90,7 @@ one.
 | Role | What it does |
 |---|---|
 | `host` | Base packages, hostname, timezone, systemd drop-ins, journald limits, sysctls, multipath blacklist, masked units, textfile collector for node_exporter |
-| `boot` | cgroup v2 kernel parameter, hardware watchdog overlay and systemd watchdog |
+| `boot` | AppArmor and cgroup v2 kernel parameters, hardware watchdog overlay and systemd watchdog |
 | `storage` | Data disk and bind mounts in `/etc/fstab`; runs before `microk8s` so its state lands on the data disk |
 | `microk8s` | Installs MicroK8s if missing, holds the snaps, grants the user access, enables addons, kubectl wrapper for k9s |
 | `shell` | zsh as login shell, Oh My Zsh, Powerlevel10k, `~/.zshrc`, `~/.p10k.zsh` |

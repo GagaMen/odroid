@@ -1,2 +1,7 @@
 # Where the board's boot script looks for overlays named in /boot/config.ini.
 boot_overlay_dir: "/boot/dtbs/{{ ansible_facts['kernel'] }}/rockchip/overlays/odroidm2"
+
+# Security modules the kernel starts, as passed in lsm=. Ubuntu confines snaps and containers
+# with AppArmor; without the parameter the vendor kernel starts SELinux in its place. Lists
+# only modules this kernel has built in.
+boot_lsm: yama,integrity,apparmor

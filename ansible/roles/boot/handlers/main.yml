@@ -4,10 +4,11 @@
   changed_when: true
   notify: Check the boot script
 
-# Rebooting with a boot script that lacks the parameter is the failure this guards against.
+# Rebooting with a boot script that lacks a parameter is the failure this guards against.
 - name: Check the boot script
   ansible.builtin.command:
-    argv: [grep, -aq, systemd.unified_cgroup_hierarchy=1, /boot/boot.scr]
+    argv: [grep, -aqF, "{{ item }}", /boot/boot.scr]
+  loop: "{{ boot_kernel_parameters }}"
   changed_when: false
 
 - name: Re-execute systemd
@@ -18,6 +19,10 @@
 - name: Note a reboot for cgroup v2
   ansible.builtin.set_fact:
     boot_reboot_reasons: "{{ boot_reboot_reasons | default([]) + ['cgroup v2'] }}"
+
+- name: Note a reboot for AppArmor
+  ansible.builtin.set_fact:
+    boot_reboot_reasons: "{{ boot_reboot_reasons | default([]) + ['AppArmor'] }}"
 
 - name: Note a reboot for the watchdog
   ansible.builtin.set_fact:

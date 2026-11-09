@@ -1,6 +1,26 @@
+# flash-kernel regenerates /boot/boot.scr from /etc/default/flash-kernel, so kernel parameters
+# go there and not into boot.scr. These are the ones the regenerated script must carry.
+- name: Collect the kernel parameters the boot script must carry
+  ansible.builtin.set_fact:
+    boot_kernel_parameters: >-
+      {{ ['lsm=' ~ boot_lsm]
+         + (['systemd.unified_cgroup_hierarchy=1'] if host_vendor_systemd else []) }}
+
+# AppArmor -- see "AppArmor" in roles/host/README.md. An lsm= that is already there is left
+# alone, whatever it names.
+- name: Make AppArmor the kernel's security module
+  become: true
+  ansible.builtin.replace:
+    path: /etc/default/flash-kernel
+    regexp: '^(LINUX_KERNEL_CMDLINE="(?![^"]*\blsm=)[^"]*)"'
+    replace: '\1 lsm={{ boot_lsm }}"'
+    backup: true
+  notify:
+    - Regenerate the boot script
+    - Note a reboot for AppArmor
+
 # cgroup v2 -- see "cgroup v2" in roles/host/README.md. Only the vendor systemd boots into
-# the hybrid layout; current systemd knows nothing else. flash-kernel regenerates
-# /boot/boot.scr from this file, so the parameter goes here and not into boot.scr.
+# the hybrid layout; current systemd knows nothing else.
 - name: Boot into the unified cgroup hierarchy
   become: true
   ansible.builtin.replace:

@@ -47,7 +47,8 @@ systemctl --version | head -1     # "systemd 245 (5:245.4-...~focal)" -- the epo
 
 The playbook makes the same check. It applies the workarounds that exist because of the vendor
 systemd -- the `faccessat2` drop-ins, the masked units and the cgroup parameter -- only where
-that build is installed. Those that depend on the kernel follow what the kernel offers.
+that build is installed. Those that depend on the kernel follow what the kernel offers, and the
+kernel's own defaults need one correction on every image: see [AppArmor](#apparmor).
 
 This machine has since been rebuilt from the 26.04 image rather than upgraded a third time,
 since `do-release-upgrade` would have carried the pinned systemd along once more. It now runs
@@ -275,6 +276,76 @@ sudo reboot
 
 This only works with Kubernetes 1.34 or older; on anything newer the kubelet will not start on
 the hybrid layout.
+
+## AppArmor
+
+### The problem
+
+Ubuntu confines snaps and containers with AppArmor. The vendor kernel has AppArmor built in but
+does not start it: its `CONFIG_LSM` lists SELinux first, only one of the two can be active, and
+without an `lsm=` parameter the first one wins. The machine then boots with SELinux switched on
+but no policy loaded, which enforces nothing, and with AppArmor off:
+
+```bash
+cat /sys/kernel/security/lsm      # "capability,yama,selinux" -- AppArmor missing
+aa-enabled                        # "No - disabled at boot."
+```
+
+Two consequences follow. snapd has no AppArmor backend, so strictly confined snaps would run
+without their profiles; `snap debug sandbox-features` lists no `apparmor` line. containerd
+likewise starts every container without its default profile.
+
+The visible symptom is a warning on every call into a snap, including the completion setup in
+`~/.zshrc`, which calls `microk8s.kubectl` and `microk8s.helm3` on each login:
+
+```
+cmd_run.go:1587: WARNING: cannot create user data directory: failed to verify SELinux context
+of /home/<user>/snap: cannot locate "matchpathcon" executable
+```
+
+snapd sees selinuxfs mounted, takes SELinux for active, and wants to check the security label
+of `~/snap`. Installing `selinux-utils`, which ships `matchpathcon`, would only silence the
+check; SELinux would still be the wrong module.
+
+### Applying
+
+The `boot` role (`--tags boot`) appends `lsm=` with the modules in `boot_lsm`
+(`yama,integrity,apparmor`) to `LINUX_KERNEL_CMDLINE` in `/etc/default/flash-kernel`, unless the
+line already has an `lsm=`, keeping a timestamped backup. It then runs `flash-kernel` and fails
+if the regenerated `/boot/boot.scr` lacks any expected parameter, as described under
+[cgroup v2](#applying-1). `boot_lsm` lists only modules this kernel has built in; Ubuntu's own
+kernels start Landlock and Lockdown too, which this one lacks. `integrity` is the kernel's own
+entry from `CONFIG_LSM`; it registers only with IMA or EVM, neither of which is built, so it
+does not show up in the active list.
+
+The switch needs a reboot; drain the node first as described under
+[Snap update discipline](#snap-update-discipline). After the reboot snapd notices the changed
+kernel features and regenerates the profiles of all installed snaps by itself.
+
+```bash
+ansible-playbook site.yml -K --tags boot --check --diff   # shows the one-line change
+ansible-playbook site.yml -K --tags boot
+```
+
+### Verifying
+
+```bash
+cat /sys/kernel/security/lsm                         # -> capability,yama,apparmor
+aa-enabled                                           # -> Yes
+snap debug sandbox-features | grep ^apparmor         # a line of features, ends in support-level:partial
+microk8s kubectl get pods -A | grep -v Running       # nothing but Completed jobs
+```
+
+snapd rates the support as `partial`, and `confinement-options` keeps lacking `strict`. That is
+the kernel, not the parameter: the vendor kernel carries mainline AppArmor without Ubuntu's
+patches, so features such as D-Bus and Unix socket mediation are missing from the list. Strict
+snaps get their profiles but not the full sandbox Ubuntu's kernels give them. MicroK8s is a
+classic snap and is not confined either way.
+
+### Rolling back
+
+Take the parameter out of the `boot` role first, then restore the backup the role kept
+(`/etc/default/flash-kernel.<timestamp>~`), run `sudo flash-kernel` and reboot.
 
 ## Deadlock recovery
 
