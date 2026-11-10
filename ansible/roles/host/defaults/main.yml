@@ -14,6 +14,11 @@ host_packages:
   # Used by node-exporter-apt.
   - python3-apt
 
+# Purged on every host; see "Packages without a job here" in the README.
+host_removed_packages:
+  - modemmanager
+  - open-vm-tools
+
 # Units that cannot run on the vendor systemd; see "Services that cannot run here" in the
 # README. Masked only where that systemd is installed. systemd-binfmt depends on the kernel
 # instead and is handled separately. Distribution masks such as sudo.service or rc.service
@@ -24,4 +29,3 @@ host_vendor_systemd_masked_units:
   - fwupd-refresh.timer
   - polkit.service
   - udisks2.service
-  - ModemManager.service

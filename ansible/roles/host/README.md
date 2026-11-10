@@ -131,10 +131,9 @@ be analysed at all.
 
 ## Services that cannot run here
 
-On the vendor systemd, seven units fail on every boot. Five of them are collateral damage from
-the pinned systemd described above, one follows from masking polkit, and `systemd-binfmt` asks
-for a kernel feature the vendor's 5.10 kernel does not have. On Ubuntu's own systemd with the
-6.1 kernel, all seven start normally.
+On the vendor systemd, six units fail on every boot. Five of them are collateral damage from
+the pinned systemd described above, and `systemd-binfmt` asks for a kernel feature the vendor's
+5.10 kernel does not have. On Ubuntu's own systemd with the 6.1 kernel, all six start normally.
 
 | Unit | What it is for | Why it fails |
 |---|---|---|
@@ -144,7 +143,6 @@ for a kernel feature the vendor's 5.10 kernel does not have. On Ubuntu's own sys
 | `fwupd-refresh` | Downloads the LVFS metadata for `fwupd` once a day | follows from `fwupd` — `fwupdmgr refresh` needs the daemon |
 | `fwupd-refresh.timer` | Triggers the above once a day | fails once its service is masked |
 | `systemd-binfmt` | Registers foreign binary formats so the kernel runs them through an interpreter, e.g. ARM binaries on x86 via qemu | `CONFIG_BINFMT_MISC is not set` in this kernel |
-| `ModemManager` | Manages mobile broadband modems (WWAN, LTE sticks) | `Requires=polkit.service`, so masking polkit stops it too |
 
 The distribution builds `polkitd` and `udisksd` against the systemd its release ships. A vendor
 systemd held at an older version provides those shared libraries at its own, older symbol
@@ -177,15 +175,15 @@ and only on the vendor systemd. On any other systemd they start normally. It mas
 `/proc/sys/fs/binfmt_misc`. Units the distribution masks itself, such as `sudo.service` or
 `rc.service`, are left alone.
 
-`ModemManager` is on the list as a consequence, not a cause: it declares `Requires=polkit.service`,
-so once polkit is masked it can no longer start. Check what a unit pulls along before masking it:
+Check what a unit pulls along before masking it:
 
 ```bash
 systemctl list-dependencies --reverse polkit.service
 ```
 
-Here that lists `ModemManager` and nothing else, and this board has no WWAN hardware at all --
-no modem device nodes, no `ww*` interfaces -- so it has no work to do either way.
+On the image this lists only `ModemManager`, which declares `Requires=polkit.service` and so
+could not start once polkit is masked. It is not masked but removed, on every host; see
+[Packages without a job here](#packages-without-a-job-here).
 
 Mask the timer along with its service. A timer whose service is masked still fires and still
 fails, so masking only the service trades one failed unit for another. Check for companions
@@ -200,6 +198,34 @@ Verify none remain, and that the metric agrees:
 ```bash
 systemctl list-units --state=failed
 curl -s localhost:9100/metrics | grep 'state="failed"} 1'
+```
+
+## Packages without a job here
+
+The board vendor's image ships two packages that have nothing to do on this machine. They run
+fine, but they take updates, show up in the pending-update count and, after a library update,
+in needrestart's list of services to restart.
+
+| Package | What it is for | Why it has no job here |
+|---|---|---|
+| `modemmanager` | Manages mobile broadband modems (WWAN, LTE sticks) | The board has no WWAN hardware: no `/dev/cdc-wdm*` nodes, no `ww*` interfaces |
+| `open-vm-tools` | Guest agent for virtual machines on VMware | The machine is bare metal; its units carry `ConditionVirtualization=vmware` and never start |
+
+The `host` role (`--tags host`) purges the packages listed in `host_removed_packages`. No other
+installed package depends on either. Their own dependencies stay behind as automatically
+installed packages; remove them once by hand after the first run:
+
+```bash
+sudo apt autoremove --purge
+```
+
+The playbook does not autoremove on its own, because that would also remove whatever else apt
+happens to consider unneeded at the time of a run.
+
+### Verifying
+
+```bash
+dpkg -l modemmanager open-vm-tools 2>&1 | grep -E '^(ii|rc)'   # -> no output
 ```
 
 ## cgroup v2
