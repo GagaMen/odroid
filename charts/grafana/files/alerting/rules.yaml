@@ -1210,7 +1210,10 @@ groups:
       datasourceUid: prometheus
       model:
         editorMode: code
-        expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
+        # The termination reason stays set until the next restart, so on its own
+        # it would keep the alert firing and repeat it every repeat_interval.
+        # Requiring a recent restart reports each kill once.
+        expr: increase(kube_pod_container_status_restarts_total[10m]) > 0 and on(namespace, pod, container) kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1
         instant: true
         intervalMs: 1000
         legendFormat: __auto
