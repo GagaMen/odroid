@@ -34,5 +34,8 @@
     "@bitwarden/cli": "2026.10.1",
     "ts-json-schema-generator": "2.9.0",
     "typescript": "5.9.3"
+  },
+  "overrides": {
+    "multer": "2.5.0"
   }
 }
