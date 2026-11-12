@@ -139,6 +139,8 @@ interface RustfsUpstream {
   resources?: object;
   livenessProbe?: object;
   readinessProbe?: object;
+  /** Seconds a replaced pod stays Ready before a StatefulSet rollout moves on (distributed mode only); 0 disables */
+  minReadySeconds?: IntegerType;
   nodeSelector?: { [key: string]: string };
   tolerations?: object[];
   affinity?: object;

@@ -15725,6 +15725,10 @@
                   },
                   "type": "object"
                 },
+                "minReadySeconds": {
+                  "description": "Seconds a replaced pod stays Ready before a StatefulSet rollout moves on (distributed mode only); 0 disables",
+                  "type": "integer"
+                },
                 "mode": {
                   "additionalProperties": false,
                   "properties": {
