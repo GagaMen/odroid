@@ -7,15 +7,19 @@ Usage:
 <repository> is what the wrapper's Chart.yaml lists, e.g.
   oci://ghcr.io/grafana-community/helm-charts
   https://charts.longhorn.io
-Without <new-version> the latest published version is used.
+Without <new-version> the latest release is used: the highest version by
+semver, pre-releases excluded. "Latest" never means "most recently published":
+projects backport fixes to older lines, and the newest upload is then a lower
+version than the one already running.
 
-Prints the latest published version, appVersion and subchart versions of
+Prints the latest release, appVersion and subchart versions of
 both, the values keys that were added or removed (what the strict wrapper
 schemas care about), the files that changed, and the head of CHANGELOG.md
 when the chart ships one. Pulling a version that does not exist fails,
 which is itself the answer to "is this version real".
 """
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -42,14 +46,25 @@ def chart_ref(repo, chart):
     return [chart, "--repo", repo]
 
 
+def release_key(version):
+    """Sort key for a release version; None for pre-releases and anything that is not semver."""
+    match = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)(\+[0-9A-Za-z.-]+)?", str(version))
+    return tuple(int(part) for part in match.groups()[:3]) if match else None
+
+
 def latest_version(repo, chart):
     if repo.startswith("oci://"):
+        # Helm resolves a missing --version to the highest semver tag and
+        # skips pre-releases unless --devel is given.
         out = subprocess.run([HELM, "show", "chart", *chart_ref(repo, chart)],
                              capture_output=True, text=True, check=True).stdout
         return yaml.safe_load(out)["version"]
     req = urllib.request.Request(repo.rstrip("/") + "/index.yaml", headers={"User-Agent": "Helm/3"})
     entries = yaml.safe_load(urllib.request.urlopen(req).read())["entries"][chart]
-    return sorted(entries, key=lambda e: e.get("created", ""))[-1]["version"]
+    releases = [e["version"] for e in entries if release_key(e["version"])]
+    if not releases:
+        sys.exit(f"{chart} has no release version in {repo}")
+    return max(releases, key=release_key)
 
 
 def pull(repo, chart, version, into):
@@ -97,7 +112,7 @@ def main():
     repo, chart, old = sys.argv[1:4]
     latest = latest_version(repo, chart)
     new = sys.argv[4] if len(sys.argv) == 5 else latest
-    print(f"latest published: {latest}")
+    print(f"latest release: {latest}")
 
     with tempfile.TemporaryDirectory() as tmp:
         old_dir, new_dir = pull(repo, chart, old, tmp), pull(repo, chart, new, tmp)

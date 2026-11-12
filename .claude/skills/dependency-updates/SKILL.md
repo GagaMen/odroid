@@ -27,7 +27,7 @@ Collect every candidate. Three sources, because Dependabot alone misses updates:
    below), not that nothing is pending.
 3. **Charts Dependabot cannot reach**, listed in the comment at the top of
    `.github/dependabot.yml`. Check each by hand with `scripts/chart_compare.py <repo> <chart> <current>`,
-   which prints the latest published version.
+   which prints the latest release (highest semver, pre-releases excluded).
 
    First check whether that list is still accurate: GitHub adds public hosts to the proxy's
    allowlist over time. Look up each chart's repository host (from its `Chart.yaml`) in
@@ -43,7 +43,7 @@ either on a candidate list or confirmed current.
 For every chart bump run `scripts/chart_compare.py <repository> <chart> <current> <target>` with the
 repository exactly as `Chart.yaml` lists it. It fails when the target does not exist, which is the
 first check: a PR can propose a version of a *different* chart (see blind spots). Also compare the
-target with "latest published" and prefer the latest when it is newer than the PR.
+target with "latest release" and prefer the latest when it is newer than the PR.
 
 Per candidate, record:
 
@@ -129,4 +129,4 @@ Pushing is the user's (`git push` from their own terminal when the session has n
   the highest version among all matches (dependabot-core#13789), e.g. `prometheus-operator-crds`
   for `prometheus`. OCI sources are immune; the check in step 2 catches the rest.
 - **Newer versions.** A PR is pinned to what existed when it was opened; step 2 compares with the
-  latest published version.
+  latest release.
