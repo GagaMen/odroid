@@ -137,6 +137,11 @@ spec:
               value: "[{{ .Values.scanShare.shareName }}]; path = /shares/consume; valid users = {{ .Values.scanShare.user }}; guest ok = no; read only = no; browseable = yes"
             - name: NETBIOS_DISABLE
               value: "true"
+            # Samba takes the NetBIOS name from the hostname, i.e. the pod name,
+            # and warns at every start that it exceeds 15 characters. Nothing
+            # resolves the name with NetBIOS disabled; this only quiets the warning.
+            - name: SAMBA_GLOBAL_CONFIG_netbios_SPACE_name
+              value: paperless
           readinessProbe:
             tcpSocket:
               port: smb
