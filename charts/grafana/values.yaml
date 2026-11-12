@@ -61,6 +61,10 @@ grafana:
     # Bundled plugins move with the image version instead.
     plugins:
       preinstall_auto_update: false
+    # X-XSS-Protection is ignored by current browsers, and Grafana 13.3
+    # deprecates the option with a warning at every start while it is on.
+    security:
+      x_xss_protection: false
 
   # -- Mount the alerting provisioning files built by templates/alerting-configmap.yaml
   extraConfigmapMounts:
