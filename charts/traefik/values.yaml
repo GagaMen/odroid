@@ -95,7 +95,7 @@ traefik:
     dashboard: false
 
   global:
-    # Version checks call out to Traefik Labs; Dependabot reports updates.
+    # Version checks call out to Traefik Labs; scripts/update-check reports updates.
     checkNewVersion: false
     sendAnonymousUsage: false
     # Drop request headers whose name holds anything but letters, digits and

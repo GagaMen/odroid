@@ -95,7 +95,8 @@ cert-manager-dns-lexicon-webhook:
    - `templates/` - Kubernetes manifests
    - `README.md` - Documentation
 3. Add the chart as a dependency in `platform/Chart.yaml`
-4. Update Dependabot configuration in `.github/dependabot.yml`
+4. Pin image tags as a `repository`/`tag` pair in `values.yaml`; `scripts/update-check` finds
+   those and the chart's dependencies on its own
 
 ### Testing
 

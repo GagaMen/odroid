@@ -85,7 +85,7 @@ The annotations can stay in place during a migration and be removed afterwards.
 - **Service.** The pod is reached through `hostPort`. The chart's default `LoadBalancer` would
   stay `<pending>`, since MetalLB hands out addresses only on request.
 - **Dashboard and version check.** The dashboard would only be reachable on the internal
-  entry point; Dependabot reports new versions.
+  entry point; `scripts/update-check` reports new versions.
 
 Prometheus scrapes the metrics through the pod's `prometheus.io/*` annotations, which the
 upstream chart sets.

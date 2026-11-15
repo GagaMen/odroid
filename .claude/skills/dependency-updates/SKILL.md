@@ -1,12 +1,12 @@
 ---
 name: dependency-updates
-description: Work through pending chart and image updates -- open Dependabot PRs plus what Dependabot cannot see -- and roll them out one at a time with verification.
+description: Work through the pending updates that scripts/update-check reports -- charts, images, npm, host tool pins -- and roll them out one at a time with verification.
 disable-model-invocation: true
 ---
 
 # Dependency updates
 
-Run when Dependabot has announced updates. The goal is every pending update either **deployed
+Run when the monthly update check has reported updates. The goal is every pending update either **deployed
 and verified** or **deliberately deferred** with a reason, each as its own commit on `main`.
 
 Read `AGENTS.md` first if it is not in context; its three traps (vendored archives, file-provisioned
@@ -15,35 +15,24 @@ shell alias and does not exist for scripts or subprocesses. Both scripts below f
 
 ## 1. Inventory
 
-Collect every candidate. Three sources, because Dependabot alone misses updates:
+Run `scripts/update-check`. It compares every pin in the working tree -- chart dependencies,
+every image in a chart's `values.yaml`, `package.json`, and the host pins listed in
+`scripts/update-check.yaml` -- with what its registry publishes, and prints the ones that are not
+current. Each row is a candidate; `--all` shows the current ones too.
 
-1. **Open Dependabot PRs.** `gh` may be missing; the repository is public, so use the API
-   (`<owner>/<repo>` from `git remote -v`):
-   `curl -s "https://api.github.com/repos/<owner>/<repo>/pulls?state=open&per_page=100"`.
-   Fetch their branches. When SSH is unavailable, fetch read-only over HTTPS:
-   `git fetch https://github.com/<owner>/<repo>.git '+refs/heads/main:refs/remotes/origin/main' '+refs/heads/dependabot/*:refs/remotes/origin/dependabot/*' --prune`
-2. **PRs Dependabot closed as "update no longer possible"** since the last run. That message
-   means its version lookup came back empty, usually a blocked host (see Dependabot blind spots
-   below), not that nothing is pending.
-3. **Charts Dependabot cannot reach**, listed in the comment at the top of
-   `.github/dependabot.yml`. Check each by hand with `scripts/chart_compare.py <repo> <chart> <current>`,
-   which prints the latest release (highest semver, pre-releases excluded).
+- `update`: a newer version written the same way as the pinned one exists.
+- `held`: a newer major exists that `scripts/update-check.yaml` keeps the pin away from, with the
+  reason. Check whether the reason still holds; if it does, the pin stays.
+- `moving`: a tag such as `latest`, which cannot be compared. Nothing to do.
+- `error`: the lookup failed. Find out why before going on; a failed lookup hides updates.
 
-   First check whether that list is still accurate: GitHub adds public hosts to the proxy's
-   allowlist over time. Look up each chart's repository host (from its `Chart.yaml`) in
-   https://raw.githubusercontent.com/dependabot/proxy/main/internal/handlers/egress_allowlist_defaults.yaml.
-   A host that appears there is reachable again: remove its chart from the comment in
-   `.github/dependabot.yml` in a separate commit, and leave that chart to Dependabot from then on.
-
-Done when every Helm dependency in `charts/*/Chart.yaml` and every image Dependabot tracks is
-either on a candidate list or confirmed current.
+Done when the check ends with `0 failed` and every `update` row is on the candidate list.
 
 ## 2. Assess each candidate
 
 For every chart bump run `scripts/chart_compare.py <repository> <chart> <current> <target>` with the
 repository exactly as `Chart.yaml` lists it. It fails when the target does not exist, which is the
-first check: a PR can propose a version of a *different* chart (see blind spots). Also compare the
-target with "latest release" and prefer the latest when it is newer than the PR.
+first check.
 
 Per candidate, record:
 
@@ -58,7 +47,7 @@ Per candidate, record:
 
 ## 3. Plan and get approval
 
-Order the updates, then present the table (update, source PR or manual, schema work, risk) and the
+Order the updates, then present the table (update, schema work, risk) and the
 order with its reasons. Wait for the user's approval before changing anything in the cluster;
 this is their production box.
 
@@ -70,19 +59,21 @@ Default ordering, adjust with reason:
 3. Grafana, then Loki, then Alloy: consumer of the datasources, receiver, sender.
 4. Prometheus last: the alerting pipeline depends on it.
 5. Major versions and anything with migration notes after the routine ones, each alone.
+6. Pins outside the charts last; they do not touch the cluster. npm: edit `package.json`, run
+   `npm install`, then `npm run generate:all` (must leave no diff) and `release_diff.py`, which
+   exercises the Bitwarden CLI. Host pins under `ansible/`: edit the
+   role default; the user runs the playbook (`ansible-playbook site.yml -K --tags <role>`).
 
 ## 4. Roll out one update at a time
 
 Repeat for each update, in order. Finish one completely before starting the next, so a problem
 has exactly one suspect.
 
-1. **Apply.** From a PR: `git cherry-pick origin/<branch>` (history is linear). Manual: edit the
-   version in `Chart.yaml` or the image tag in `values.yaml`.
-   An image bump touches only `values.yaml`, but the tag is repeated where Dependabot does not
-   look: the main image's tag is the wrapper's `appVersion` in `Chart.yaml` (it sets the
-   `app.kubernetes.io/version` label), and every image's tag is a default in the `README.md`
-   configuration table. `grep -rn '<old-tag>' charts/<name>` finds them; bring them to the new
-   tag in the same commit (`git commit --amend --no-edit` after a cherry-pick).
+1. **Apply.** Edit the version in `Chart.yaml` or the image tag in `values.yaml`.
+   An image tag is repeated in two more places: the main image's tag is the wrapper's
+   `appVersion` in `Chart.yaml` (it sets the `app.kubernetes.io/version` label), and every
+   image's tag is a default in the `README.md` configuration table.
+   `grep -rn '<old-tag>' charts/<name>` finds them; bring them to the new tag in the same commit.
 2. **Schema.** For each added key not covered: extend `charts/<name>/values.schema.ts` (with a doc
    comment), then `npm run generate:<name>` **and** `npm run generate:platform`. Commit the schema
    change separately and place it *before* the bump, so every commit renders on its own.
@@ -98,13 +89,8 @@ has exactly one suspect.
 6. **Verify** per [`verification.md`](verification.md). Done when that service's checks pass
    and every error seen is either explained there or explained by you.
 7. **Commit.** English message in the repository's style: lowercase subject saying what changed
-   and why, body with what the upgrade changes and how it was verified. Cherry-picked Dependabot
-   commits keep their message. Every commit that settles a PR -- the cherry-pick, or the commit
-   that defers it, such as an `ignore` rule -- gets a `Closes: #<number>` trailer, so GitHub closes
-   the PR on push with a link to the commit. Dependabot's messages contain a `---` line that
-   `git interpret-trailers` mistakes for a patch divider; pass `--no-divider`:
-   `git log -1 --format=%B | git interpret-trailers --no-divider --trailer "Closes: #<n>" | git commit --amend -F -`.
-   Run the security checklist from `AGENTS.md` on the commit.
+   and why, body with what the upgrade changes and how it was verified. Run the security
+   checklist from `AGENTS.md` on the commit.
 
 If a step fails, stop and report; roll back with `microk8s.helm3 rollback platform <revision> -n platform`
 only with the user's agreement.
@@ -115,18 +101,13 @@ Report a table of every update with its result, anything deferred and why, open 
 need a browser, notifications the user may have received, and anything that surprised you.
 Pushing is the user's (`git push` from their own terminal when the session has no SSH key).
 
-## Dependabot blind spots
+## What the update check cannot see
 
-- **Egress allowlist.** Update jobs run behind a proxy that only reaches allowlisted hosts:
-  ghcr.io, Docker Hub, quay.io, and a few named chart repositories. A chart repository outside it
-  answers 403, the lookup comes back empty, and Dependabot silently closes open PRs as "update no
-  longer possible". The job log (Actions run → Dependabot job) shows `egress not allowlisted <host>`.
-  Fix by pulling the chart from an allowlisted OCI registry when the project publishes one (check
-  `ghcr.io/<org>/.../<chart>` tags; render before/after must be identical); otherwise add the chart
-  to the list in `.github/dependabot.yml`. A `helm-registry` entry without credentials is rejected
-  by GitHub even for public repositories.
-- **Sibling charts.** For classic HTTP repositories Dependabot searches by name prefix and takes
-  the highest version among all matches (dependabot-core#13789), e.g. `prometheus-operator-crds`
-  for `prometheus`. OCI sources are immune; the check in step 2 catches the rest.
-- **Newer versions.** A PR is pinned to what existed when it was opened; step 2 compares with the
-  latest release.
+- **A changed version format.** "Newer" is the highest published version written like the pinned
+  one. A project that starts writing its versions differently (`1.76` instead of `1.76.0`, a
+  dropped `v`) keeps showing as current. When a pin has been current for suspiciously long, look
+  at the registry.
+- **Whether an image has an `arm64` build.** A tag can exist before all its architectures do;
+  step 2 checks that.
+- **Advisories.** The check reports versions, not vulnerabilities. GitHub's security alerts for
+  the npm packages are separate and stay on.

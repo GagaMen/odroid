@@ -1,6 +1,6 @@
 tools_bin_dir: /usr/local/bin
 
-# Pinned by hand: Dependabot does not see these. velero should match the server version the
+# scripts/update-check reports newer releases. velero has to match the server version the
 # velero chart deploys.
 tools_k9s_version: v0.51.0
 tools_velero_version: v1.18.2
