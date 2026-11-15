@@ -1,0 +1,48 @@
+# scripts/update-check compares every pinned version in the repository with what its registry
+# publishes. A timer runs it once a month and posts the result to ntfy.
+
+- name: Install what the update check imports
+  become: true
+  ansible.builtin.apt:
+    name: python3-yaml
+    state: present
+  when: updatecheck_ntfy_url | length > 0
+
+- name: Reach the ntfy host at a fixed address
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '\s{{ updatecheck_ntfy_url | urlsplit("hostname") | regex_escape }}$'
+    line: "{{ updatecheck_ntfy_address }} {{ updatecheck_ntfy_url | urlsplit('hostname') }}"
+  when:
+    - updatecheck_ntfy_url | length > 0
+    - updatecheck_ntfy_address | length > 0
+
+- name: Install the update check units
+  become: true
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop:
+    - update-check.service
+    - update-check.timer
+  when: updatecheck_ntfy_url | length > 0
+
+- name: Check for the update check timer
+  ansible.builtin.stat:
+    path: /etc/systemd/system/update-check.timer
+  register: updatecheck_timer
+
+# A dry run on a fresh machine has not written the unit yet, and systemd cannot enable what it
+# does not know.
+- name: Check for updates on schedule
+  become: true
+  ansible.builtin.systemd_service:
+    name: update-check.timer
+    state: started
+    enabled: true
+    daemon_reload: true
+  when:
+    - updatecheck_ntfy_url | length > 0
+    - not ansible_check_mode or updatecheck_timer.stat.exists

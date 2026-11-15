@@ -1,0 +1,16 @@
+[Unit]
+Description=Check the pinned versions in {{ updatecheck_repository }} for updates
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User={{ updatecheck_user }}
+Environment=UPDATE_CHECK_NTFY_URL={{ updatecheck_ntfy_url }}
+ExecStart={{ updatecheck_repository }}/scripts/update-check --notify
+
+# The check only reads the checkout and talks to registries.
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=yes
+NoNewPrivileges=yes

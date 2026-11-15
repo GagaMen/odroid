@@ -30,3 +30,12 @@ devtools_git_user_email: ""
 # Extra exports for ~/.zshrc.
 shell_extra_env: {}
 #  EXAMPLE_VARIABLE: value
+
+# Where the monthly update check posts its result: the URL of an ntfy topic. Left empty, the
+# check is not scheduled.
+updatecheck_ntfy_url: ""
+#updatecheck_ntfy_url: https://ntfy.example.com/updates
+
+# Set when the node cannot reach that host by name, which is the case when the name resolves to
+# the router's public address. Usually the node's own LAN address.
+updatecheck_ntfy_address: ""

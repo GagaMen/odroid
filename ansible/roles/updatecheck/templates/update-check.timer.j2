@@ -1,0 +1,11 @@
+[Unit]
+Description=Check for updates on schedule
+
+[Timer]
+OnCalendar={{ updatecheck_schedule }}
+# Run a missed check after downtime instead of waiting for the next month.
+Persistent=true
+RandomizedDelaySec=5m
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,17 @@
+# Where the monthly update check reports to: the URL of an ntfy topic, e.g.
+# https://ntfy.example.com/updates. It names a personal domain, so it belongs in host_vars.
+# Left empty, the role installs nothing.
+updatecheck_ntfy_url: ""
+
+# The address to reach that URL's host at, written to /etc/hosts. Needed when the name resolves
+# to the router's public address: other machines in the LAN are forwarded back in, but the node
+# cannot reach its own ingress that way. The node's LAN address is the usual value. Left empty,
+# /etc/hosts is not touched.
+updatecheck_ntfy_address: ""
+
+# The checkout whose pins are checked, and the user who owns it.
+updatecheck_repository: "{{ playbook_dir | dirname }}"
+updatecheck_user: "{{ ansible_facts['user_id'] }}"
+
+# A systemd calendar expression. The default is the first day of every month.
+updatecheck_schedule: "*-*-01 08:00"

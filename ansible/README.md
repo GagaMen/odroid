@@ -96,8 +96,10 @@ one.
 | `shell` | zsh as login shell, Oh My Zsh, Powerlevel10k, `~/.zshrc`, `~/.p10k.zsh` |
 | `tools` | k9s and velero from their release tarballs, checksum-verified; k9s config |
 | `devtools` | Node.js through `n`, Claude Code, git identity, GitHub host keys and push URL |
+| `updatecheck` | Monthly timer that runs `scripts/update-check` and posts the result to ntfy; installs nothing without `updatecheck_ntfy_url` |
 
-Versions are pinned in each role's `defaults/main.yml`. Dependabot does not track them.
+Versions are pinned in each role's `defaults/main.yml`. `scripts/update-check` reports newer
+releases for the ones listed in [`scripts/update-check.yaml`](../scripts/update-check.yaml).
 
 Some tasks deliberately do nothing on a machine that is already set up:
 
