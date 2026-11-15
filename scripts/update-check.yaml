@@ -1,0 +1,38 @@
+# What scripts/update-check cannot work out on its own.
+#
+# Chart dependencies (charts/*/Chart.yaml), container images (every
+# repository/tag pair in charts/*/values.yaml) and the npm packages and engines
+# in package.json are discovered; they need no entry here.
+
+# Versions pinned elsewhere. `file` is a YAML file, `key` a top-level key in it.
+# Exactly one source per pin:
+#   github: <owner>/<repo>   newest tag of that repository
+#   snap: <name>             newest track of that snap with a stable release
+#   chartApp: <chart>        the app version of the chart dependency pinned in
+#                            charts/<chart>; the pin has to match it, not be newest
+pins:
+  - name: k9s
+    file: ansible/roles/tools/defaults/main.yml
+    key: tools_k9s_version
+    github: derailed/k9s
+  # The client follows the server the velero chart deploys.
+  - name: velero client
+    file: ansible/roles/tools/defaults/main.yml
+    key: tools_velero_version
+    chartApp: velero
+  - name: n
+    file: ansible/roles/devtools/defaults/main.yml
+    key: devtools_n_version
+    github: tj/n
+  - name: microk8s
+    file: ansible/roles/microk8s/defaults/main.yml
+    key: microk8s_channel
+    snap: microk8s
+
+# Pins that stay on their major version. A newer major is still reported, as
+# held, together with the reason.
+hold:
+  typescript: >-
+    ts-json-schema-generator requires ^5.9.3 and uses the compiler API; a newer
+    major at the root would leave the generator on its own nested 5.x
+  node: stays on the LTS line; moving to the next one is a deliberate step

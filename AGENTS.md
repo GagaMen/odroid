@@ -239,6 +239,9 @@ helm dependency update platform/
 # Install/upgrade the platform; secrets are read from Bitwarden (see Traps)
 scripts/helm-platform upgrade
 
+# List pinned versions with a newer release (charts, images, npm, host tools)
+scripts/update-check
+
 # Show all resources in namespace
 kubectl get all -n <namespace>
 

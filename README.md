@@ -107,6 +107,29 @@ scripts/helm-platform install
 scripts/helm-platform upgrade
 ```
 
+## 🔄 Updates
+
+Every version in this repository is pinned. [`scripts/update-check`](scripts/update-check) lists
+the pins that have a newer release:
+
+```bash
+scripts/update-check          # what is not current
+scripts/update-check --all    # every pin
+```
+
+It reads the chart dependencies, every `repository`/`tag` pair in the charts' `values.yaml`,
+`package.json`, and the host pins named in
+[`scripts/update-check.yaml`](scripts/update-check.yaml), and asks the registry each one comes
+from. It changes nothing; bumping a pin, deploying and verifying it stay manual steps.
+
+The `updatecheck` role of the [host playbook](ansible/README.md) runs the check on the first of
+every month and posts the result to an ntfy topic. The message arrives when nothing is pending
+as well, so a month without one means the check did not run.
+
+Vulnerabilities are a separate matter: the check compares versions and knows nothing about
+advisories. GitHub's Dependabot alerts cover the npm packages and are a repository setting,
+independent of this check.
+
 ## 📁 Repository Structure
 
 ```
@@ -139,7 +162,7 @@ scripts/helm-platform upgrade
 │   │   ├── velero-credentials.yaml         # S3 credentials per Velero target
 │   │   └── volumesnapshotclass.yaml        # CSI snapshot class backed by Longhorn
 │   └── values.yaml                         # Your configuration (gitignored)
-├── scripts/                                # Helm wrapper and secret resolver
+├── scripts/                                # Helm wrapper, secret resolver, update check
 ├── secrets/mapping.yaml                    # Which values come from Bitwarden
 ├── host/                                   # Host configuration below Kubernetes
 │   ├── README.md                           # What each file does and how to apply it

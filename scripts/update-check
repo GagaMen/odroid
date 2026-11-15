@@ -1,0 +1,309 @@
+#!/usr/bin/env python3
+"""List every pinned version in this repository that has a newer release.
+
+Usage (from anywhere): scripts/update-check [--all] [--notify]
+
+Checks, against the place each one is published:
+
+  chart     dependencies in charts/*/Chart.yaml (OCI registries and classic
+            HTTP repositories)
+  image     every repository/tag pair in charts/*/values.yaml, sidecars included
+  npm       devDependencies and engines in package.json
+  pin       what scripts/update-check.yaml lists: tool versions in the Ansible
+            roles, the MicroK8s channel
+
+"Newer" means: among the published versions written the same way as the pinned
+one, the highest. `9.1.3-alpine` is compared with other `<n>.<n>.<n>-alpine`
+tags only, so pre-releases, other variants and moving tags such as `latest`
+never count. Pins named under `hold` in update-check.yaml stay on their major
+version; a newer major is reported as held.
+
+Without options, prints the pins that are not current. --all prints every pin.
+--notify also posts a summary to the ntfy topic URL in $UPDATE_CHECK_NTFY_URL,
+whether or not anything is pending, so a month without a message means the
+check itself is broken.
+
+Nothing is changed, and nothing is read from the cluster: the check compares
+the working tree with the registries. Exits 1 if a lookup failed.
+"""
+import json
+import os
+import re
+import subprocess
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
+import yaml
+
+ROOT = Path(__file__).resolve().parent.parent
+CONFIG = Path(__file__).resolve().with_name("update-check.yaml")
+AGENT = {"User-Agent": "update-check"}
+
+
+def fetch(url, headers=None):
+    """GET a URL; returns (body, response headers)."""
+    request = urllib.request.Request(url, headers={**AGENT, **(headers or {})})
+    with urllib.request.urlopen(request, timeout=60) as response:
+        return response.read(), response.headers
+
+
+def fetch_json(url, headers=None):
+    return json.loads(fetch(url, headers)[0])
+
+
+# --- versions ---------------------------------------------------------------
+
+def shape(version):
+    """A pattern for versions written like this one: same text, any numbers."""
+    parts = re.split(r"(\d+)", version)
+    return re.compile("".join(r"(\d+)" if i % 2 else re.escape(part) for i, part in enumerate(parts)))
+
+
+def newest(current, published, same_major=False):
+    """The highest published version shaped like `current`, as (version, held).
+
+    `held` is the highest version beyond the current major when `same_major`
+    keeps the pin from moving there, otherwise None.
+    """
+    pattern = shape(current)
+    if not pattern.groups:
+        return None, None  # no number in it: a moving tag such as "latest"
+    numbers = lambda version: tuple(int(n) for n in pattern.fullmatch(version).groups())
+    candidates = sorted((v for v in set(published) | {current} if pattern.fullmatch(v)), key=numbers)
+    if not same_major:
+        return candidates[-1], None
+    major = numbers(current)[0]
+    within = [v for v in candidates if numbers(v)[0] == major]
+    beyond = [v for v in candidates if numbers(v)[0] > major]
+    return within[-1], beyond[-1] if beyond else None
+
+
+# --- sources ----------------------------------------------------------------
+
+def registry_tags(reference):
+    """All tags of an image or OCI chart, e.g. ghcr.io/org/name or org/name."""
+    host, _, path = reference.partition("/")
+    if "." not in host and ":" not in host:  # Docker Hub leaves its host out
+        host, path = "registry-1.docker.io", reference if "/" in reference else f"library/{reference}"
+    url, headers, tags = f"https://{host}/v2/{path}/tags/list?n=1000", {}, []
+    while url:
+        try:
+            body, response = fetch(url, headers)
+        except urllib.error.HTTPError as error:
+            challenge = error.headers.get("WWW-Authenticate", "")
+            if error.code != 401 or headers or not challenge.startswith("Bearer "):
+                raise
+            # Public repositories still want a token; the registry says where to get one.
+            fields = dict(re.findall(r'(\w+)="([^"]*)"', challenge))
+            query = urllib.parse.urlencode({k: fields[k] for k in ("service", "scope") if k in fields})
+            token = fetch_json(f"{fields['realm']}?{query}")
+            headers = {"Authorization": f"Bearer {token.get('token') or token['access_token']}"}
+            continue
+        tags += json.loads(body).get("tags") or []
+        following = re.match(r'<([^>]+)>;\s*rel="next"', response.get("Link", ""))
+        url = urllib.parse.urljoin(url, following.group(1)) if following else None
+    return tags
+
+
+def chart_index(repository, chart):
+    """The entries of a chart in a classic HTTP repository."""
+    body, _ = fetch(repository.rstrip("/") + "/index.yaml", {"User-Agent": "Helm/3"})
+    # The C loader matters: these indexes run to several megabytes.
+    return yaml.load(body, Loader=getattr(yaml, "CSafeLoader", yaml.SafeLoader))["entries"][chart]
+
+
+def chart_versions(repository, chart):
+    if repository.startswith("oci://"):
+        return registry_tags(f"{repository[len('oci://'):].rstrip('/')}/{chart}")
+    return [entry["version"] for entry in chart_index(repository, chart)]
+
+
+def github_tags(repository):
+    out = subprocess.run(["git", "ls-remote", "--tags", "--refs", f"https://github.com/{repository}.git"],
+                         capture_output=True, text=True, check=True, timeout=60).stdout
+    return [line.split("refs/tags/", 1)[1] for line in out.splitlines()]
+
+
+def snap_channels(name):
+    """Channels of a snap that have a release for this machine's architecture, as track/risk."""
+    arch = {"aarch64": "arm64", "x86_64": "amd64"}.get(os.uname().machine, os.uname().machine)
+    info = fetch_json(f"https://api.snapcraft.io/v2/snaps/info/{name}?fields=channel-map",
+                      {"Snap-Device-Series": "16"})
+    return [f"{entry['channel']['track']}/{entry['channel']['risk']}"
+            for entry in info["channel-map"] if entry["channel"]["architecture"] == arch]
+
+
+def npm_versions(package):
+    name = urllib.parse.quote(package, safe="@")
+    document = fetch_json(f"https://registry.npmjs.org/{name}",
+                          {"Accept": "application/vnd.npm.install-v1+json"})
+    return list(document["versions"])
+
+
+def node_versions():
+    return [release["version"].lstrip("v") for release in fetch_json("https://nodejs.org/dist/index.json")]
+
+
+# --- inventory --------------------------------------------------------------
+
+def load(path):
+    return yaml.safe_load(path.read_text())
+
+
+def images(node, path=""):
+    """Every mapping with a repository and a tag, with its path in the values."""
+    if isinstance(node, dict):
+        if isinstance(node.get("repository"), str) and isinstance(node.get("tag"), str) and node["tag"]:
+            yield path, node["repository"], node["tag"]
+        for key, child in node.items():
+            yield from images(child, f"{path}.{key}" if path else str(key))
+
+
+def chart_dependencies():
+    """(wrapper directory, dependency) for every chart dependency."""
+    for chart_file in sorted(ROOT.glob("charts/*/Chart.yaml")):
+        for dependency in load(chart_file).get("dependencies") or []:
+            yield chart_file.parent, dependency
+
+
+def inventory(config):
+    """Every pin as a dict: kind, name, current, where, and how to list what is published."""
+    pins = []
+    for wrapper, dep in chart_dependencies():
+        pins.append(dict(kind="chart", name=dep["name"], current=str(dep["version"]),
+                         where=f"charts/{wrapper.name}/Chart.yaml",
+                         published=lambda dep=dep: chart_versions(dep["repository"], dep["name"])))
+
+    for values_file in sorted(ROOT.glob("charts/*/values.yaml")):
+        for path, repository, tag in images(load(values_file)):
+            pins.append(dict(kind="image", name=repository, current=tag,
+                             where=f"charts/{values_file.parent.name}/values.yaml {path}",
+                             published=lambda repository=repository: registry_tags(repository)))
+
+    package = json.loads((ROOT / "package.json").read_text())
+    for name, version in (package.get("devDependencies") or {}).items():
+        pins.append(dict(kind="npm", name=name, current=version, where="package.json devDependencies",
+                         published=lambda name=name: npm_versions(name)))
+    engines = package.get("engines") or {}
+    if "node" in engines:
+        pins.append(dict(kind="npm", name="node", current=engines["node"], where="package.json engines",
+                         published=node_versions))
+    if "npm" in engines:
+        pins.append(dict(kind="npm", name="npm", current=engines["npm"], where="package.json engines",
+                         published=lambda: npm_versions("npm")))
+
+    for pin in config.get("pins") or []:
+        entry = dict(kind="pin", name=pin["name"], current=str(load(ROOT / pin["file"])[pin["key"]]),
+                     where=f"{pin['file']} {pin['key']}")
+        if "github" in pin:
+            entry["published"] = lambda pin=pin: github_tags(pin["github"])
+        elif "snap" in pin:
+            entry["published"] = lambda pin=pin: snap_channels(pin["snap"])
+        elif "chartApp" in pin:
+            entry["expected"] = lambda pin=pin: chart_app_version(pin["chartApp"])
+        else:
+            sys.exit(f"{CONFIG.name}: pin {pin['name']} has no source")
+        pins.append(entry)
+    return pins
+
+
+def chart_app_version(wrapper):
+    """The app version of the chart dependency that charts/<wrapper> pins."""
+    dep = next(dep for directory, dep in chart_dependencies() if directory.name == wrapper)
+    if dep["repository"].startswith("oci://"):
+        raise ValueError("chartApp needs a classic HTTP chart repository")
+    entry = next(e for e in chart_index(dep["repository"], dep["name"]) if e["version"] == str(dep["version"]))
+    return str(entry["appVersion"])
+
+
+# --- check ------------------------------------------------------------------
+
+def check(pin, hold):
+    """Adds status (current, update, held, moving, error), latest and note to a pin."""
+    pin.update(status="current", latest=pin["current"], note="")
+    try:
+        if "expected" in pin:
+            expected = pin["expected"]()
+            if pin["current"].lstrip("v") != expected.lstrip("v"):
+                prefix = "v" if pin["current"].startswith("v") else ""
+                pin.update(status="update", latest=prefix + expected.lstrip("v"))
+            return pin
+        latest, beyond = newest(pin["current"], pin["published"](), same_major=pin["name"] in hold)
+    except Exception as error:  # one unreachable registry must not hide the other results
+        pin.update(status="error", latest="?", note=f"{type(error).__name__}: {error}"[:200])
+        return pin
+    if latest is None:
+        pin.update(status="moving", note="not a version, cannot be compared")
+    elif latest != pin["current"]:
+        pin.update(status="update", latest=latest)
+    if beyond:
+        pin["note"] = f"{beyond} held: {' '.join(hold[pin['name']].split())}"
+        if pin["status"] == "current":
+            pin["status"] = "held"
+    return pin
+
+
+def table(pins):
+    rows = [("KIND", "NAME", "CURRENT", "LATEST", "STATUS", "WHERE")]
+    rows += [(p["kind"], p["name"], p["current"], p["latest"], p["status"], p["where"]) for p in pins]
+    widths = [max(len(row[i]) for row in rows) for i in range(5)]
+    lines = []
+    for row, pin in zip(rows, [None] + pins):
+        lines.append("  ".join(cell.ljust(width) for cell, width in zip(row, widths)) + "  " + row[5])
+        if pin and pin["note"]:
+            lines.append(f"      {pin['note']}")
+    return "\n".join(lines)
+
+
+def notify(url, pins):
+    updates = [p for p in pins if p["status"] == "update"]
+    errors = [p for p in pins if p["status"] == "error"]
+    held = [p for p in pins if p["status"] == "held" or (p["status"] == "update" and p["note"])]
+    title = f"{len(updates)} update{'s' if len(updates) != 1 else ''} pending" if updates else "Everything is up to date"
+    if errors:
+        title += f", {len(errors)} lookup{'s' if len(errors) != 1 else ''} failed"
+    lines = [f"{p['name']} {p['current']} -> {p['latest']}" for p in updates]
+    lines += [f"{p['name']}: lookup failed" for p in errors]
+    lines += [f"{p['name']}: {p['note'].split(':')[0]}" for p in held]
+    lines.append(f"{len(pins)} pins checked.")
+    request = urllib.request.Request(
+        url, data="\n".join(lines).encode(), method="POST",
+        headers={**AGENT, "Title": title, "Tags": "warning" if errors else "package" if updates else "white_check_mark"})
+    try:
+        urllib.request.urlopen(request, timeout=60).close()
+    except OSError as error:
+        sys.exit(f"the result could not be posted to ntfy: {error}")
+
+
+def main():
+    options = set(sys.argv[1:])
+    if options - {"--all", "--notify"}:
+        sys.exit(__doc__)
+    url = os.environ.get("UPDATE_CHECK_NTFY_URL")
+    if "--notify" in options and not url:
+        sys.exit("--notify needs the ntfy topic URL in UPDATE_CHECK_NTFY_URL")
+
+    config = load(CONFIG)
+    hold = config.get("hold") or {}
+    pins = inventory(config)
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        pins = list(pool.map(lambda pin: check(pin, hold), pins))
+
+    shown = pins if "--all" in options else [p for p in pins if p["status"] != "current"]
+    if shown:
+        print(table(shown))
+    counts = {status: sum(p["status"] == status for p in pins) for status in ("update", "held", "moving", "error")}
+    print(f"\n{len(pins)} pins checked: {counts['update']} with an update, {counts['held']} held, "
+          f"{counts['moving']} not comparable, {counts['error']} failed.")
+
+    if "--notify" in options:
+        notify(url, pins)
+    sys.exit(1 if counts["error"] else 0)
+
+
+if __name__ == "__main__":
+    main()
