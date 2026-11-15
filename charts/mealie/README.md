@@ -58,8 +58,9 @@ mealie:
           - mealie.your-domain.com
 ```
 
-`bring.username` and `bring.password` come from Bitwarden through
-[`secrets/mapping.yaml`](../../secrets/mapping.yaml) (item `bring`), not from `values.yaml`.
+`bring.username`, `bring.password` and `bring.mealieApiKey` come from Bitwarden through
+[`secrets/mapping.yaml`](../../secrets/mapping.yaml) (items `bring` and `mealie`), not from
+`values.yaml`.
 
 ### Standalone
 
